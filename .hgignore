@@ -1,0 +1,9 @@
+syntax: glob
+.dep
+.DS_Store
+output
+linker.map
+*.pyc
+
+syntax: regexp
+^circuit/\w+\.[bs]\#.$
