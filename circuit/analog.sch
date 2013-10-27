@@ -8180,6 +8180,7 @@ Grid 2.54 mm&lt;p&gt;
 <part name="C13" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
 <part name="GND13" library="supply1" deviceset="GNDA" device=""/>
 <part name="GND14" library="supply1" deviceset="GNDA" device=""/>
+<part name="C14" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 </parts>
 <sheets>
 <sheet>
@@ -8266,6 +8267,7 @@ Grid 2.54 mm&lt;p&gt;
 <instance part="C13" gate="G$1" x="152.4" y="-66.04"/>
 <instance part="GND13" gate="1" x="152.4" y="-73.66"/>
 <instance part="GND14" gate="1" x="-33.02" y="-33.02"/>
+<instance part="C14" gate="G$1" x="27.94" y="30.48" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -8451,6 +8453,10 @@ Grid 2.54 mm&lt;p&gt;
 <segment>
 <pinref part="R7" gate="G$1" pin="1"/>
 <pinref part="GND6" gate="1" pin="GNDA"/>
+<pinref part="C14" gate="G$1" pin="1"/>
+<wire x1="33.02" y1="25.4" x2="27.94" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="27.94" y1="25.4" x2="27.94" y2="27.94" width="0.1524" layer="91"/>
+<junction x="33.02" y="25.4"/>
 </segment>
 <segment>
 <pinref part="C7" gate="G$1" pin="1"/>
@@ -8560,6 +8566,8 @@ Grid 2.54 mm&lt;p&gt;
 <pinref part="R6" gate="G$1" pin="1"/>
 <pinref part="R7" gate="G$1" pin="2"/>
 <junction x="33.02" y="35.56"/>
+<pinref part="C14" gate="G$1" pin="2"/>
+<wire x1="33.02" y1="35.56" x2="27.94" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
