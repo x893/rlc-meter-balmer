@@ -7957,6 +7957,115 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 </deviceset>
 </devicesets>
 </library>
+<library name="solpad">
+<description>&lt;b&gt;Solder Pads/Test Points&lt;/b&gt;&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="LSP10">
+<description>&lt;b&gt;SOLDER PAD&lt;/b&gt;&lt;p&gt;
+drill 1.0 mm</description>
+<wire x1="-1.27" y1="0.254" x2="-1.27" y2="-0.254" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="0.254" x2="1.27" y2="-0.254" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="0.254" x2="1.143" y2="0.254" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="-0.254" x2="1.143" y2="-0.254" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="-0.254" x2="-1.143" y2="-0.254" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="0.254" x2="-1.143" y2="0.254" width="0.1524" layer="21"/>
+<wire x1="1.143" y1="0.254" x2="0.635" y2="0.254" width="0.1524" layer="51"/>
+<wire x1="-1.143" y1="-0.254" x2="-0.635" y2="-0.254" width="0.1524" layer="51"/>
+<wire x1="0.635" y1="0.254" x2="0.635" y2="-0.254" width="0.1524" layer="51"/>
+<wire x1="0.635" y1="0.254" x2="-0.635" y2="0.254" width="0.1524" layer="51"/>
+<wire x1="0.635" y1="-0.254" x2="1.143" y2="-0.254" width="0.1524" layer="51"/>
+<wire x1="-0.635" y1="0.254" x2="-0.635" y2="-0.254" width="0.1524" layer="51"/>
+<wire x1="-0.635" y1="0.254" x2="-1.143" y2="0.254" width="0.1524" layer="51"/>
+<wire x1="-0.635" y1="-0.254" x2="0.635" y2="-0.254" width="0.1524" layer="51"/>
+<pad name="MP" x="0" y="0" drill="1.016" diameter="2.159" shape="octagon"/>
+<text x="-1.27" y="1.27" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="0" y="0.254" size="0.0254" layer="27">&gt;VALUE</text>
+</package>
+</packages>
+<symbols>
+<symbol name="LSP">
+<wire x1="-1.016" y1="2.032" x2="1.016" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.016" y1="0" x2="1.016" y2="2.032" width="0.254" layer="94"/>
+<circle x="0" y="1.016" radius="1.016" width="0.4064" layer="94"/>
+<text x="-1.27" y="2.921" size="1.778" layer="95">&gt;NAME</text>
+<pin name="MP" x="0" y="-2.54" visible="off" length="short" direction="pas" rot="R90"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="LSP10" prefix="LSP">
+<description>&lt;b&gt;SOLDER PAD&lt;/b&gt;&lt;p&gt; drill 1.0 mm, distributor Buerklin, 12H555</description>
+<gates>
+<gate name="1" symbol="LSP" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LSP10">
+<connects>
+<connect gate="1" pin="MP" pad="MP"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
+<library name="con-garry">
+<description>&lt;b&gt;Pin Header Connectors&lt;/b&gt;&lt;p&gt;
+&lt;a href="www.mpe-connector.de"&gt;Menufacturer&lt;/a&gt;&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="332-02">
+<description>&lt;b&gt;2 Pin - 2mm Dual Row&lt;/b&gt;&lt;p&gt;
+Source: www.mpe-connector.de / garry_shortform_2012.pdf</description>
+<wire x1="-0.85" y1="-1.9" x2="0.85" y2="-1.9" width="0.2032" layer="21"/>
+<wire x1="0.85" y1="-1.9" x2="0.85" y2="-0.4" width="0.2032" layer="21"/>
+<wire x1="0.85" y1="0.4" x2="0.85" y2="1.9" width="0.2032" layer="21"/>
+<wire x1="0.85" y1="1.9" x2="-0.85" y2="1.9" width="0.2032" layer="21"/>
+<wire x1="-0.85" y1="1.9" x2="-0.85" y2="0.4" width="0.2032" layer="21"/>
+<wire x1="-0.85" y1="-0.4" x2="-0.85" y2="-1.9" width="0.2032" layer="21"/>
+<wire x1="-0.85" y1="0.4" x2="-0.85" y2="-0.4" width="0.2032" layer="21" curve="-129.185"/>
+<wire x1="0.85" y1="-0.4" x2="0.85" y2="0.4" width="0.2032" layer="21" curve="-129.185"/>
+<pad name="1" x="0" y="-1" drill="0.9" diameter="1.27"/>
+<pad name="2" x="0" y="1" drill="0.9" diameter="1.27"/>
+<text x="-0.65" y="-1.75" size="0.3048" layer="21" font="vector">1</text>
+<text x="-0.62" y="-3.81" size="1.27" layer="25">&gt;NAME</text>
+<text x="-0.62" y="2.54" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-0.25" y1="-1.25" x2="0.25" y2="-0.75" layer="51"/>
+<rectangle x1="-0.25" y1="0.75" x2="0.25" y2="1.25" layer="51"/>
+</package>
+</packages>
+<symbols>
+<symbol name="MV">
+<wire x1="1.27" y1="0" x2="0" y2="0" width="0.6096" layer="94"/>
+<text x="2.54" y="-0.762" size="1.524" layer="95">&gt;NAME</text>
+<text x="-0.762" y="1.397" size="1.778" layer="96">&gt;VALUE</text>
+<pin name="S" x="-2.54" y="0" visible="off" length="short" direction="pas"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="332-02" prefix="X">
+<description>&lt;b&gt;2 Pin - 2mm Dual Row&lt;/b&gt;&lt;p&gt;
+Source: www.mpe-connector.de / garry_shortform_2012.pdf</description>
+<gates>
+<gate name="-1" symbol="MV" x="-10.16" y="0" addlevel="always"/>
+<gate name="-2" symbol="MV" x="10.16" y="0" addlevel="always"/>
+</gates>
+<devices>
+<device name="" package="332-02">
+<connects>
+<connect gate="-1" pin="S" pad="1"/>
+<connect gate="-2" pin="S" pad="2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -8059,6 +8168,10 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <part name="GND4" library="supply1" deviceset="GNDA" device=""/>
 <part name="IC4" library="balmer" deviceset="AD8221" device="R"/>
 <part name="IC5" library="balmer" deviceset="AD8221" device="R"/>
+<part name="LSP1" library="solpad" deviceset="LSP10" device=""/>
+<part name="LSP2" library="solpad" deviceset="LSP10" device=""/>
+<part name="X3" library="con-garry" deviceset="332-02" device=""/>
+<part name="X9" library="con-garry" deviceset="332-02" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8126,7 +8239,7 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <instance part="C15" gate="G$1" x="162.56" y="-22.86"/>
 <instance part="GND16" gate="1" x="162.56" y="-30.48"/>
 <instance part="R25" gate="G$1" x="55.88" y="-27.94" rot="R270"/>
-<instance part="R26" gate="G$1" x="48.26" y="-43.18" rot="R180"/>
+<instance part="R26" gate="G$1" x="15.24" y="-43.18" rot="R180"/>
 <instance part="L3" gate="G$1" x="114.3" y="38.1" rot="R90"/>
 <instance part="C16" gate="G$1" x="93.98" y="33.02"/>
 <instance part="C17" gate="G$1" x="86.36" y="33.02"/>
@@ -8167,6 +8280,12 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <instance part="GND4" gate="1" x="-66.04" y="83.82"/>
 <instance part="IC4" gate="G$1" x="68.58" y="-27.94"/>
 <instance part="IC5" gate="G$1" x="71.12" y="20.32"/>
+<instance part="LSP1" gate="1" x="86.36" y="20.32"/>
+<instance part="LSP2" gate="1" x="83.82" y="-25.4"/>
+<instance part="X3" gate="-1" x="25.4" y="15.24"/>
+<instance part="X3" gate="-2" x="25.4" y="25.4"/>
+<instance part="X9" gate="-1" x="25.4" y="-38.1"/>
+<instance part="X9" gate="-2" x="25.4" y="-25.4"/>
 </instances>
 <busses>
 </busses>
@@ -8674,17 +8793,24 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <wire x1="93.98" y1="17.78" x2="88.9" y2="17.78" width="0.1524" layer="91"/>
 <pinref part="IC5" gate="G$1" pin="OUT"/>
 <wire x1="83.82" y1="20.32" x2="83.82" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="83.82" y1="17.78" x2="88.9" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="83.82" y1="17.78" x2="86.36" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="LSP1" gate="1" pin="MP"/>
+<wire x1="86.36" y1="17.78" x2="88.9" y2="17.78" width="0.1524" layer="91"/>
+<junction x="86.36" y="17.78"/>
 </segment>
 </net>
 <net name="V_IN+" class="0">
 <segment>
-<wire x1="58.42" y1="10.16" x2="10.16" y2="10.16" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="10.16" x2="22.86" y2="10.16" width="0.1524" layer="91"/>
 <pinref part="R16" gate="G$1" pin="1"/>
+<wire x1="22.86" y1="10.16" x2="10.16" y2="10.16" width="0.1524" layer="91"/>
 <wire x1="10.16" y1="10.16" x2="7.62" y2="10.16" width="0.1524" layer="91"/>
 <wire x1="7.62" y1="10.16" x2="7.62" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="IC5" gate="G$1" pin="-"/>
 <wire x1="63.5" y1="10.16" x2="58.42" y2="10.16" width="0.1524" layer="91"/>
+<pinref part="X3" gate="-1" pin="S"/>
+<wire x1="22.86" y1="15.24" x2="22.86" y2="10.16" width="0.1524" layer="91"/>
+<junction x="22.86" y="10.16"/>
 </segment>
 </net>
 <net name="N$19" class="0">
@@ -8747,7 +8873,7 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <wire x1="-53.34" y1="20.32" x2="-58.42" y2="20.32" width="0.1524" layer="91"/>
 <wire x1="-58.42" y1="-35.56" x2="-58.42" y2="-43.18" width="0.1524" layer="91"/>
 <pinref part="R26" gate="G$1" pin="2"/>
-<wire x1="43.18" y1="-43.18" x2="-58.42" y2="-43.18" width="0.1524" layer="91"/>
+<wire x1="10.16" y1="-43.18" x2="-58.42" y2="-43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="I_ADC" class="0">
@@ -8864,7 +8990,11 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <segment>
 <pinref part="IC5" gate="G$1" pin="+"/>
 <pinref part="R17" gate="G$1" pin="1"/>
-<wire x1="63.5" y1="30.48" x2="-25.4" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="63.5" y1="30.48" x2="22.86" y2="30.48" width="0.1524" layer="91"/>
+<pinref part="X3" gate="-2" pin="S"/>
+<wire x1="22.86" y1="30.48" x2="-25.4" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="25.4" x2="22.86" y2="30.48" width="0.1524" layer="91"/>
+<junction x="22.86" y="30.48"/>
 </segment>
 </net>
 <net name="N$9" class="0">
@@ -8884,24 +9014,37 @@ Source: http://www.analog.com/static/imported-files/data_sheets/AD817.pdf</descr
 <net name="N$22" class="0">
 <segment>
 <pinref part="R26" gate="G$1" pin="1"/>
-<wire x1="53.34" y1="-43.18" x2="53.34" y2="-38.1" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="-43.18" x2="22.86" y2="-43.18" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="-43.18" x2="45.72" y2="-43.18" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="-43.18" x2="45.72" y2="-38.1" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="-38.1" x2="53.34" y2="-38.1" width="0.1524" layer="91"/>
 <pinref part="IC4" gate="G$1" pin="-"/>
 <wire x1="53.34" y1="-38.1" x2="60.96" y2="-38.1" width="0.1524" layer="91"/>
+<pinref part="X9" gate="-1" pin="S"/>
+<wire x1="22.86" y1="-38.1" x2="22.86" y2="-43.18" width="0.1524" layer="91"/>
+<junction x="22.86" y="-43.18"/>
 </segment>
 </net>
 <net name="N$30" class="0">
 <segment>
 <pinref part="IC2" gate="A" pin="Y"/>
 <pinref part="IC4" gate="G$1" pin="+"/>
-<wire x1="5.08" y1="-20.32" x2="60.96" y2="-20.32" width="0.1524" layer="91"/>
+<wire x1="5.08" y1="-20.32" x2="22.86" y2="-20.32" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="-20.32" x2="60.96" y2="-20.32" width="0.1524" layer="91"/>
 <wire x1="60.96" y1="-20.32" x2="60.96" y2="-17.78" width="0.1524" layer="91"/>
+<pinref part="X9" gate="-2" pin="S"/>
+<wire x1="22.86" y1="-25.4" x2="22.86" y2="-20.32" width="0.1524" layer="91"/>
+<junction x="22.86" y="-20.32"/>
 </segment>
 </net>
 <net name="N$29" class="0">
 <segment>
 <pinref part="C14" gate="G$1" pin="1"/>
 <pinref part="IC4" gate="G$1" pin="OUT"/>
-<wire x1="93.98" y1="-27.94" x2="81.28" y2="-27.94" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="-27.94" x2="83.82" y2="-27.94" width="0.1524" layer="91"/>
+<pinref part="LSP2" gate="1" pin="MP"/>
+<wire x1="83.82" y1="-27.94" x2="81.28" y2="-27.94" width="0.1524" layer="91"/>
+<junction x="83.82" y="-27.94"/>
 </segment>
 </net>
 </nets>
