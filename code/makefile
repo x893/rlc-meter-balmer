@@ -21,8 +21,10 @@ C_DEFINES= -DNDEBUG
 C_FLAGS= -Os
 endif
 
-C_DEFINES+= -DSTM32F10X_MD
+# C_DEFINES+= -DSTM32F10X_MD
+C_DEFINES+= -DSTM32F10X_CL
 C_DEFINES+= -DHSE_VALUE=8000000
+C_DEFINES+= -std=c99
 
 C_FLAGS+= -Wall -c -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd -MMD $(C_INCLIDES) $(C_DEFINES) 
 

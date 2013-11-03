@@ -8108,7 +8108,7 @@ Source: www.mpe-connector.de / garry_shortform_2012.pdf</description>
 <part name="R16" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="R17" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="GND8" library="supply1" deviceset="GNDA" device=""/>
-<part name="R18" library="rcl" deviceset="R-EU_" device="R0805" value="5.6k"/>
+<part name="R18" library="rcl" deviceset="R-EU_" device="R0805" value="47k"/>
 <part name="U$2" library="balmer" deviceset="MCP6S21" device=""/>
 <part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="R19" library="rcl" deviceset="R-EU_" device="R0805" value="56k"/>
@@ -8132,7 +8132,7 @@ Source: www.mpe-connector.de / garry_shortform_2012.pdf</description>
 <part name="R24" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="C15" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
 <part name="GND16" library="supply1" deviceset="GNDA" device=""/>
-<part name="R25" library="rcl" deviceset="R-EU_" device="R0805" value="5.6k"/>
+<part name="R25" library="rcl" deviceset="R-EU_" device="R0805" value="47k"/>
 <part name="R26" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="L3" library="rcl" deviceset="L-US" device="" value="MMZ1608B102C"/>
 <part name="C16" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>

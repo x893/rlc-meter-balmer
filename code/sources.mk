@@ -5,6 +5,7 @@
 
 DEPS += \
 	output/CMSIS/startup_stm32f10x_md.d \
+	output/base/src/dac.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
 	output/base/src/sound.d \
@@ -55,6 +56,7 @@ DEPS += \
 
 OBJS += \
 	output/CMSIS/startup_stm32f10x_md.o \
+	output/base/src/dac.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
 	output/base/src/sound.o \
@@ -106,6 +108,10 @@ OBJS += \
 output/CMSIS/startup_stm32f10x_md.o: Libraries/CMSIS/Device/ST/STM32F10x/Source/Templates/gcc_ride7/startup_stm32f10x_md.S
 	@echo 'Building target: startup_stm32f10x_md.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
+
+output/base/src/dac.o: ./src/dac.c
+	@echo 'Building target: dac.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/hw_config.o: ./src/hw_config.c
 	@echo 'Building target: hw_config.c'

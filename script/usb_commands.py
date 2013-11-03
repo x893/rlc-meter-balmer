@@ -114,7 +114,7 @@ def main():
     if True:
         #readOne()
         for x in xrange(2):
-            print "write=",dev.write(3, [COMMAND_SET_LED, ord('A')], interface=1)
+            print "write=",dev.write(3, [COMMAND_SET_LED, ord('B')], interface=1)
             readOne()
 
     pass

@@ -18,7 +18,7 @@
 <layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
@@ -1639,7 +1639,7 @@ design rules under a new name.</description>
 <element name="R15" library="rcl" package="R0805" value="1k" x="10.16" y="28.575" rot="R270"/>
 <element name="R16" library="rcl" package="R0805" value="1k" x="14.605" y="24.13" rot="R180"/>
 <element name="R17" library="rcl" package="R0805" value="1k" x="14.605" y="27.305" rot="R180"/>
-<element name="R18" library="rcl" package="R0805" value="5.6k" x="19.05" y="28.575" rot="R270"/>
+<element name="R18" library="rcl" package="R0805" value="47k" x="19.05" y="28.575" rot="R270"/>
 <element name="U$2" library="balmer" package="SO8" value="MCP6S21" x="41.275" y="27.94" rot="R270"/>
 <element name="C10" library="rcl" package="C0603" value="100n" x="33.655" y="27.305"/>
 <element name="R19" library="rcl" package="R0805" value="56k" x="33.02" y="29.845" rot="R180"/>
@@ -1654,7 +1654,7 @@ design rules under a new name.</description>
 <element name="R23" library="rcl" package="R0805" value="56k" x="41.91" y="5.08"/>
 <element name="R24" library="rcl" package="R0805" value="1k" x="48.26" y="11.43" rot="R90"/>
 <element name="C15" library="rcl" package="C0805" value="100p" x="48.895" y="6.985"/>
-<element name="R25" library="rcl" package="R0805" value="5.6k" x="29.845" y="8.89" rot="R270"/>
+<element name="R25" library="rcl" package="R0805" value="47k" x="29.845" y="8.89" rot="R270"/>
 <element name="R26" library="rcl" package="R0805" value="1k" x="14.605" y="21.59" rot="R180"/>
 <element name="L3" library="rcl" package="R0603" value="MMZ1608B102C" x="33.655" y="33.02" rot="R180"/>
 <element name="C16" library="rcl" package="C0603" value="100n" x="46.355" y="38.735"/>
