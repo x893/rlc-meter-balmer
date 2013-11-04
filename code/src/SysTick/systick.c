@@ -4,7 +4,7 @@
 **
 **--------------File Info---------------------------------------------------------------------------------
 ** File name:               systick.c
-** Descriptions:            使用SysTick的普通计数模式对延迟进行管理
+** Descriptions:            脢鹿脫脙SysTick碌脛脝脮脥篓录脝脢媒脛拢脢陆露脭脩脫鲁脵陆酶脨脨鹿脺脌铆
 **
 **--------------------------------------------------------------------------------------------------------
 ** Created by:              AVRman
@@ -25,59 +25,59 @@
 #include "stm32f10x_systick.h"
 
 /* Private variables ---------------------------------------------------------*/	 
-static uint8_t  delay_fac_us = 0;  /* us延时倍乘数 */
-static uint16_t delay_fac_ms = 0;  /* ms延时倍乘数 */
+static uint32_t delay_fac_us = 0;
+static uint32_t delay_fac_ms = 0;
 static FlagStatus  Status;
 
 
 /*******************************************************************************
 * Function Name  : delay_init
-* Description    : 初始化延迟函数 
+* Description    : 鲁玫脢录禄炉脩脫鲁脵潞炉脢媒 
 * Input          : None
 * Output         : None
 * Return         : None
-* Attention		 : SYSTICK的时钟固定为HCLK时钟的1/8
+* Attention		 : SYSTICK碌脛脢卤脰脫鹿脤露篓脦陋HCLK脢卤脰脫碌脛1/8
 *******************************************************************************/
 void delay_init(void)
 {
     RCC_ClocksTypeDef RCC_ClocksStatus;
 
     RCC_GetClocksFreq(&RCC_ClocksStatus);
-    SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);  /*选择外部时钟  HCLK/8 */
+    SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
 	SysTick_ITConfig(DISABLE);
-    delay_fac_us = RCC_ClocksStatus.HCLK_Frequency / 8000000;
-    delay_fac_ms = RCC_ClocksStatus.HCLK_Frequency / 8000;      
+    delay_fac_us = RCC_ClocksStatus.HCLK_Frequency / 1000000;
+    delay_fac_ms = RCC_ClocksStatus.HCLK_Frequency / 1000;      
 }
 					
 /*******************************************************************************
 * Function Name  : delay_us
-* Description    : 初始化延迟函数 
-* Input          : - Nus: 延时us
+* Description    : 鲁玫脢录禄炉脩脫鲁脵潞炉脢媒 
+* Input          : - Nus: 脩脫脢卤us
 * Output         : None
 * Return         : None
-* Attention		 : 参数最大值为 0xffffff / (HCLK / 8000000)
+* Attention		 : 0xffffff / (SYSCLK / 1000000), SYSCLK=72 MHz, Nus = 233016
 *******************************************************************************/            
 void delay_us(u32 Nus)
 { 
-    SysTick_SetReload(delay_fac_us * Nus);          /* 时间加载 */
-    SysTick_CounterCmd(SysTick_Counter_Clear);		/* 清空计数器 */
-    SysTick_CounterCmd(SysTick_Counter_Enable);		/* 开始倒数 */ 	
+    SysTick_SetReload(delay_fac_us * Nus);          /* 脢卤录盲录脫脭脴 */
+    SysTick_CounterCmd(SysTick_Counter_Clear);		/* 脟氓驴脮录脝脢媒脝梅 */
+    SysTick_CounterCmd(SysTick_Counter_Enable);		/* 驴陋脢录碌鹿脢媒 */ 	
     do
     {
         Status = SysTick_GetFlagStatus(SysTick_FLAG_COUNT);
-    }while (Status != SET);							/* 等待时间到达 */
-    SysTick_CounterCmd(SysTick_Counter_Disable);    /* 关闭计数器 */
-	SysTick_CounterCmd(SysTick_Counter_Clear);	    /* 清空计数器 */   
+    }while (Status != SET);							/* 碌脠麓媒脢卤录盲碌陆麓茂 */
+    SysTick_CounterCmd(SysTick_Counter_Disable);    /* 鹿脴卤脮录脝脢媒脝梅 */
+	SysTick_CounterCmd(SysTick_Counter_Clear);	    /* 脟氓驴脮录脝脢媒脝梅 */   
 }
 
 
 /*******************************************************************************
 * Function Name  : delay_ms
-* Description    : 初始化延迟函数 
-* Input          : - nms: 延时ms
+* Description    : 鲁玫脢录禄炉脩脫鲁脵潞炉脢媒 
+* Input          : - nms: 脩脫脢卤ms
 * Output         : None
 * Return         : None
-* Attention		 : 参数最大值 nms<=0xffffff*8*1000/SYSCLK 对72M条件下,nms<=1864 
+* Attention		 : nms<=0xffffff*1000/SYSCLK, SYSCLK=72 MHz, nms<=233 
 *******************************************************************************/  
 void delay_ms(uint16_t nms)
 {    
@@ -87,15 +87,15 @@ void delay_ms(uint16_t nms)
     {
         temp = 0x00ffffff;
     }
-    SysTick_SetReload(temp);		             /* 时间加载 */
-    SysTick_CounterCmd(SysTick_Counter_Clear);	 /* 清空计数器 */
-    SysTick_CounterCmd(SysTick_Counter_Enable);	 /* 开始倒数 */ 
+    SysTick_SetReload(temp);		             /* 脢卤录盲录脫脭脴 */
+    SysTick_CounterCmd(SysTick_Counter_Clear);	 /* 脟氓驴脮录脝脢媒脝梅 */
+    SysTick_CounterCmd(SysTick_Counter_Enable);	 /* 驴陋脢录碌鹿脢媒 */ 
     do
     {
         Status = SysTick_GetFlagStatus(SysTick_FLAG_COUNT);
-    }while (Status != SET);				         /* 等待时间到达 */
-    SysTick_CounterCmd(SysTick_Counter_Disable); /* 关闭计数器 */
-	SysTick_CounterCmd(SysTick_Counter_Clear);	 /* 清空计数器 */
+    }while (Status != SET);				         /* 碌脠麓媒脢卤录盲碌陆麓茂 */
+    SysTick_CounterCmd(SysTick_Counter_Disable); /* 鹿脴卤脮录脝脢媒脝梅 */
+	SysTick_CounterCmd(SysTick_Counter_Clear);	 /* 脟氓驴脮录脝脢媒脝梅 */
 }
 
 /*********************************************************************************************************

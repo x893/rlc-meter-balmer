@@ -91,11 +91,11 @@ void Set_System(void)
 
   /* Configure LEDS */
 
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3;
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 //  voltageInit();
 }
@@ -409,27 +409,43 @@ void USB_SetLeds(uint8_t LED_Command) {
   
   switch (LED_Command) {
   case 'A': {
-      GPIO_SetBits(GPIOA, GPIO_Pin_2);
+      GPIO_SetBits(GPIOE, GPIO_Pin_7);
       break;
   }
   case 'a': {
-      GPIO_ResetBits(GPIOA, GPIO_Pin_2);
+      GPIO_ResetBits(GPIOE, GPIO_Pin_7);
       break;
   }
   case 'B': {
-      GPIO_SetBits(GPIOA, GPIO_Pin_3);
+      GPIO_SetBits(GPIOE, GPIO_Pin_8);
       break;
   }
   case 'b': {
-      GPIO_ResetBits(GPIOA, GPIO_Pin_3);
+      GPIO_ResetBits(GPIOE, GPIO_Pin_8);
+      break;
+  }
+  case 'C': {
+      GPIO_SetBits(GPIOE, GPIO_Pin_9);
+      break;
+  }
+  case 'c': {
+      GPIO_ResetBits(GPIOE, GPIO_Pin_9);
+      break;
+  }
+  case 'D': {
+      GPIO_SetBits(GPIOE, GPIO_Pin_10);
+      break;
+  }
+  case 'd': {
+      GPIO_ResetBits(GPIOE, GPIO_Pin_10);
       break;
   }
   case '1': {
-      GPIO_SetBits(GPIOA, GPIO_Pin_2|GPIO_Pin_3);
+      GPIO_SetBits(GPIOE, GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10);
       break;
   }
   case '0': {
-      GPIO_ResetBits(GPIOA, GPIO_Pin_2|GPIO_Pin_3);
+      GPIO_ResetBits(GPIOE, GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9|GPIO_Pin_10);
       break;
   }
   }
