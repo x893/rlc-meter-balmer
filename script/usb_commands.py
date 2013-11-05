@@ -3,10 +3,12 @@ import usb
 import time
 import datetime
 import os
+import struct
 
 dev = None
 
 COMMAND_SET_LED = 1
+COMMAND_SET_FREQUENCY = 2
 
 
 def findDevice():
@@ -51,9 +53,9 @@ def readInt():
         print "Fail read int len="+str(len(data))
     else:
         print data[0]+data[1]*0x100+data[2]*0x10000+data[3]*0x1000000
-"""
+
 def readCommand():
-    time.sleep(0.1)
+    time.sleep(0.01)
     try:
         data = dev.read(129, 128, interface=1, timeout=50)
         if len(data)==0:
@@ -65,17 +67,18 @@ def readCommand():
         print "Read USB error"
         return
 
-    if data[0]==COMMAND_SET_VOLTAGE:
-        print "Voltage channel"+str(data[1]) 
-    elif data[0]==COMMAND_GET_ADC:
-        v = data[1]+256*data[2]
-        print "voltage="+str(v*3.3/4096.0)
-    elif data[0]==COMMAND_CONVERSION:
-        print "Start conversion"
+    if data[0]==COMMAND_SET_LED:
+        print "Set led="+str(data[1]) 
+    elif data[0]==COMMAND_SET_FREQUENCY:
+        period = struct.unpack_from('I', data, 1)[0]
+        clock = struct.unpack_from('I', data, 5)[0]
+        print "period=",period
+        print "clock=",clock
+        print "F=",clock/float(period)
     else:
         print "Unknown command="+str(data[0])
     pass
-
+"""
 def readConversionData():
     with open("out.dat", "wb") as file:
         step = 30
@@ -89,6 +92,12 @@ def readConversionData():
 
     pass
 """
+
+def setFreq(F):    
+    print "write=",dev.write(3, struct.pack("=BI", COMMAND_SET_FREQUENCY, F), interface=1)
+    readCommand()
+    pass
+
 def printEndpoint(e):
     print "Endpoint:"
     print "bLength=", e.bLength
@@ -113,10 +122,11 @@ def main():
 
     if True:
         #readOne()
-        for x in xrange(2):
-            print "write=",dev.write(3, [COMMAND_SET_LED, ord('B')], interface=1)
-            readOne()
+        for x in xrange(3):
+            print "write=",dev.write(3, [COMMAND_SET_LED, ord('C')], interface=1)
+            readCommand()
 
+    setFreq(10000)
     pass
 
 

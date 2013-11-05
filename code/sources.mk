@@ -4,7 +4,7 @@
 
 
 DEPS += \
-	output/CMSIS/startup_stm32f10x_md.d \
+	output/CMSIS/startup_stm32f10x_cl.d \
 	output/base/src/dac.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
@@ -55,7 +55,7 @@ DEPS += \
 
 
 OBJS += \
-	output/CMSIS/startup_stm32f10x_md.o \
+	output/CMSIS/startup_stm32f10x_cl.o \
 	output/base/src/dac.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
@@ -105,8 +105,8 @@ OBJS += \
 	output/base/Libraries/STM32F10x_StdPeriph_Driver/src/stm32f10x_wwdg.o \
 
 
-output/CMSIS/startup_stm32f10x_md.o: Libraries/CMSIS/Device/ST/STM32F10x/Source/Templates/gcc_ride7/startup_stm32f10x_md.S
-	@echo 'Building target: startup_stm32f10x_md.S'
+output/CMSIS/startup_stm32f10x_cl.o: Libraries/CMSIS/Device/ST/STM32F10x/Source/Templates/gcc_ride7/startup_stm32f10x_cl.S
+	@echo 'Building target: startup_stm32f10x_cl.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
 
 output/base/src/dac.o: ./src/dac.c

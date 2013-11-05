@@ -41,6 +41,7 @@
 /* Exported constants --------------------------------------------------------*/
 /* Uncomment the line corresponding to the STMicroelectronics evaluation board
    used to run the example */
+#define USE_STM3210C_EVAL
 #if !defined (USE_STM3210B_EVAL) &&  !defined (USE_STM3210E_EVAL)  &&  !defined (USE_STM3210C_EVAL)  &&  !defined (USE_STM32L152_EVAL) &&  !defined (USE_STM32L152D_EVAL)
   //balmer
   #ifdef STM32F10X_CL

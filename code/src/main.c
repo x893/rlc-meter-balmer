@@ -99,20 +99,20 @@ int main(void)
 {
   //uint32_t i;
   Set_System();
-  //Set_USBClock();
-  //USB_Interrupts_Config();
-  //USB_Init();
+  Set_USBClock();
+  USB_Interrupts_Config();
+  USB_Init();
   delay_init();
-  //DacInit();
+  DacInit();
 
-  //USB_SetLeds('1');
+  USB_SetLeds('A');
 
   while (1)
   {
-    USB_SetLeds('1');
-    delay_ms(100);
-    USB_SetLeds('0');
-    delay_ms(100);
+//    USB_SetLeds('1');
+//    delay_ms(100);
+//    USB_SetLeds('0');
+//    delay_ms(100);
   }
 }
 

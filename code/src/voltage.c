@@ -5,6 +5,7 @@
 #include "SysTick/stm32f10x_systick.h"
 #include "usb_desc.h"
 #include "sound.h"
+#include "dac.h"
 
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 uint32_t adc_buffer_pos = 0;
@@ -153,10 +154,17 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 {
 	if(commandSize==0)
 		return;
+	USBAdd8(commandBuffer[0]);
 	switch(commandBuffer[0])
 	{
-	case 1:
+	case 1://COMMAND_SET_LED
 		USB_SetLeds(commandBuffer[1]);
+		USBAdd8(commandBuffer[1]);
+		break;
+	case 2://COMMAND_SET_FREQUENCY
+		DacSetFrequency(*(uint32_t*)(commandBuffer+1));
+		USBAdd32(DacPeriod());
+		USBAdd32(SystemCoreClock);
 		break;
 	/*
 	case 1://COMMAND_SET_VOLTAGE

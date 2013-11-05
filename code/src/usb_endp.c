@@ -100,11 +100,13 @@ void USBSend(void)
 *******************************************************************************/
 void EP1_IN_Callback (void)
 {
+/*
   if(adc_get_result_command)
     SendConversionResult();
   if(sound_command)
     SoundFillUsb();
   USBSend();
+*/
 }
 
 /*******************************************************************************
@@ -174,6 +176,7 @@ void SOF_Callback(void)
         //#ifndef USE_STM3210C_EVAL
         //SetEPTxValid(ENDP1); 
         //#endif
+        //SetEPRxValid(ENDP3);
         USB_first_SOF = 0;
         //USART_Rx_length = 0;
       }

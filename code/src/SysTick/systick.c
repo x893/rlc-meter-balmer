@@ -80,22 +80,22 @@ void delay_us(u32 Nus)
 * Attention		 : nms<=0xffffff*1000/SYSCLK, SYSCLK=72 MHz, nms<=233 
 *******************************************************************************/  
 void delay_ms(uint16_t nms)
-{    
+{   
     uint32_t temp = delay_fac_ms * nms;
 
     if (temp > 0x00ffffff)
     {
         temp = 0x00ffffff;
     }
-    SysTick_SetReload(temp);		             /* Ê±¼ä¼ÓÔØ */
-    SysTick_CounterCmd(SysTick_Counter_Clear);	 /* Çå¿Õ¼ÆÊýÆ÷ */
-    SysTick_CounterCmd(SysTick_Counter_Enable);	 /* ¿ªÊ¼µ¹Êý */ 
+    SysTick_SetReload(temp);
+    SysTick_CounterCmd(SysTick_Counter_Clear);
+    SysTick_CounterCmd(SysTick_Counter_Enable);
     do
     {
         Status = SysTick_GetFlagStatus(SysTick_FLAG_COUNT);
-    }while (Status != SET);				         /* µÈ´ýÊ±¼äµ½´ï */
-    SysTick_CounterCmd(SysTick_Counter_Disable); /* ¹Ø±Õ¼ÆÊýÆ÷ */
-	SysTick_CounterCmd(SysTick_Counter_Clear);	 /* Çå¿Õ¼ÆÊýÆ÷ */
+    }while (Status != SET);
+    SysTick_CounterCmd(SysTick_Counter_Disable);
+	SysTick_CounterCmd(SysTick_Counter_Clear);
 }
 
 /*********************************************************************************************************
