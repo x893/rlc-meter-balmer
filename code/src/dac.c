@@ -1,6 +1,7 @@
 #include "hw_config.h"
 #include <math.h>
 #include "SysTick/systick.h"
+#include "dac.h"
 
 #define pi  3.14159f
 #define SINUS_BUFFER_SIZE 1000

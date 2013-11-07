@@ -9,6 +9,7 @@ dev = None
 
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
+COMMAND_ADC_START = 3
 
 
 def findDevice():
@@ -67,14 +68,17 @@ def readCommand():
         print "Read USB error"
         return
 
-    if data[0]==COMMAND_SET_LED:
+    cmd = data[0]
+    if cmd==COMMAND_SET_LED:
         print "Set led="+str(data[1]) 
-    elif data[0]==COMMAND_SET_FREQUENCY:
+    elif cmd==COMMAND_SET_FREQUENCY:
         period = struct.unpack_from('I', data, 1)[0]
         clock = struct.unpack_from('I', data, 5)[0]
         print "period=",period
         print "clock=",clock
         print "F=",clock/float(period)
+    elif cmd==COMMAND_ADC_START:
+        print "adcStart"
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -95,6 +99,11 @@ def readConversionData():
 
 def setFreq(F):    
     print "write=",dev.write(3, struct.pack("=BI", COMMAND_SET_FREQUENCY, F), interface=1)
+    readCommand()
+    pass
+
+def adcStart():
+    dev.write(3, [COMMAND_ADC_START], interface=1)
     readCommand()
     pass
 
@@ -126,7 +135,8 @@ def main():
             print "write=",dev.write(3, [COMMAND_SET_LED, ord('C')], interface=1)
             readCommand()
 
-    setFreq(10000)
+    #setFreq(10000)
+    adcStart()
     pass
 
 

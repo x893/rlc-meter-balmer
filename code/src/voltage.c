@@ -6,6 +6,7 @@
 #include "usb_desc.h"
 #include "sound.h"
 #include "dac.h"
+#include "adc.h"
 
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 uint32_t adc_buffer_pos = 0;
@@ -165,6 +166,10 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		DacSetFrequency(*(uint32_t*)(commandBuffer+1));
 		USBAdd32(DacPeriod());
 		USBAdd32(SystemCoreClock);
+		break;
+
+	case 3://COMMAND_ADC_START
+		AdcStart();
 		break;
 	/*
 	case 1://COMMAND_SET_VOLTAGE
