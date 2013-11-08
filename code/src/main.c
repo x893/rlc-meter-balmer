@@ -104,7 +104,7 @@ int main(void)
   USB_Interrupts_Config();
   USB_Init();
   delay_init();
-  //DacInit();
+  DacInit();
 
   USB_SetLeds('A');
   AdcInit();

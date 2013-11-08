@@ -4,12 +4,14 @@ import time
 import datetime
 import os
 import struct
+import array
 
 dev = None
 
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
 COMMAND_ADC_START = 3
+COMMAND_ADC_READ_BUFFER = 4
 
 
 def findDevice():
@@ -107,6 +109,33 @@ def adcStart():
     readCommand()
     pass
 
+def adcReadBuffer():
+    dev.write(3, [COMMAND_ADC_READ_BUFFER], interface=1)
+    time.sleep(0.01)
+    data = dev.read(129, 128, interface=1, timeout=50)
+    size = struct.unpack_from('=I', data, 1)[0]
+
+    print "adcReadBuffer size=", size
+
+    result = None
+    while size>0:
+        data = dev.read(129, 128, interface=1, timeout=50)
+        #print data
+        size -= len(data)/2
+        if not result:
+            result = data
+        else:
+            result += data
+
+    arr = array.array('H')
+    arr.fromstring(result)
+    #print arr
+    with open("out.dat", "wb") as file:
+        arr.tofile(file)
+    pass
+
+
+
 def printEndpoint(e):
     print "Endpoint:"
     print "bLength=", e.bLength
@@ -132,11 +161,12 @@ def main():
     if True:
         #readOne()
         for x in xrange(3):
-            print "write=",dev.write(3, [COMMAND_SET_LED, ord('C')], interface=1)
+            print "write=",dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
             readCommand()
 
     #setFreq(10000)
-    adcStart()
+    #adcStart()
+    adcReadBuffer()
     pass
 
 

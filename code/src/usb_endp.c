@@ -34,8 +34,8 @@
 #include "usb_istr.h"
 #include "usb_pwr.h"
 #include "voltage.h"
-#include "sound.h"
 #include <string.h>
+#include "adc.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -46,12 +46,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint8_t USB_Rx_Buffer[VIRTUAL_COM_PORT_DATA_SIZE];
-extern  uint8_t USART_Rx_Buffer[];
-extern uint32_t USART_Rx_ptr_out;
-extern uint32_t USART_Rx_length;
-extern uint8_t  USB_Tx_State;
+uint8_t USART_Rx_Buffer [USART_RX_DATA_SIZE]; 
 
-static char USB_first_SOF = 1;
+uint32_t USART_Rx_length  = 0;
 
 void USBAdd(uint8_t* data, uint32_t size)
 {
@@ -100,6 +97,8 @@ void USBSend(void)
 *******************************************************************************/
 void EP1_IN_Callback (void)
 {
+  if(g_adc_read_buffer)
+    AdcReadBuffer();
 /*
   if(adc_get_result_command)
     SendConversionResult();
@@ -169,18 +168,6 @@ void SOF_Callback(void)
       
       /* Check the data to be sent through IN pipe */
       //SetEPTxValid(ENDP1);
-      //Handle_USBAsynchXfer();
-      if(USB_first_SOF)
-      {
-        //USB_SIL_Write(EP1_IN, USART_Rx_Buffer, USART_Rx_length);//Balmer test code
-        //#ifndef USE_STM3210C_EVAL
-        //SetEPTxValid(ENDP1); 
-        //#endif
-        //SetEPRxValid(ENDP3);
-        USB_first_SOF = 0;
-        //USART_Rx_length = 0;
-      }
-
     }
   }  
 }

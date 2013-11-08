@@ -33,6 +33,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "platform_config.h"
 #include "usb_type.h"
+#include <stdbool.h>
 
 /* balmer ----------- */
 //#define USE_STM3210C_EVAL
@@ -57,11 +58,8 @@ void Leave_LowPowerMode(void);
 void USB_Interrupts_Config(void);
 void USB_Cable_Config (FunctionalState NewState);
 
-void USART_To_USB_Send_Data(void);
-void Handle_USBAsynchXfer (void);
 void Get_SerialNum(void);
 
-void USB_Send_Data(uint8_t data);
 void USB_SetLeds(uint8_t LED_Command);
 
 /* External variables --------------------------------------------------------*/

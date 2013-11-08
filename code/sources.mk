@@ -9,7 +9,6 @@ DEPS += \
 	output/base/src/dac.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
-	output/base/src/sound.d \
 	output/base/src/stm32_it.d \
 	output/base/src/system_stm32f10x.d \
 	output/base/src/usb_desc.d \
@@ -61,7 +60,6 @@ OBJS += \
 	output/base/src/dac.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
-	output/base/src/sound.o \
 	output/base/src/stm32_it.o \
 	output/base/src/system_stm32f10x.o \
 	output/base/src/usb_desc.o \
@@ -125,10 +123,6 @@ output/base/src/hw_config.o: ./src/hw_config.c
 
 output/base/src/main.o: ./src/main.c
 	@echo 'Building target: main.c'
-	@$(CC) $(C_FLAGS) -o "$@" "$<"
-
-output/base/src/sound.o: ./src/sound.c
-	@echo 'Building target: sound.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/stm32_it.o: ./src/stm32_it.c

@@ -2,6 +2,8 @@
 #include <math.h>
 #include "SysTick/systick.h"
 #include "adc.h"
+#include "voltage.h"
+#include "usb_desc.h"
 
 #define RESULT_BUFFER_SIZE 1000
 
@@ -10,10 +12,13 @@ static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
 
 uint16_t g_adcStatus = 0;
 
+uint16_t g_adc_cur_read_pos;
+bool g_adc_read_buffer = false;
+
 static void NVIC_Configuration(void)
 {
         NVIC_InitTypeDef NVIC_InitStructure;
-        EXTI_InitTypeDef EXTI_InitStructure;
+        //EXTI_InitTypeDef EXTI_InitStructure;
 
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
@@ -98,7 +103,7 @@ void AdcInit()
 	while(ADC_GetCalibrationStatus(ADC1));
 */
 	//600 khz?
-	uint32_t prescaler = 1000;
+	uint32_t prescaler = 1;
 	uint32_t period = 120;
 	//72 MHz / TIM_Prescaler / TIM_Period
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -138,3 +143,33 @@ void AdcStart()
 	g_adcStatus = 1;
 }
 
+void AdcStartReadBuffer()
+{
+	g_adc_cur_read_pos = 0;
+	g_adc_read_buffer = true;
+	USBAdd32(ResultBufferSize);
+}
+
+void AdcReadBuffer()
+{
+	if(g_adc_cur_read_pos>=ResultBufferSize)
+	{
+		g_adc_read_buffer = false;
+		return;
+	}
+
+	uint32_t sz = ResultBufferSize - g_adc_cur_read_pos;
+	const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(g_resultBuffer[0]);
+	if(sz>max_elements)
+	{
+		USBAdd((uint8_t*)(g_resultBuffer+g_adc_cur_read_pos), max_elements*sizeof(g_resultBuffer[0]));
+		g_adc_cur_read_pos+=max_elements;
+	}
+	else
+	{
+		USBAdd((uint8_t*)(g_resultBuffer+g_adc_cur_read_pos), sz*sizeof(g_resultBuffer[0]));
+		g_adc_read_buffer = false;
+	}
+
+	USBSend();
+}
