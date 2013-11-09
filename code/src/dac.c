@@ -12,11 +12,11 @@
 
 static uint16_t g_sinusBuffer[SINUS_BUFFER_SIZE];
 static uint32_t SinusBufferSize = SINUS_BUFFER_SIZE;
-static uint32_t g_period = 0; // * 1/SystemCoreClock sec SystemCoreClock==72000000
+static uint32_t g_dac_period = 0; // * 1/SystemCoreClock sec SystemCoreClock==72000000
 
 uint32_t DacPeriod(void)
 {
-	return g_period;
+	return g_dac_period;
 }
 
 void DacSinusCalculate()
@@ -68,7 +68,7 @@ void DacSetFrequency(uint32_t frequency)
 	TIM_Cmd(TIM2, DISABLE);
 	if(frequency==0)
 	{
-		g_period = 0xFFFFFFFF;
+		g_dac_period = 0xFFFFFFFF;
 		DAC_SetChannel1Data(DAC_Align_12b_R, DAC_ZERO);
 		return;
 	}
@@ -125,8 +125,12 @@ void DacSetFrequency(uint32_t frequency)
 
 	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
 	TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
-	TIM_Cmd(TIM2, ENABLE);
 
-	g_period = period * prescaler * SinusBufferSize;
+	g_dac_period = period * prescaler * SinusBufferSize;
 	//g_period = frequency;
+}
+
+void DacStart()
+{
+	TIM_Cmd(TIM2, ENABLE);
 }

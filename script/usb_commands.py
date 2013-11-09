@@ -12,6 +12,8 @@ COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
 COMMAND_ADC_START = 3
 COMMAND_ADC_READ_BUFFER = 4
+COMMAND_ADC_ELAPSED_TIME = 5
+COMMAND_START_SYNCHRO = 6
 
 
 def findDevice():
@@ -81,6 +83,13 @@ def readCommand():
         print "F=",clock/float(period)
     elif cmd==COMMAND_ADC_START:
         print "adcStart"
+    elif cmd==COMMAND_ADC_ELAPSED_TIME:
+        print "Elapset ticks=", struct.unpack_from('I', data, 1)[0]
+    elif cmd==COMMAND_START_SYNCHRO:
+        (period, clock) = struct.unpack_from('=II', data, 1)
+        print "period=",period
+        print "clock=",clock
+        print "F=",clock/float(period)
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -109,6 +118,11 @@ def adcStart():
     readCommand()
     pass
 
+def adcElapsedTime():
+    dev.write(3, [COMMAND_ADC_ELAPSED_TIME], interface=1)
+    readCommand()
+    pass
+
 def adcReadBuffer():
     dev.write(3, [COMMAND_ADC_READ_BUFFER], interface=1)
     time.sleep(0.01)
@@ -134,6 +148,10 @@ def adcReadBuffer():
         arr.tofile(file)
     pass
 
+def adcStartSynchro(F):
+    print "write=",dev.write(3, struct.pack("=BI", COMMAND_START_SYNCHRO, F), interface=1)
+    readCommand()
+    pass
 
 
 def printEndpoint(e):
@@ -166,7 +184,10 @@ def main():
 
     #setFreq(10000)
     #adcStart()
+    adcStartSynchro(10000)
+    time.sleep(1)
     adcReadBuffer()
+    adcElapsedTime()
     pass
 
 

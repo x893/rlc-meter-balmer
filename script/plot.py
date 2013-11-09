@@ -22,8 +22,7 @@ def readFileAsShort(filename):
 
 def makeTimeList(readableData):
 	xmin = 0
-	#xstep = 1.125 # us
-	xstep = 26/12.0 # us
+	xstep = 1 # us
 	xlist = []
 	for i in xrange(0, len(readableData)):
 		xlist.append(xmin+i*xstep)
@@ -31,14 +30,15 @@ def makeTimeList(readableData):
 
 def plot0():
 	out = readFileAsShort(fileName)
-	print "data=",out
+	#out = out[0:100]
+	#print "data=",out
 
 	# Вычислим значение функции в заданных точках
 	# x us
 	xlist = makeTimeList(out)
 
 	# !!! Нарисуем одномерный график
-	pylab.plot (xlist, out)
+	pylab.plot (xlist, out, '.')
 
 	# !!! Покажем окно с нарисованным графиком
 	pylab.show()
