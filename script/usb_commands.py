@@ -5,6 +5,7 @@ import datetime
 import os
 import struct
 import array
+import math
 
 dev = None
 
@@ -86,10 +87,11 @@ def readCommand():
     elif cmd==COMMAND_ADC_ELAPSED_TIME:
         print "Elapset ticks=", struct.unpack_from('I', data, 1)[0]
     elif cmd==COMMAND_START_SYNCHRO:
-        (period, clock) = struct.unpack_from('=II', data, 1)
+        (period, clock, adc_cycles) = struct.unpack_from('=III', data, 1)
         print "period=",period
         print "clock=",clock
         print "F=",clock/float(period)
+        print "adc_cycles=", adc_cycles
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -144,15 +146,26 @@ def adcReadBuffer():
     arr = array.array('H')
     arr.fromstring(result)
     #print arr
+    return arr
+
+def adcReadBufferAndSave():
+    arr = adcReadBuffer()
     with open("out.dat", "wb") as file:
         arr.tofile(file)
-    pass
 
-def adcStartSynchro(F):
-    print "write=",dev.write(3, struct.pack("=BI", COMMAND_START_SYNCHRO, F), interface=1)
-    readCommand()
+def adcSynchro(F):
+    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, F, 1), interface=1)
+    data = dev.read(129, 128, interface=1, timeout=50)
+    (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
+    print "period=",period
+    print "clock=",clock
+    print "F=",clock/float(period)
+    print "adc_tick=", adc_tick
+    time.sleep(1)
+    out = adcReadBuffer()
+    with open("out.dat", "wb") as file:
+        out.tofile(file)
     pass
-
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -184,10 +197,7 @@ def main():
 
     #setFreq(10000)
     #adcStart()
-    adcStartSynchro(10000)
-    time.sleep(1)
-    adcReadBuffer()
-    adcElapsedTime()
+    adcSynchro(20000)
     pass
 
 

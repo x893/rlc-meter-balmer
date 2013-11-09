@@ -11,6 +11,7 @@
 static uint16_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
 static uint8_t g_adc_cycles;
+static uint8_t g_adc_cycles_skip = 0;
 
 uint16_t g_adcStatus = 0;
 uint16_t g_adc_cur_read_pos;
@@ -81,14 +82,14 @@ void AdcInit()
 	g_adc_tick = 20*6;
 	ADC_Cmd(ADC1, ENABLE);
 
-/*
+
 	// Enable ADC1 reset calibaration register
 	ADC_ResetCalibration(ADC1);
 	// Check the end of ADC1 reset calibration register
 	while(ADC_GetResetCalibrationStatus(ADC1)); // Start ADC1 calibaration
 	ADC_StartCalibration(ADC1); // Check the end of ADC1 calibration
 	while(ADC_GetCalibrationStatus(ADC1));
-*/
+
 	//600 khz?
 	uint32_t prescaler = 1;
 	uint32_t period = 120;
@@ -110,7 +111,7 @@ void DMA1_Channel1_IRQHandler(void)
 	{
 		DMA_ClearITPendingBit(DMA1_IT_GL1);
 
-		if(g_adc_cycles++==0)//skip first read
+		if(g_adc_cycles++<g_adc_cycles_skip)//skip first read
 			return;
 
 		//g_adc_elapsed_time = GetTime();
@@ -199,15 +200,24 @@ void AdcReadBuffer()
 	USBSend();
 }
 
-void AdcDacStartSynchro(uint32_t frequency)
+void AdcDacStartSynchro(uint32_t frequency, uint8_t num_skip)
 {
+	g_adc_cycles_skip = num_skip;
 	DacSetFrequency(frequency);
-	USBAdd32(DacPeriod());
-	USBAdd32(SystemCoreClock);
-
 	AdcRoundSize(DacPeriod());
 	AdcStartPre();
 
-	TIM_Cmd(TIM2, ENABLE); //Start DAC
-	ADC_SoftwareStartConvCmd(ADC1, ENABLE); //Start ADC
+	USBAdd32(DacPeriod());
+	USBAdd32(SystemCoreClock);
+	USBAdd32(g_adc_tick);
+
+	if(0)
+	{
+		TIM_Cmd(TIM2, ENABLE); //Start DAC
+		ADC_SoftwareStartConvCmd(ADC1, ENABLE); //Start ADC
+	} else
+	{
+		TIM2->CR1 |= TIM_CR1_CEN; //Start DAC
+		ADC1->CR2 |= ADC_CR2_SWSTART|ADC_CR2_EXTTRIG; ////Start ADC
+	}
 }

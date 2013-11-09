@@ -31,7 +31,7 @@ def makeTimeList(readableData):
 def plot0():
 	out = readFileAsShort(fileName)
 	#out = out[0:100]
-	#print "data=",out
+	print "data_len=", len(out)
 
 	# Вычислим значение функции в заданных точках
 	# x us
