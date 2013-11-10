@@ -88,12 +88,15 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	if(SinusBufferSize>SINUS_BUFFER_SIZE)
 	{
 		period = 120; //ADC speed in CPU tick
-		while(SINUS_BUFFER_SIZE*prescaler*period<sinusPeriod)
+		uint32_t p = 1;
+		while(SINUS_BUFFER_SIZE*p*period<sinusPeriod)
 		{
-			prescaler++;
+			p++;
 		}
 
-		SinusBufferSize = sinusPeriod/prescaler/period;
+		period *= p;
+
+		SinusBufferSize = sinusPeriod/period;
 	}
 
 	DacSinusCalculate();
@@ -122,6 +125,7 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_SetCounter(TIM2, 0);
 
 	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
 	TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);

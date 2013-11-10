@@ -6,6 +6,7 @@ import os
 import struct
 import array
 import math
+import smath
 
 dev = None
 
@@ -15,6 +16,38 @@ COMMAND_ADC_START = 3
 COMMAND_ADC_READ_BUFFER = 4
 COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
+
+PERIOD_ROUND120 = [
+        #720000, #100.00 Hz
+        #360000, #200.00 Hz
+        #240000, #300.00 Hz
+        #180000, #400.00 Hz
+        #144000, #500.00 Hz
+        120000, #600.00 Hz
+        102840, #700.12 Hz
+        90000, #800.00 Hz
+        79920, #900.90 Hz
+        72000, #1000.00 Hz
+        36000, #2000.00 Hz
+        24000, #3000.00 Hz
+        18000, #4000.00 Hz
+        14400, #5000.00 Hz
+        12000, #6000.00 Hz
+        10200, #7058.82 Hz
+        9000, #8000.00 Hz
+        7920, #9090.91 Hz
+        7200, #10000.00 Hz
+        3600, #20000.00 Hz
+        2400, #30000.00 Hz
+        1800, #40000.00 Hz
+        1440, #50000.00 Hz
+        1200, #60000.00 Hz
+        960, #75000.00 Hz
+        840, #85714.29 Hz
+        720, #100000.00 Hz
+        600, #120000.00 Hz
+        480, #150000.00 Hz
+        ]
 
 
 def findDevice():
@@ -153,8 +186,8 @@ def adcReadBufferAndSave():
     with open("out.dat", "wb") as file:
         arr.tofile(file)
 
-def adcSynchro(F):
-    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, F, 1), interface=1)
+def adcSynchro(inPeriod):
+    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1), interface=1)
     data = dev.read(129, 128, interface=1, timeout=50)
     (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
     print "period=",period
@@ -166,6 +199,34 @@ def adcSynchro(F):
     with open("out.dat", "wb") as file:
         out.tofile(file)
     pass
+
+def adcSynchro1(inPeriod):
+    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1), interface=1)
+    data = dev.read(129, 128, interface=1, timeout=50)
+    (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
+    print "period=",period, "clock=",clock , "F=",clock/float(period), "adc_tick=", adc_tick
+    time.sleep(0.3)
+    out = adcReadBuffer()
+
+    result = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out)
+    return result
+
+def allFreq():
+    out = []
+
+    with open("data.py", "wb") as file:
+        P = 120000 #600.00 Hz
+        #P = 7200 #10000.00 Hz
+        #P = 3600 #20000.00 Hz
+        PERIOD_ROUND120 = [P]*10
+        for period in PERIOD_ROUND120:
+            dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
+            readCommand()
+            data = adcSynchro1(period)
+            out.append(data)
+
+            print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi']
+
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -198,9 +259,10 @@ def main():
     #setFreq(10000)
     #adcStart()
 
-    freq = 600
-    period = 72000000/freq
-    adcSynchro(period)
+    #freq = 600
+    #period = 72000000/freq
+    #print adcSynchro1(period)
+    allFreq()
     pass
 
 
