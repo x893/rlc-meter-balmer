@@ -200,10 +200,10 @@ void AdcReadBuffer()
 	USBSend();
 }
 
-void AdcDacStartSynchro(uint32_t frequency, uint8_t num_skip)
+void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 {
 	g_adc_cycles_skip = num_skip;
-	DacSetFrequency(frequency);
+	DacSetPeriod(period);
 	AdcRoundSize(DacPeriod());
 	AdcStartPre();
 

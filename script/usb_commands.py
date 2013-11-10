@@ -197,7 +197,10 @@ def main():
 
     #setFreq(10000)
     #adcStart()
-    adcSynchro(20000)
+
+    freq = 600
+    period = 72000000/freq
+    adcSynchro(period)
     pass
 
 

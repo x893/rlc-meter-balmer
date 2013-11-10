@@ -16,7 +16,7 @@ def calcSinCos(period, clock, adc_cycles, data):
 	'''
 	arr = array.array('f', data)
 	ncycle = period/adc_cycles
-	print ncycle
+	print "ncycle=", ncycle
 	fsin = [ math.sin(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 	fcos = [ math.cos(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 	
@@ -68,25 +68,39 @@ def deltaError(data, c0, amplitude, fi, ncycle):
 	out = [ c0+amplitude*math.sin(2*math.pi*i/ncycle+fi)-data[i] for i in xrange(N)]
 	return out
 
+def correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle):
+	N = len(data)
+	sum = 0
+	for i in xrange(N):
+		v = c0+amplitude*math.sin(2*math.pi*i/ncycle+fi)
+		sum += (data[i]-v)*(data[i]-v)
+
+	return math.sqrt(sum/(N-1))
+
 def main():
 	data = readFileAsShort(fileName)
+	#period = 720 # F=100000
 	#period = 7200 # F=10000
-	period = 3600 # F=20000
+	#period = 3600 # F=20000
+	#period = 72000 # F=1000
+	period = 120000 # F=600
 	clock = 72000000
 	adc_cycles = 120
 	ncycle = period/adc_cycles
-	#data = [ math.sin(2*math.pi*i/ncycle+3.5) for i in xrange(ncycle)]
+	#data = [ math.sin(2*math.pi*i/ncycle+0.4) for i in xrange(ncycle)]
 	(c0, csin, ccos) = calcSinCos(period, clock, adc_cycles, data)
 
 	(amplitude, fi) = calcFi(csin, ccos)
 
 	err = deltaError(data, c0, amplitude, fi, ncycle)
-	print err
 	with open("out_error.dat", "wb") as file:
 		arr = array.array('H')
 		for i in xrange(len(err)):
 			arr.append(int(math.floor(err[i]+0.5+2500)))
 		arr.tofile(file)
+
+	print "serror=", correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle)
+	print "dt=", fi/2*math.pi*ncycle/clock
 	pass
 
 if __name__ == "__main__":

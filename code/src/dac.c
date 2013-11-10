@@ -7,7 +7,9 @@
 #define SINUS_BUFFER_SIZE 1000
 #define DAC_ZERO 2047
 #define DAC_AMPLITUDE 1000
-#define MAX_FREQUENCY 200000
+
+//200 khz
+#define MIN_SINUS_PERIOD 360
 
 
 static uint16_t g_sinusBuffer[SINUS_BUFFER_SIZE];
@@ -57,43 +59,41 @@ void DacInit(void)
 /*
 If frequency<=1 khz
 	SinusBufferSize maximal
-	TIM_Period = 72000000 / SINUS_BUFFER_SIZE / frequency
+	TIM_Period = SystemCoreClock / SINUS_BUFFER_SIZE / frequency
 */
 void DacSetFrequency(uint32_t frequency)
 {
-	if(frequency>MAX_FREQUENCY)
-		frequency = MAX_FREQUENCY;
-	//assert_param(frequency>=0 && frequency<=300000);
+	DacSetPeriod(SystemCoreClock/frequency);
+}
+
+/*
+	sinusPeriod in SystemCoreClock quants
+*/
+void DacSetPeriod(uint32_t sinusPeriod)
+{
+	if(sinusPeriod<MIN_SINUS_PERIOD)
+		sinusPeriod = MIN_SINUS_PERIOD;
+	//assert_param(frequency>=100 && frequency<=200000);
 	DMA_Cmd(DMA1_Channel2, DISABLE);
 	TIM_Cmd(TIM2, DISABLE);
-	if(frequency==0)
-	{
-		g_dac_period = 0xFFFFFFFF;
-		DAC_SetChannel1Data(DAC_Align_12b_R, DAC_ZERO);
-		return;
-	}
 
 	DAC_SetChannel1Data(DAC_Align_12b_R, DAC_ZERO);
 
 	uint32_t prescaler;
 	uint32_t period;
-	if(frequency<=2400)
+	prescaler = 1;
+	period = 30;
+	SinusBufferSize = sinusPeriod/period;
+
+	if(SinusBufferSize>SINUS_BUFFER_SIZE)
 	{
-		SinusBufferSize = SINUS_BUFFER_SIZE;
-		uint32_t p = SystemCoreClock/SINUS_BUFFER_SIZE/frequency;
-		prescaler = 1;
-		period = 1;
-		while(p>0xFFFFul*prescaler)
+		period = 120; //ADC speed in CPU tick
+		while(SINUS_BUFFER_SIZE*prescaler*period<sinusPeriod)
 		{
 			prescaler++;
 		}
 
-		period = p / prescaler;
-	} else
-	{
-		prescaler = 1;
-		period = 30;
-		SinusBufferSize = SystemCoreClock/period/frequency;
+		SinusBufferSize = sinusPeriod/prescaler/period;
 	}
 
 	DacSinusCalculate();
