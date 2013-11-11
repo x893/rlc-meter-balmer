@@ -19,6 +19,34 @@ bool g_adc_read_buffer = false;
 uint32_t g_adc_elapsed_time = 0;
 uint32_t g_adc_tick = 1;
 
+void DMA1_Channel1_IRQHandler(void)
+{
+	if(DMA_GetITStatus(DMA1_IT_TC1) == SET)
+	{
+		DMA_ClearITPendingBit(DMA1_IT_GL1);
+
+		if(g_adc_cycles++<g_adc_cycles_skip)//skip first read
+			return;
+
+		//g_adc_elapsed_time = GetTime();
+		USB_SetLeds('D');
+		g_adcStatus = 2;
+
+		ADC_DMACmd(ADC1, DISABLE);
+		ADC_Cmd(ADC1, DISABLE);
+	}
+}
+/*
+void ADC1_2_IRQHandler(void)
+{
+	//if(ADC1->SR&ADC_SR_EOC)
+	{
+		USB_SetLeds('A');
+		CLEAR_BIT(ADC1->CR1, ADC_CR1_EOCIE);
+		TIM2->CR1 |= TIM_CR1_CEN; //Start DAC
+	}
+}
+*/
 static void NVIC_Configuration(void)
 {
         NVIC_InitTypeDef NVIC_InitStructure;
@@ -27,6 +55,12 @@ static void NVIC_Configuration(void)
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
         NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel1_IRQn;
+        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+        NVIC_Init(&NVIC_InitStructure);
+/*
+        NVIC_InitStructure.NVIC_IRQChannel = ADC1_2_IRQn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
@@ -103,24 +137,6 @@ void AdcInit()
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
 	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update);
-}
-
-void DMA1_Channel1_IRQHandler(void)
-{
-	if(DMA_GetITStatus(DMA1_IT_TC1) == SET)
-	{
-		DMA_ClearITPendingBit(DMA1_IT_GL1);
-
-		if(g_adc_cycles++<g_adc_cycles_skip)//skip first read
-			return;
-
-		//g_adc_elapsed_time = GetTime();
-		USB_SetLeds('D');
-		g_adcStatus = 2;
-
-		ADC_DMACmd(ADC1, DISABLE);
-		ADC_Cmd(ADC1, DISABLE);
-	}
 }
 
 void AdcRoundSize(uint32_t dac_period)
@@ -217,7 +233,8 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 		ADC_SoftwareStartConvCmd(ADC1, ENABLE); //Start ADC
 	} else
 	{
-		TIM2->CR1 |= TIM_CR1_CEN; //Start DAC
+		//SET_BIT(ADC1->CR1, ADC_CR1_EOCIE);
 		ADC1->CR2 |= ADC_CR2_SWSTART|ADC_CR2_EXTTRIG; ////Start ADC
+		TIM2->CR1 |= TIM_CR1_CEN; //Start DAC
 	}
 }
