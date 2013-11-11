@@ -170,7 +170,7 @@ def adcReadBuffer():
     while size>0:
         data = dev.read(129, 128, interface=1, timeout=50)
         #print data
-        size -= len(data)/2
+        size -= len(data)/4
         if not result:
             result = data
         else:
@@ -178,13 +178,14 @@ def adcReadBuffer():
 
     arr = array.array('H')
     arr.fromstring(result)
-    #print arr
-    return arr
 
-def adcReadBufferAndSave():
-    arr = adcReadBuffer()
-    with open("out.dat", "wb") as file:
-        arr.tofile(file)
+    arr1 = array.array('H')
+    arr2 = array.array('H')
+    for i in xrange(0, len(arr), 2):
+        arr1.append(arr[i])
+        arr2.append(arr[i+1])
+    #print arr
+    return (arr1, arr2)
 
 def adcSynchro(inPeriod):
     print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1), interface=1)
@@ -195,9 +196,11 @@ def adcSynchro(inPeriod):
     print "F=",clock/float(period)
     print "adc_tick=", adc_tick
     time.sleep(1)
-    out = adcReadBuffer()
+    (out1, out2) = adcReadBuffer()
     with open("out.dat", "wb") as file:
-        out.tofile(file)
+        out1.tofile(file)
+    with open("out2.dat", "wb") as file:
+        out2.tofile(file)
     pass
 
 def adcSynchro1(inPeriod):
@@ -206,10 +209,11 @@ def adcSynchro1(inPeriod):
     (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
     print "period=",period, "clock=",clock , "F=",clock/float(period), "adc_tick=", adc_tick
     time.sleep(0.3)
-    out = adcReadBuffer()
+    (out1, out2) = adcReadBuffer()
 
-    result = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out)
-    return result
+    result1 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out1)
+    result2 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out2)
+    return (result1, result2)
 
 def allFreq():
     out = []
@@ -222,10 +226,11 @@ def allFreq():
         for period in PERIOD_ROUND120:
             dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
             readCommand()
-            data = adcSynchro1(period)
-            out.append(data)
+            da = adcSynchro1(period)
 
-            print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi']
+            for data in da:
+                print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi']
+                #print>>file, data
 
 
 def printEndpoint(e):

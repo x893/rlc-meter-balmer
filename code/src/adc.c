@@ -8,7 +8,7 @@
 
 #define RESULT_BUFFER_SIZE 1000
 
-static uint16_t g_resultBuffer[RESULT_BUFFER_SIZE];
+static uint32_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
 static uint8_t g_adc_cycles;
 static uint8_t g_adc_cycles_skip = 0;
@@ -65,20 +65,24 @@ static void NVIC_Configuration(void)
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStructure);
+*/
 /*
         NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
         NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStructure);
-
-        GPIO_EXTILineConfig(GPIO_PortSourceGPIOD, GPIO_PinSource11);
-        EXTI_InitStructure.EXTI_Line = EXTI_Line11;
-        EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Event;
-        EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
-        EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-        EXTI_Init(&EXTI_InitStructure);
 */
+}
+
+static void AdcCalibration(ADC_TypeDef* ADCx)
+{
+	// Enable ADC1 reset calibaration register
+	ADC_ResetCalibration(ADCx);
+	// Check the end of ADC1 reset calibration register
+	while(ADC_GetResetCalibrationStatus(ADCx)); // Start ADC1 calibaration
+	ADC_StartCalibration(ADCx); // Check the end of ADC1 calibration
+	while(ADC_GetCalibrationStatus(ADCx));
 }
 
 void AdcInit()
@@ -101,7 +105,8 @@ void AdcInit()
 	GPIO_Init(GPIOC, &GPIO_InitStructure);   
 
 	ADC_InitTypeDef ADC_InitStructure;
-	ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;//ADC_Mode_RegSimult to dual mode
+	//ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;//ADC_Mode_RegSimult to dual mode
+	ADC_InitStructure.ADC_Mode = ADC_Mode_RegSimult;//dual mode
 	//ADC_InitStructure.ADC_ScanConvMode = DISABLE;
 	//ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
 	//ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_TRGO;
@@ -111,18 +116,16 @@ void AdcInit()
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_NbrOfChannel = 1;
 	ADC_Init(ADC1, &ADC_InitStructure);
+	ADC_Init(ADC2, &ADC_InitStructure);
 
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_10/*PC0*/, 1, ADC_SampleTime_7Cycles5); // 7.5+12.5 clock = 1.66 us time on 12 mhz
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_11/*PC1*/, 1, ADC_SampleTime_7Cycles5);
 	g_adc_tick = 20*6;
 	ADC_Cmd(ADC1, ENABLE);
+	ADC_Cmd(ADC2, ENABLE);
 
-
-	// Enable ADC1 reset calibaration register
-	ADC_ResetCalibration(ADC1);
-	// Check the end of ADC1 reset calibration register
-	while(ADC_GetResetCalibrationStatus(ADC1)); // Start ADC1 calibaration
-	ADC_StartCalibration(ADC1); // Check the end of ADC1 calibration
-	while(ADC_GetCalibrationStatus(ADC1));
+	AdcCalibration(ADC1);
+	AdcCalibration(ADC2);
 
 	//600 khz?
 	uint32_t prescaler = 1;
@@ -158,19 +161,19 @@ void AdcStartPre()
     DMA_InitStructure.DMA_BufferSize = ResultBufferSize;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
     DMA_Init(DMA1_Channel1, &DMA_InitStructure);
     DMA_Cmd(DMA1_Channel1, ENABLE);
     DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
-    ADC_DMACmd(ADC1, ENABLE);
 
 	DMA_SetCurrDataCounter(DMA1_Channel1, 0);
 	TIM_SetCounter(TIM3, 0);
 	ADC_Cmd(ADC1, ENABLE);
+	ADC_Cmd(ADC2, ENABLE);
 	ADC_DMACmd(ADC1, ENABLE);
 	g_adcStatus = 1;
 	g_adc_cycles = 0;
