@@ -91,15 +91,11 @@ void Set_System(void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-//  voltageInit();
-/*
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  GPIO_SetBits(GPIOA, GPIO_Pin_9);
-*/
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
 }
 
 /*******************************************************************************
@@ -371,6 +367,12 @@ void USB_SetLeds(uint8_t LED_Command) {
   }
   }
   
+}
+
+void SetResistor(uint8_t idx)
+{
+  GPIO_WriteBit(GPIOE, GPIO_Pin_2, idx&1);
+  GPIO_WriteBit(GPIOE, GPIO_Pin_3, (idx>>1)&1);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

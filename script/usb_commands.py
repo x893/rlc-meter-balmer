@@ -16,6 +16,7 @@ COMMAND_ADC_START = 3
 COMMAND_ADC_READ_BUFFER = 4
 COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
+COMMAND_SET_RESISTOR = 7
 
 PERIOD_ROUND120 = [
         #720000, #100.00 Hz
@@ -125,6 +126,17 @@ def readCommand():
         print "clock=",clock
         print "F=",clock/float(period)
         print "adc_cycles=", adc_cycles
+    elif cmd==COMMAND_SET_RESISTOR:
+        r = data[1]
+        if r==0:
+            print "r=100 Om"
+        elif r==1:
+            print "r=1 KOm"
+        elif r==2:
+            print "r=10 KOm"
+        elif r==3:
+            print "r=100 KOm"
+
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -197,10 +209,10 @@ def adcSynchro(inPeriod):
     print "adc_tick=", adc_tick
     time.sleep(1)
     (out1, out2) = adcReadBuffer()
-    with open("out.dat", "wb") as file:
-        out1.tofile(file)
-    with open("out2.dat", "wb") as file:
-        out2.tofile(file)
+    with open("out1.dat", "wb") as file1:
+        out1.tofile(file1)
+    with open("out2.dat", "wb") as file2:
+        out2.tofile(file2)
     pass
 
 def adcSynchro1(inPeriod):
@@ -214,6 +226,11 @@ def adcSynchro1(inPeriod):
     result1 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out1)
     result2 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out2)
     return (result1, result2)
+
+def setResistor(r):
+    dev.write(3, [COMMAND_SET_RESISTOR, r], interface=1)
+    readCommand()
+
 
 def allFreq():
     out = []
@@ -229,7 +246,7 @@ def allFreq():
             da = adcSynchro1(period)
 
             for data in da:
-                print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi']
+                print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi'], ' amplitude='+'{:3.1f}'.format(data['amplitude'])
                 #print>>file, data
 
 
@@ -266,6 +283,8 @@ def main():
 
     freq = 600
     period = 72000000/freq
+    setResistor(2)
+    time.sleep(0.3)
     #adcSynchro(period)
     allFreq()
     pass

@@ -106,6 +106,7 @@ int main(void)
   delay_init();
   DacInit();
 
+  SetResistor(0);
   USB_SetLeds('0');
   AdcInit();
 

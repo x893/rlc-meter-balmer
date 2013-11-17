@@ -61,6 +61,7 @@ void USB_Cable_Config (FunctionalState NewState);
 void Get_SerialNum(void);
 
 void USB_SetLeds(uint8_t LED_Command);
+void SetResistor(uint8_t idx);
 
 /* External variables --------------------------------------------------------*/
 
