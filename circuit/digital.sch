@@ -9672,6 +9672,14 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C7" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
+<part name="X3" library="con-phoenix-254" deviceset="MPT2" device=""/>
+<part name="GND8" library="supply1" deviceset="GND" device=""/>
+<part name="GND9" library="supply1" deviceset="GNDA" device=""/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="R0603" value="0"/>
+<part name="GND11" library="supply1" deviceset="GND" device=""/>
+<part name="C9" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
+<part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
+<part name="P+2" library="supply1" deviceset="+5V" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9736,6 +9744,15 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="C7" gate="G$1" x="-5.08" y="17.78" rot="R90"/>
 <instance part="C8" gate="G$1" x="-5.08" y="40.64" rot="R90"/>
 <instance part="+3V3" gate="G$1" x="7.62" y="45.72"/>
+<instance part="X3" gate="-1" x="-12.7" y="93.98" rot="MR0"/>
+<instance part="X3" gate="-2" x="-12.7" y="88.9" rot="MR0"/>
+<instance part="GND8" gate="1" x="116.84" y="88.9"/>
+<instance part="GND9" gate="1" x="101.6" y="88.9"/>
+<instance part="R3" gate="G$1" x="109.22" y="91.44"/>
+<instance part="GND11" gate="1" x="12.7" y="86.36"/>
+<instance part="C9" gate="G$1" x="-2.54" y="93.98"/>
+<instance part="C10" gate="G$1" x="25.4" y="93.98"/>
+<instance part="P+2" gate="1" x="25.4" y="104.14"/>
 </instances>
 <busses>
 </busses>
@@ -9769,6 +9786,14 @@ Source: 008-0260-0_E.pdf</description>
 <wire x1="73.66" y1="63.5" x2="73.66" y2="60.96" width="0.1524" layer="91"/>
 <junction x="50.8" y="63.5"/>
 </segment>
+<segment>
+<pinref part="IC1" gate="G$1" pin="VO"/>
+<wire x1="25.4" y1="96.52" x2="22.86" y2="96.52" width="0.1524" layer="91"/>
+<pinref part="C10" gate="G$1" pin="1"/>
+<pinref part="P+2" gate="1" pin="+5V"/>
+<wire x1="25.4" y1="96.52" x2="25.4" y2="101.6" width="0.1524" layer="91"/>
+<junction x="25.4" y="96.52"/>
+</segment>
 </net>
 <net name="GNDA" class="0">
 <segment>
@@ -9784,6 +9809,11 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="GND6" gate="1" pin="GNDA"/>
 <wire x1="12.7" y1="-7.62" x2="10.16" y2="-7.62" width="0.1524" layer="91"/>
 <wire x1="10.16" y1="-7.62" x2="10.16" y2="-10.16" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND9" gate="1" pin="GNDA"/>
+<pinref part="R3" gate="G$1" pin="1"/>
+<wire x1="101.6" y1="91.44" x2="104.14" y2="91.44" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="V_ADC" class="0">
@@ -9967,6 +9997,23 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="-7.62" y="25.4"/>
 <junction x="-7.62" y="33.02"/>
 </segment>
+<segment>
+<pinref part="GND8" gate="1" pin="GND"/>
+<pinref part="R3" gate="G$1" pin="2"/>
+<wire x1="116.84" y1="91.44" x2="114.3" y2="91.44" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="IC1" gate="G$1" pin="GND"/>
+<pinref part="GND11" gate="1" pin="GND"/>
+<wire x1="25.4" y1="88.9" x2="12.7" y2="88.9" width="0.1524" layer="91"/>
+<pinref part="C9" gate="G$1" pin="2"/>
+<wire x1="-2.54" y1="88.9" x2="12.7" y2="88.9" width="0.1524" layer="91"/>
+<pinref part="C10" gate="G$1" pin="2"/>
+<pinref part="X3" gate="-2" pin="1"/>
+<wire x1="-10.16" y1="88.9" x2="-2.54" y2="88.9" width="0.1524" layer="91"/>
+<junction x="12.7" y="88.9"/>
+<junction x="-2.54" y="88.9"/>
+</segment>
 </net>
 <net name="N$3" class="0">
 <segment>
@@ -10098,6 +10145,17 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="X8" gate="-2" pin="1"/>
 <wire x1="149.86" y1="88.9" x2="139.7" y2="88.9" width="0.1524" layer="91"/>
 <label x="136.906" y="89.408" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$7" class="0">
+<segment>
+<pinref part="C9" gate="G$1" pin="1"/>
+<pinref part="IC1" gate="G$1" pin="VI"/>
+<wire x1="-2.54" y1="96.52" x2="2.54" y2="96.52" width="0.1524" layer="91"/>
+<pinref part="X3" gate="-1" pin="1"/>
+<wire x1="-10.16" y1="93.98" x2="-10.16" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="-10.16" y1="96.52" x2="-2.54" y2="96.52" width="0.1524" layer="91"/>
+<junction x="-2.54" y="96.52"/>
 </segment>
 </net>
 </nets>
