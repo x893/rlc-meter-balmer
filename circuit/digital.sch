@@ -9793,9 +9793,9 @@ Source: 008-0260-0_E.pdf</description>
 <label x="169.164" y="64.008" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$12" pin="PE14"/>
-<wire x1="12.7" y1="-38.1" x2="5.08" y2="-38.1" width="0.1524" layer="91"/>
-<label x="3.81" y="-37.592" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$5" pin="PB1"/>
+<wire x1="86.36" y1="0" x2="96.52" y2="0" width="0.1524" layer="91"/>
+<label x="88.9" y="0.508" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RA" class="0">
@@ -9804,6 +9804,11 @@ Source: 008-0260-0_E.pdf</description>
 <wire x1="177.8" y1="76.2" x2="170.18" y2="76.2" width="0.1524" layer="91"/>
 <label x="170.434" y="76.454" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD1"/>
+<wire x1="86.36" y1="-50.8" x2="96.52" y2="-50.8" width="0.1524" layer="91"/>
+<label x="91.44" y="-50.8" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="RB" class="0">
 <segment>
@@ -9811,12 +9816,22 @@ Source: 008-0260-0_E.pdf</description>
 <wire x1="177.8" y1="71.12" x2="170.18" y2="71.12" width="0.1524" layer="91"/>
 <label x="170.688" y="71.882" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD0"/>
+<wire x1="86.36" y1="-48.26" x2="96.52" y2="-48.26" width="0.1524" layer="91"/>
+<label x="91.44" y="-48.26" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="SPI_CS_I" class="0">
 <segment>
 <pinref part="X7" gate="-2" pin="1"/>
 <wire x1="152.4" y1="58.42" x2="147.32" y2="58.42" width="0.1524" layer="91"/>
 <label x="141.732" y="59.182" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD6"/>
+<wire x1="86.36" y1="-63.5" x2="96.52" y2="-63.5" width="0.1524" layer="91"/>
+<label x="88.392" y="-62.992" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="I_ADC" class="0">
@@ -9826,9 +9841,9 @@ Source: 008-0260-0_E.pdf</description>
 <label x="170.434" y="58.928" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$5" pin="PB1"/>
-<wire x1="86.36" y1="0" x2="96.52" y2="0" width="0.1524" layer="91"/>
-<label x="88.9" y="0.508" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$12" pin="PE14"/>
+<wire x1="12.7" y1="-38.1" x2="5.08" y2="-38.1" width="0.1524" layer="91"/>
+<label x="3.81" y="-37.592" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SPI_CS_V" class="0">
@@ -9836,6 +9851,11 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="X7" gate="-1" pin="1"/>
 <wire x1="152.4" y1="63.5" x2="147.32" y2="63.5" width="0.1524" layer="91"/>
 <label x="141.732" y="64.262" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD7"/>
+<wire x1="86.36" y1="-66.04" x2="96.52" y2="-66.04" width="0.1524" layer="91"/>
+<label x="88.392" y="-65.786" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$1" class="0">
