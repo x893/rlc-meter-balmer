@@ -68,6 +68,8 @@
 <wire x1="56.185" y1="0" x2="56.185" y2="50.79" width="0" layer="20"/>
 <wire x1="56.185" y1="50.79" x2="0" y2="50.79" width="0" layer="20"/>
 <wire x1="0" y1="50.79" x2="0" y2="0" width="0" layer="20"/>
+<circle x="5.08" y="19.435" radius="0.86175625" width="0.6096" layer="1"/>
+<circle x="5.1" y="23.765" radius="0.86175625" width="0.6096" layer="1"/>
 </plain>
 <libraries>
 <library name="rcl">
