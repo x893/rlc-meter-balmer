@@ -7457,6 +7457,28 @@ Grid 2.54 mm&lt;p&gt;
 <text x="-2.794" y="1.778" size="1.27" layer="25">&gt;NAME</text>
 <text x="-2.794" y="-3.048" size="1.27" layer="27">&gt;VALUE</text>
 </package>
+<package name="4POL254">
+<description>&lt;b&gt;PHOENIX CONNECTOR&lt;/b&gt;</description>
+<wire x1="-5.21" y1="-1.45" x2="5.21" y2="-1.45" width="0.254" layer="21"/>
+<wire x1="5.21" y1="-1.45" x2="5.21" y2="1.45" width="0.254" layer="21"/>
+<wire x1="5.21" y1="1.45" x2="-5.21" y2="1.45" width="0.254" layer="21"/>
+<wire x1="-5.21" y1="1.45" x2="-5.21" y2="-1.45" width="0.254" layer="21"/>
+<wire x1="-5.1" y1="1.1" x2="5.1" y2="1.1" width="0.1524" layer="21"/>
+<wire x1="-4.445" y1="-0.508" x2="-3.302" y2="0.635" width="0.1524" layer="51"/>
+<wire x1="-2.032" y1="-0.254" x2="-0.508" y2="0.127" width="0.1524" layer="51"/>
+<wire x1="0.762" y1="0.635" x2="1.778" y2="-0.635" width="0.1524" layer="51"/>
+<wire x1="3.048" y1="0.381" x2="4.572" y2="-0.381" width="0.1524" layer="51"/>
+<circle x="-3.81" y="0" radius="0.889" width="0.1524" layer="51"/>
+<circle x="-1.27" y="0" radius="0.889" width="0.1524" layer="51"/>
+<circle x="1.27" y="0" radius="0.889" width="0.1524" layer="51"/>
+<circle x="3.81" y="0" radius="0.889" width="0.1524" layer="51"/>
+<pad name="1" x="-3.81" y="0" drill="1.2" shape="long" rot="R90"/>
+<pad name="2" x="-1.27" y="0" drill="1.2" shape="long" rot="R90"/>
+<pad name="3" x="1.27" y="0" drill="1.2" shape="long" rot="R90"/>
+<pad name="4" x="3.81" y="0" drill="1.2" shape="long" rot="R90"/>
+<text x="-5.334" y="1.778" size="1.27" layer="25">&gt;NAME</text>
+<text x="-5.334" y="-3.048" size="1.27" layer="27">&gt;VALUE</text>
+</package>
 </packages>
 <symbols>
 <symbol name="SKB">
@@ -7485,6 +7507,33 @@ Grid 2.54 mm&lt;p&gt;
 <connects>
 <connect gate="-1" pin="1" pad="1"/>
 <connect gate="-2" pin="1" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="MF" value="" constant="no"/>
+<attribute name="MPN" value="" constant="no"/>
+<attribute name="OC_FARNELL" value="unknown" constant="no"/>
+<attribute name="OC_NEWARK" value="unknown" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MPT4" prefix="X" uservalue="yes">
+<description>&lt;b&gt;PHOENIX CONNECTOR&lt;/b&gt;</description>
+<gates>
+<gate name="-1" symbol="SKB" x="0" y="10.16" addlevel="always"/>
+<gate name="-2" symbol="SKB" x="0" y="5.08" addlevel="always"/>
+<gate name="-3" symbol="SKB" x="0" y="0" addlevel="always"/>
+<gate name="-4" symbol="SKBV" x="0" y="-5.08" addlevel="always"/>
+</gates>
+<devices>
+<device name="" package="4POL254">
+<connects>
+<connect gate="-1" pin="1" pad="1"/>
+<connect gate="-2" pin="1" pad="2"/>
+<connect gate="-3" pin="1" pad="3"/>
+<connect gate="-4" pin="1" pad="4"/>
 </connects>
 <technologies>
 <technology name="">
@@ -9680,6 +9729,10 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C9" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
+<part name="X9" library="con-phoenix-254" deviceset="MPT4" device=""/>
+<part name="+3V4" library="supply1" deviceset="+3V3" device=""/>
+<part name="GND12" library="supply1" deviceset="GND" device=""/>
+<part name="X10" library="con-phoenix-254" deviceset="MPT4" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9753,6 +9806,16 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="C9" gate="G$1" x="-2.54" y="93.98"/>
 <instance part="C10" gate="G$1" x="25.4" y="93.98"/>
 <instance part="P+2" gate="1" x="25.4" y="104.14"/>
+<instance part="X9" gate="-1" x="177.8" y="5.08"/>
+<instance part="X9" gate="-2" x="177.8" y="0"/>
+<instance part="X9" gate="-3" x="177.8" y="-5.08"/>
+<instance part="X9" gate="-4" x="177.8" y="-10.16"/>
+<instance part="+3V4" gate="G$1" x="170.18" y="10.16"/>
+<instance part="GND12" gate="1" x="170.18" y="-15.24"/>
+<instance part="X10" gate="-1" x="127" y="-48.26"/>
+<instance part="X10" gate="-2" x="127" y="-53.34"/>
+<instance part="X10" gate="-3" x="127" y="-58.42"/>
+<instance part="X10" gate="-4" x="127" y="-63.5"/>
 </instances>
 <busses>
 </busses>
@@ -10014,6 +10077,12 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="12.7" y="88.9"/>
 <junction x="-2.54" y="88.9"/>
 </segment>
+<segment>
+<pinref part="GND12" gate="1" pin="GND"/>
+<wire x1="170.18" y1="-12.7" x2="170.18" y2="-10.16" width="0.1524" layer="91"/>
+<pinref part="X9" gate="-4" pin="1"/>
+<wire x1="170.18" y1="-10.16" x2="175.26" y2="-10.16" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="N$3" class="0">
 <segment>
@@ -10066,6 +10135,12 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="0" y="25.4"/>
 <junction x="0" y="33.02"/>
 <junction x="0" y="40.64"/>
+</segment>
+<segment>
+<pinref part="X9" gate="-1" pin="1"/>
+<pinref part="+3V4" gate="G$1" pin="+3V3"/>
+<wire x1="175.26" y1="5.08" x2="170.18" y2="5.08" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="5.08" x2="170.18" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="V+" class="0">
@@ -10156,6 +10231,64 @@ Source: 008-0260-0_E.pdf</description>
 <wire x1="-10.16" y1="93.98" x2="-10.16" y2="96.52" width="0.1524" layer="91"/>
 <wire x1="-10.16" y1="96.52" x2="-2.54" y2="96.52" width="0.1524" layer="91"/>
 <junction x="-2.54" y="96.52"/>
+</segment>
+</net>
+<net name="SWDIO" class="0">
+<segment>
+<pinref part="U$1" gate="G$2" pin="PA13"/>
+<wire x1="50.8" y1="15.24" x2="40.64" y2="15.24" width="0.1524" layer="91"/>
+<label x="40.64" y="15.494" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="X9" gate="-2" pin="1"/>
+<wire x1="175.26" y1="0" x2="162.56" y2="0" width="0.1524" layer="91"/>
+<label x="162.814" y="0.508" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="SWCLK" class="0">
+<segment>
+<pinref part="U$1" gate="G$2" pin="PA14"/>
+<wire x1="50.8" y1="12.7" x2="40.64" y2="12.7" width="0.1524" layer="91"/>
+<label x="40.386" y="12.954" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="X9" gate="-3" pin="1"/>
+<wire x1="175.26" y1="-5.08" x2="162.56" y2="-5.08" width="0.1524" layer="91"/>
+<label x="162.814" y="-4.572" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$6" class="0">
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD2"/>
+<wire x1="86.36" y1="-53.34" x2="114.3" y2="-53.34" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="-53.34" x2="114.3" y2="-48.26" width="0.1524" layer="91"/>
+<pinref part="X10" gate="-1" pin="1"/>
+<wire x1="114.3" y1="-48.26" x2="124.46" y2="-48.26" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$8" class="0">
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD3"/>
+<wire x1="86.36" y1="-55.88" x2="119.38" y2="-55.88" width="0.1524" layer="91"/>
+<wire x1="119.38" y1="-55.88" x2="119.38" y2="-53.34" width="0.1524" layer="91"/>
+<pinref part="X10" gate="-2" pin="1"/>
+<wire x1="119.38" y1="-53.34" x2="124.46" y2="-53.34" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$9" class="0">
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD4"/>
+<pinref part="X10" gate="-3" pin="1"/>
+<wire x1="86.36" y1="-58.42" x2="124.46" y2="-58.42" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$10" class="0">
+<segment>
+<pinref part="U$1" gate="G$9" pin="PD5"/>
+<wire x1="86.36" y1="-60.96" x2="121.92" y2="-60.96" width="0.1524" layer="91"/>
+<wire x1="121.92" y1="-60.96" x2="121.92" y2="-63.5" width="0.1524" layer="91"/>
+<pinref part="X10" gate="-4" pin="1"/>
+<wire x1="121.92" y1="-63.5" x2="124.46" y2="-63.5" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
