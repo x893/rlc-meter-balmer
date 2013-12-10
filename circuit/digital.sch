@@ -9682,7 +9682,7 @@ Source: 008-0260-0_E.pdf</description>
 </class>
 </classes>
 <parts>
-<part name="L2" library="rcl" deviceset="L-US" device="0204/7" value="MMZ1608B102C"/>
+<part name="L2" library="rcl" deviceset="L-US" device="0204/7" value="100mk"/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C12" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
 <part name="GND10" library="supply1" deviceset="GNDA" device=""/>
@@ -9733,6 +9733,8 @@ Source: 008-0260-0_E.pdf</description>
 <part name="+3V4" library="supply1" deviceset="+3V3" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="X10" library="con-phoenix-254" deviceset="MPT4" device=""/>
+<part name="R4" library="rcl" deviceset="R-EU_" device="R0603" value="1.5k"/>
+<part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9816,6 +9818,8 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="X10" gate="-2" x="127" y="-53.34"/>
 <instance part="X10" gate="-3" x="127" y="-58.42"/>
 <instance part="X10" gate="-4" x="127" y="-63.5"/>
+<instance part="R4" gate="G$1" x="45.72" y="48.26" rot="R90"/>
+<instance part="+3V5" gate="G$1" x="40.64" y="45.72"/>
 </instances>
 <busses>
 </busses>
@@ -9963,8 +9967,11 @@ Source: 008-0260-0_E.pdf</description>
 <segment>
 <pinref part="X1" gate="G$1" pin="3"/>
 <pinref part="R2" gate="G$1" pin="2"/>
-<wire x1="53.34" y1="53.34" x2="43.18" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="53.34" x2="45.72" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="53.34" x2="43.18" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="43.18" y1="53.34" x2="43.18" y2="50.8" width="0.1524" layer="91"/>
+<pinref part="R4" gate="G$1" pin="2"/>
+<junction x="45.72" y="53.34"/>
 </segment>
 </net>
 <net name="USB_DM" class="0">
@@ -10059,6 +10066,8 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="-7.62" y="17.78"/>
 <junction x="-7.62" y="25.4"/>
 <junction x="-7.62" y="33.02"/>
+<pinref part="U$1" gate="G$11" pin="VBAT"/>
+<wire x1="12.7" y1="2.54" x2="12.7" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND8" gate="1" pin="GND"/>
@@ -10141,6 +10150,11 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="+3V4" gate="G$1" pin="+3V3"/>
 <wire x1="175.26" y1="5.08" x2="170.18" y2="5.08" width="0.1524" layer="91"/>
 <wire x1="170.18" y1="5.08" x2="170.18" y2="7.62" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R4" gate="G$1" pin="1"/>
+<pinref part="+3V5" gate="G$1" pin="+3V3"/>
+<wire x1="45.72" y1="43.18" x2="40.64" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="V+" class="0">
