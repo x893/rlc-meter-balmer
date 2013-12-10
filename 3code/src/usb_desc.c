@@ -95,7 +95,7 @@ const uint8_t Joystick_ConfigDescriptor[JOYSTICK_SIZ_CONFIG_DESC] =
     USB_INTERFACE_DESCRIPTOR_TYPE,/*bDescriptorType: Interface descriptor type*/
     0x00,         /*bInterfaceNumber: Number of Interface*/
     0x00,         /*bAlternateSetting: Alternate setting*/
-    0x01,         /*bNumEndpoints*/
+    0x02,         /*bNumEndpoints*/
     0x00,//unknown interface // 0x03,         /*bInterfaceClass: HID*/
     0x01,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
     0x02,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
@@ -111,8 +111,8 @@ const uint8_t Joystick_ConfigDescriptor[JOYSTICK_SIZ_CONFIG_DESC] =
     0x22,         /*bDescriptorType*/
     JOYSTICK_SIZ_REPORT_DESC,/*wItemLength: Total length of Report descriptor*/
     0x00,
-    /******************** Descriptor of Joystick Mouse endpoint ********************/
     /* 27 */
+    // Endpoint 1 IN descriptor
     0x07,          /*bLength: Endpoint Descriptor size*/
     USB_ENDPOINT_DESCRIPTOR_TYPE, /*bDescriptorType:*/
 
@@ -120,8 +120,18 @@ const uint8_t Joystick_ConfigDescriptor[JOYSTICK_SIZ_CONFIG_DESC] =
     0x02,   /* bmAttributes: Bulk */
     VIRTUAL_COM_PORT_DATA_SIZE,             /* wMaxPacketSize: */
     0x00,
-    0x00    /* bInterval */
+    0x00,    /* bInterval */
     /* 34 */
+    // Endpoint 1 OUT descriptor
+    0x07,          /*bLength: Endpoint Descriptor size*/
+    USB_ENDPOINT_DESCRIPTOR_TYPE, /*bDescriptorType:*/
+
+    0x01,          /*bEndpointAddress: Endpoint Address (OUT)*/
+    0x02,   /* bmAttributes: Bulk */
+    VIRTUAL_COM_PORT_DATA_SIZE,             /* wMaxPacketSize: */
+    0x00,
+    0x00,    /* bInterval */
+    /* 41 */
   }
   ; /* MOUSE_ConfigDescriptor */
 const uint8_t Joystick_ReportDescriptor[JOYSTICK_SIZ_REPORT_DESC] =

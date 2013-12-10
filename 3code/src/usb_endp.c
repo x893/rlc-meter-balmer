@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+static uint8_t USB_Rx_Buffer[VIRTUAL_COM_PORT_DATA_SIZE];
 static uint8_t Rx_Buffer [VIRTUAL_COM_PORT_DATA_SIZE]; 
 static uint32_t Rx_length  = 0;
 
@@ -46,7 +47,28 @@ void USBSend(void)
 
 void EP1_IN_Callback(void)
 {
-	USBAddStr("Hello!");
-	USBSend();
+	//USBAddStr("Hello!");
+	//USBSend();
 }
 
+void EP1_OUT_Callback(void)
+{
+	uint16_t USB_Rx_Cnt;
+	USB_Rx_Cnt = USB_SIL_Read(EP1_OUT, USB_Rx_Buffer);
+	//USBCommandReceive(USB_Rx_Buffer, USB_Rx_Cnt);
+	switch(USB_Rx_Buffer[0])
+	{
+	case 0: 
+		USBAddStr("0 is zero");
+		break;
+	case 1: 
+		USBAddStr("1 is one");
+		break;
+	default:
+		USBAddStr("default");
+	}
+
+	USBSend();
+
+	SetEPRxValid(ENDP1);
+}

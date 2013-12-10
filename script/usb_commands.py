@@ -77,7 +77,6 @@ def readAll():
 
 def readOne():
     time.sleep(0.1)
-    print dev
     try:
         data = dev.read(129, 128, interface=0, timeout=50)
         if len(data)==0:
@@ -280,6 +279,14 @@ def main():
             print "write=",dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
             readCommand()
 
+    #readOne()
+    print "write=",dev.write(1, [1], interface=0)
+    readOne()
+    print "write=",dev.write(1, [1], interface=0)
+    readOne()
+    print "write=",dev.write(1, [0], interface=0)
+    readOne()
+    print "write=",dev.write(1, [2], interface=0)
     readOne()
 
     #setFreq(10000)

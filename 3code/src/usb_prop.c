@@ -170,11 +170,12 @@ void Joystick_Reset(void)
   SetEPRxValid(ENDP0);
 
   /* Initialize Endpoint 1 */
-  SetEPType(ENDP1, EP_INTERRUPT);
+  SetEPType(ENDP1, EP_BULK);
   SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-  SetEPTxCount(ENDP1, 4);
-  SetEPRxStatus(ENDP1, EP_RX_DIS);
+  SetEPRxAddr(ENDP1, ENDP1_RXADDR);
+  SetEPRxCount(ENDP1, VIRTUAL_COM_PORT_DATA_SIZE);
   SetEPTxStatus(ENDP1, EP_TX_NAK);
+  SetEPRxStatus(ENDP1, EP_RX_VALID);
 
   /* Set this device to response on default address */
   SetDeviceAddress(0);

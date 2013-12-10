@@ -56,6 +56,7 @@
 /* EP1  */
 /* tx buffer base address */
 #define ENDP1_TXADDR        (0x100)
+#define ENDP1_RXADDR        (0x180)
 
 
 /*-------------------------------------------------------------*/
@@ -77,7 +78,7 @@
 #define  EP6_IN_Callback   NOP_Process
 #define  EP7_IN_Callback   NOP_Process
 
-#define  EP1_OUT_Callback   NOP_Process
+// #define  EP1_OUT_Callback   NOP_Process
 #define  EP2_OUT_Callback   NOP_Process
 #define  EP3_OUT_Callback   NOP_Process
 #define  EP4_OUT_Callback   NOP_Process
