@@ -1,11 +1,33 @@
-#include <stdint.h>
+#include "main.h"
+
+//#include <stdint.h>
+
+
 
 volatile float f = 12.0;
 volatile float a = 10;
 volatile float b = 15;
 
+void USB_Config(void)
+{
+  Set_System();
+  Set_USBClock();
+  USB_Interrupts_Config();
+  
+  USB_Init();
+
+  while (bDeviceState != CONFIGURED)
+  {}
+}
+
+
 int main(void)
 {
+  USB_Config();
+
+  USB_SIL_Write(EP1_IN, (uint8_t *)"Hello", 5);
+  SetEPTxValid(ENDP1); 
+
   while (1)
   {
     f = a*b;

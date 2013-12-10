@@ -77,12 +77,14 @@ def readAll():
 
 def readOne():
     time.sleep(0.1)
+    print dev
     try:
-        data = dev.read(129, 128, interface=1, timeout=50)
+        data = dev.read(129, 128, interface=0, timeout=50)
         if len(data)==0:
             print "Read empty"
         else:
             print "readb=", data
+            print "read=", data.tostring()
     except usb.core.USBError:
         print "Read USB error"
     pass
@@ -272,21 +274,23 @@ def main():
                 print e.bEndpointAddress
                 #printEndpoint(e)
 
-    if True:
+    if False:
         #readOne()
         for x in xrange(3):
             print "write=",dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
             readCommand()
 
+    readOne()
+
     #setFreq(10000)
     #adcStart()
 
-    freq = 600
-    period = 72000000/freq
-    setResistor(2)
-    time.sleep(0.3)
+    #freq = 600
+    #period = 72000000/freq
+    #setResistor(2)
+    #time.sleep(0.3)
     #adcSynchro(period)
-    allFreq()
+    #allFreq()
     pass
 
 
