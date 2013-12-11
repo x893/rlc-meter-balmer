@@ -1,6 +1,7 @@
 #include "main.h"
 
 //#include <stdint.h>
+#include "dac.h"
 
 
 
@@ -27,6 +28,10 @@ int main(void)
 
   USB_SIL_Write(EP1_IN, (uint8_t *)"Hello", 5);
   SetEPTxValid(ENDP1); 
+
+  DacInit();
+  DacSetFrequency(100000);
+  DacStart();
 
   while (1)
   {
