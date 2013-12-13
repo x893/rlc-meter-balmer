@@ -1,6 +1,8 @@
 
 #include "usb_lib.h"
 #include "usb_istr.h"
+#include "voltage.h"
+#include "adc.h"
 
 #include <string.h>
 
@@ -47,6 +49,8 @@ void USBSend(void)
 
 void EP1_IN_Callback(void)
 {
+  if(g_adc_read_buffer)
+    AdcReadBuffer();
 	//USBAddStr("Hello!");
 	//USBSend();
 }
@@ -55,7 +59,8 @@ void EP1_OUT_Callback(void)
 {
 	uint16_t USB_Rx_Cnt;
 	USB_Rx_Cnt = USB_SIL_Read(EP1_OUT, USB_Rx_Buffer);
-	//USBCommandReceive(USB_Rx_Buffer, USB_Rx_Cnt);
+	USBCommandReceive(USB_Rx_Buffer, USB_Rx_Cnt);
+/*
 	switch(USB_Rx_Buffer[0])
 	{
 	case 0: 
@@ -69,6 +74,6 @@ void EP1_OUT_Callback(void)
 	}
 
 	USBSend();
-
+*/
 	SetEPRxValid(ENDP1);
 }

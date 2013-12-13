@@ -62,11 +62,16 @@ def findDevice():
 
     dev.set_configuration()
 
+def dwrite(data):
+    return dev.write(1, data, interface=0)
+def dread():
+    return dev.read(129, 128, interface=0, timeout=50)
+
 def readAll():
     time.sleep(0.1)
     while True:
         try:
-            data = dev.read(129, 128, interface=1, timeout=50)
+            data = dread()
             if len(data)==0:
                 break
             print "readb=", data
@@ -78,18 +83,18 @@ def readAll():
 def readOne():
     time.sleep(0.1)
     try:
-        data = dev.read(129, 128, interface=0, timeout=50)
+        data = dread()
         if len(data)==0:
             print "Read empty"
         else:
             print "readb=", data
-            print "read=", data.tostring()
+            #print "read=", data.tostring()
     except usb.core.USBError:
         print "Read USB error"
     pass
 
 def readInt():
-    data = dev.read(129, 128, interface=1, timeout=50)
+    data = dread()
     if len(data)!=4:
         print "Fail read int len="+str(len(data))
     else:
@@ -98,7 +103,7 @@ def readInt():
 def readCommand():
     time.sleep(0.01)
     try:
-        data = dev.read(129, 128, interface=1, timeout=50)
+        data = dread()
         if len(data)==0:
             print "Read empty"
             return
@@ -147,7 +152,7 @@ def readConversionData():
         step = 30
         for i in xrange(0, 34):
             offset = i*30
-            print "write=",dev.write(3, [COMMAND_GET_RESULT, offset%256, offset//256], interface=1)
+            print "write=",dev.write(3, [COMMAND_GET_RESULT, offset%256, offset//256], interface=0)
             data = dev.read(129, 128, interface=1, timeout=50)
             values =data[4:]
             print values
@@ -157,31 +162,31 @@ def readConversionData():
 """
 
 def setFreq(F):    
-    print "write=",dev.write(3, struct.pack("=BI", COMMAND_SET_FREQUENCY, F), interface=1)
+    print "write=",dwrite(struct.pack("=BI", COMMAND_SET_FREQUENCY, F))
     readCommand()
     pass
 
 def adcStart():
-    dev.write(3, [COMMAND_ADC_START], interface=1)
+    dwrite([COMMAND_ADC_START])
     readCommand()
     pass
 
 def adcElapsedTime():
-    dev.write(3, [COMMAND_ADC_ELAPSED_TIME], interface=1)
+    dwrite([COMMAND_ADC_ELAPSED_TIME])
     readCommand()
     pass
 
 def adcReadBuffer():
-    dev.write(3, [COMMAND_ADC_READ_BUFFER], interface=1)
+    dwrite([COMMAND_ADC_READ_BUFFER])
     time.sleep(0.01)
-    data = dev.read(129, 128, interface=1, timeout=50)
+    data = dread()
     size = struct.unpack_from('=I', data, 1)[0]
 
     print "adcReadBuffer size=", size
 
     result = None
     while size>0:
-        data = dev.read(129, 128, interface=1, timeout=50)
+        data = dread()
         #print data
         size -= len(data)/4
         if not result:
@@ -201,8 +206,8 @@ def adcReadBuffer():
     return (arr1, arr2)
 
 def adcSynchro(inPeriod):
-    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1), interface=1)
-    data = dev.read(129, 128, interface=1, timeout=50)
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
+    data = dread()
     (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
     print "period=",period
     print "clock=",clock
@@ -217,8 +222,8 @@ def adcSynchro(inPeriod):
     pass
 
 def adcSynchro1(inPeriod):
-    print "adcStartSynchro=",dev.write(3, struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1), interface=1)
-    data = dev.read(129, 128, interface=1, timeout=50)
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
+    data = dread()
     (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
     print "period=",period, "clock=",clock , "F=",clock/float(period), "adc_tick=", adc_tick
     time.sleep(0.3)
@@ -229,7 +234,7 @@ def adcSynchro1(inPeriod):
     return (result1, result2)
 
 def setResistor(r):
-    dev.write(3, [COMMAND_SET_RESISTOR, r], interface=1)
+    dwrite([COMMAND_SET_RESISTOR, r])
     readCommand()
 
 
@@ -242,7 +247,7 @@ def allFreq():
         #P = 3600 #20000.00 Hz
         PERIOD_ROUND120 = [P]*10
         for period in PERIOD_ROUND120:
-            dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
+            dwrite([COMMAND_SET_LED, ord('0')])
             readCommand()
             da = adcSynchro1(period)
 
@@ -276,27 +281,27 @@ def main():
     if False:
         #readOne()
         for x in xrange(3):
-            print "write=",dev.write(3, [COMMAND_SET_LED, ord('0')], interface=1)
+            print "write=",dwrite([COMMAND_SET_LED, ord('0')])
             readCommand()
 
     #readOne()
-    print "write=",dev.write(1, [1], interface=0)
+    print "write=",dwrite([1])
     readOne()
-    print "write=",dev.write(1, [1], interface=0)
+    print "write=",dwrite([1])
     readOne()
-    print "write=",dev.write(1, [0], interface=0)
+    print "write=",dwrite([1])
     readOne()
-    print "write=",dev.write(1, [2], interface=0)
+    print "write=",dwrite([1])
     readOne()
 
     #setFreq(10000)
     #adcStart()
 
-    #freq = 600
-    #period = 72000000/freq
+    freq = 100000
+    period = 72000000/freq
     #setResistor(2)
-    #time.sleep(0.3)
-    #adcSynchro(period)
+    time.sleep(0.3)
+    adcSynchro(period)
     #allFreq()
     pass
 

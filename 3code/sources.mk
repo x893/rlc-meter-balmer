@@ -5,16 +5,19 @@
 
 DEPS += \
 	output/CMSIS/startup_stm32f30x.d \
+	output/base/src/adc.d \
 	output/base/src/dac.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
+	output/base/src/systick.d \
 	output/base/src/usb_desc.d \
 	output/base/src/usb_endp.d \
 	output/base/src/usb_istr.d \
 	output/base/src/usb_prop.d \
 	output/base/src/usb_pwr.d \
+	output/base/src/voltage.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_init.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_int.d \
@@ -35,16 +38,19 @@ DEPS += \
 
 OBJS += \
 	output/CMSIS/startup_stm32f30x.o \
+	output/base/src/adc.o \
 	output/base/src/dac.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
+	output/base/src/systick.o \
 	output/base/src/usb_desc.o \
 	output/base/src/usb_endp.o \
 	output/base/src/usb_istr.o \
 	output/base/src/usb_prop.o \
 	output/base/src/usb_pwr.o \
+	output/base/src/voltage.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_init.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_int.o \
@@ -67,6 +73,10 @@ output/CMSIS/startup_stm32f30x.o: Libraries/CMSIS/Device/ST/STM32F30x/Source/Tem
 	@echo 'Building target: startup_stm32f30x.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
 
+output/base/src/adc.o: ./src/adc.c
+	@echo 'Building target: adc.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
 output/base/src/dac.o: ./src/dac.c
 	@echo 'Building target: dac.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
@@ -87,6 +97,10 @@ output/base/src/system_stm32f30x.o: ./src/system_stm32f30x.c
 	@echo 'Building target: system_stm32f30x.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
+output/base/src/systick.o: ./src/systick.c
+	@echo 'Building target: systick.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
 output/base/src/usb_desc.o: ./src/usb_desc.c
 	@echo 'Building target: usb_desc.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
@@ -105,6 +119,10 @@ output/base/src/usb_prop.o: ./src/usb_prop.c
 
 output/base/src/usb_pwr.o: ./src/usb_pwr.c
 	@echo 'Building target: usb_pwr.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/voltage.o: ./src/voltage.c
+	@echo 'Building target: voltage.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.o: ./Libraries/STM32_USB-FS-Device_Driver/src/usb_core.c

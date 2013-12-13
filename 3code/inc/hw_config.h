@@ -34,6 +34,7 @@
 #ifdef STM32F30X
  #include "stm32f30x.h"
 #endif /* STM32F30X */
+#include <stdbool.h>
 
 #define VIRTUAL_COM_PORT_DATA_SIZE              64
 

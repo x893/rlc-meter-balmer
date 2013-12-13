@@ -36,7 +36,7 @@ void DacInit(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);	
 
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -76,7 +76,7 @@ void DacSetPeriod(uint32_t sinusPeriod)
 		sinusPeriod = MIN_SINUS_PERIOD;
 	//assert_param(frequency>=100 && frequency<=200000);
 	DMA_Cmd(DMA1_Channel2, DISABLE);
-	TIM_Cmd(TIM2, DISABLE);
+	TIM_Cmd(TIM3, DISABLE);
 
 	DAC_SetChannel1Data(DAC_Align_12b_R, DAC_ZERO);
 
@@ -125,11 +125,12 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	TIM_TimeBaseStructure.TIM_Prescaler = prescaler-1;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
-	TIM_SetCounter(TIM2, 0);
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+	TIM_SetCounter(TIM3, 0);
 
-	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
-	TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
+	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update);
+	TIM_GenerateEvent(TIM3, TIM_EventSource_CC2);
+	TIM_DMACmd(TIM3, TIM_DMA_Update, ENABLE);
 
 	g_dac_period = period * prescaler * SinusBufferSize;
 	//g_period = frequency;
@@ -137,5 +138,5 @@ void DacSetPeriod(uint32_t sinusPeriod)
 
 void DacStart()
 {
-	TIM_Cmd(TIM2, ENABLE);
+	TIM_Cmd(TIM3, ENABLE);
 }

@@ -2,6 +2,7 @@
 
 //#include <stdint.h>
 #include "dac.h"
+#include "systick.h"
 
 
 
@@ -21,17 +22,18 @@ void USB_Config(void)
   {}
 }
 
-
 int main(void)
 {
+  delay_init();
   USB_Config();
 
   USB_SIL_Write(EP1_IN, (uint8_t *)"Hello", 5);
   SetEPTxValid(ENDP1); 
 
   DacInit();
-  DacSetFrequency(100000);
-  DacStart();
+  AdcInit();
+  //DacSetFrequency(100000);
+  //DacStart();
 
   while (1)
   {
