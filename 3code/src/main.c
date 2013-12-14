@@ -2,6 +2,7 @@
 
 //#include <stdint.h>
 #include "dac.h"
+#include "adc.h"
 #include "systick.h"
 
 

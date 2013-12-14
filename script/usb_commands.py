@@ -297,7 +297,7 @@ def main():
     #setFreq(10000)
     #adcStart()
 
-    freq = 100000
+    freq = 10000
     period = 72000000/freq
     #setResistor(2)
     time.sleep(0.3)

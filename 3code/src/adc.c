@@ -71,14 +71,8 @@ void AdcInit()
 
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 ;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 ;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 ;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
@@ -104,10 +98,19 @@ void AdcInit()
 
 	ADC_InitTypeDef ADC_InitStructure;
 
-	ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Disable;
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-	ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_4;
-	ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_RisingEdge;
+	if(0)
+	{
+		ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Disable;
+		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_4;
+		ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_RisingEdge;
+	} else
+	{
+		ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Enable;
+		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_4;
+		ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_None;
+	}
+
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_OverrunMode = ADC_OverrunMode_Disable;
 	ADC_InitStructure.ADC_AutoInjMode = ADC_AutoInjec_Disable;
@@ -115,7 +118,7 @@ void AdcInit()
 	ADC_Init(ADC1, &ADC_InitStructure);
 	ADC_Init(ADC2, &ADC_InitStructure);
 
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_1/*PE14*/, 1, ADC_SampleTime_7Cycles5);
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_7Cycles5);
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_7Cycles5);
 	g_adc_tick = 20*6;
 	ADC_Cmd(ADC1, ENABLE);
@@ -210,7 +213,8 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 	if(1)
 	{
 		//ADC_ExternalTrigConvCmd(ADC1, ENABLE);
-		TIM_Cmd(TIM3, ENABLE); //Start DAC
+		ADC_StartConversion(ADC1);
+		TIM_Cmd(TIM2, ENABLE); //Start DAC
 	} else
 	{
 		//SET_BIT(ADC1->CR1, ADC_CR1_EOCIE);
