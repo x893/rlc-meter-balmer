@@ -99,15 +99,15 @@ void AdcInit()
 	ADC_InitTypeDef ADC_InitStructure;
 
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-	if(0)
+	if(1)
 	{
 		ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Disable;
-		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_4;
+		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_3;
 		ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_RisingEdge;
 	} else
 	{
 		ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Enable;
-		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_4;
+		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_0;
 		ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_None;
 	}
 
@@ -120,7 +120,7 @@ void AdcInit()
 
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_7Cycles5);
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_7Cycles5);
-	g_adc_tick = 20*6;
+	g_adc_tick = 20*2;
 	ADC_Cmd(ADC1, ENABLE);
 	ADC_Cmd(ADC2, ENABLE);
 }

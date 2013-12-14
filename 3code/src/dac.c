@@ -128,8 +128,15 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
 	TIM_SetCounter(TIM2, 0);
 
-	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
 	TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
+
+
+	TIM_OCInitTypeDef TIM_OCInitStructure;
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 1;
+	TIM_OCInitStructure.TIM_OCPolarity=TIM_OCPolarity_Low;
+	TIM_OC2Init(TIM2, &TIM_OCInitStructure);
 
 	g_dac_period = period * prescaler * SinusBufferSize;
 	//g_period = frequency;
