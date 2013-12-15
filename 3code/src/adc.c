@@ -60,7 +60,8 @@ static void NVIC_Configuration(void)
 
 void AdcInit()
 {
-	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div2);//72/2 = 36 MHz
+	//RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div2);//72/2 = 36 MHz
+	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div1);
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
@@ -118,9 +119,12 @@ void AdcInit()
 	ADC_Init(ADC1, &ADC_InitStructure);
 	ADC_Init(ADC2, &ADC_InitStructure);
 
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_7Cycles5);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_7Cycles5);
-	g_adc_tick = 20*2;
+	//ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_7Cycles5);
+	//ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_7Cycles5);
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_19Cycles5);
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_19Cycles5);
+	
+	g_adc_tick = 60;
 	ADC_Cmd(ADC1, ENABLE);
 	ADC_Cmd(ADC2, ENABLE);
 }
@@ -129,7 +133,8 @@ void AdcRoundSize(uint32_t dac_period)
 {
 	//требуется dac_period%g_adc_tick==0
 	uint32_t adc_period = dac_period/g_adc_tick;
-	ResultBufferSize = (RESULT_BUFFER_SIZE/adc_period)*adc_period;
+	//ResultBufferSize = (RESULT_BUFFER_SIZE/adc_period)*adc_period;
+	ResultBufferSize = RESULT_BUFFER_SIZE;
 }
 
 void AdcStartPre()

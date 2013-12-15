@@ -38,6 +38,7 @@ def plot0():
 	xlist = makeTimeList(out)
 
 	# !!! Нарисуем одномерный график
+	#pylab.plot (xlist, out, 'r-')
 	pylab.plot (xlist, out, '.')
 
 	# !!! Покажем окно с нарисованным графиком

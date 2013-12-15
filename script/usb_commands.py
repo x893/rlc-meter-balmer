@@ -302,6 +302,8 @@ def main():
     #setResistor(2)
     time.sleep(0.3)
     adcSynchro(period)
+    #res = adcSynchro1(period)
+    #print "quants=", res[1]['t_propagation']
     #allFreq()
     pass
 
