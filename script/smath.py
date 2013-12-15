@@ -9,13 +9,12 @@ def readFileAsShort(filename):
 		arr.fromstring(data)
 	return arr
 
-def calcSinCos(period, clock, adc_tick, data):
+def calcSinCos(period, clock, ncycle, data):
 	'''
 		return (c0,csin, ccos)
 		c0+csin*sin(f)+ccos*cos(f)
 	'''
 	arr = array.array('f', data)
-	ncycle = period/adc_tick
 	print "ncycle=", ncycle
 	fsin = [ math.sin(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 	fcos = [ math.cos(2*math.pi*i/ncycle) for i in xrange(ncycle)]
@@ -79,15 +78,14 @@ def correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle):
 
 	return math.sqrt(sum/(N-1))
 
-def calcAll(period, clock, adc_tick, data):
-	ncycle = period/adc_tick
-	(c0, csin, ccos) = calcSinCos(period, clock, adc_tick, data)
+def calcAll(period, clock, ncycle, data):
+	(c0, csin, ccos) = calcSinCos(period, clock, ncycle, data)
 
 	(amplitude, fi) = calcFi(csin, ccos)
 	square_error = correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle)
 	t_propagation = fi/2*math.pi*ncycle/clock
 
-	return {"period": period, "clock": clock, "adc_tick": adc_tick,
+	return {"period": period, "clock": clock, "ncycle": ncycle,
 		"c0": c0, "csin": csin, "ccos": ccos, "amplitude": amplitude,
 		"fi": fi, "square_error": square_error, "t_propagation": t_propagation}
 
@@ -100,13 +98,12 @@ def main():
 	period = 120000 # F=600
 	#period = 7*120 #F=85714
 	clock = 72000000
-	adc_tick = 120
-	ncycle = period/adc_tick
+	ncycle = 10
 	#data = [ math.sin(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 
-	print "calcAll=",calcAll(period, clock, adc_tick, data)
+	print "calcAll=",calcAll(period, clock, ncycle, data)
 
-	(c0, csin, ccos) = calcSinCos(period, clock, adc_tick, data)
+	(c0, csin, ccos) = calcSinCos(period, clock, ncycle, data)
 
 	(amplitude, fi) = calcFi(csin, ccos)
 

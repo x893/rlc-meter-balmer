@@ -17,7 +17,6 @@ uint16_t g_adcStatus = 0;
 uint16_t g_adc_cur_read_pos;
 bool g_adc_read_buffer = false;
 uint32_t g_adc_elapsed_time = 0;
-uint32_t g_adc_tick = 1;
 
 void DMA1_Channel1_IRQHandler(void)
 {
@@ -121,20 +120,14 @@ void AdcInit()
 
 	//ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_7Cycles5);
 	//ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_7Cycles5);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_19Cycles5);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_19Cycles5);
-	
-	g_adc_tick = 60;
-	ADC_Cmd(ADC1, ENABLE);
-	ADC_Cmd(ADC2, ENABLE);
+	//ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, ADC_SampleTime_19Cycles5);
+	//ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, ADC_SampleTime_19Cycles5);
 }
 
-void AdcRoundSize(uint32_t dac_period)
+void AdcRoundSize(uint32_t dac_samples_per_period)
 {
-	//требуется dac_period%g_adc_tick==0
-	uint32_t adc_period = dac_period/g_adc_tick;
-	//ResultBufferSize = (RESULT_BUFFER_SIZE/adc_period)*adc_period;
-	ResultBufferSize = RESULT_BUFFER_SIZE;
+	//требуется ResultBufferSize%dac_samples_per_period==0
+	ResultBufferSize = (RESULT_BUFFER_SIZE/dac_samples_per_period)*dac_samples_per_period;
 }
 
 void AdcStartPre()
@@ -157,6 +150,11 @@ void AdcStartPre()
     DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
 
 	DMA_SetCurrDataCounter(DMA1_Channel1, 0);
+
+	uint8_t sample_ticks = DacSampleTicks()<72?ADC_SampleTime_7Cycles5:ADC_SampleTime_19Cycles5;
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_7/*PC1*/, 1, sample_ticks);
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_6/*PC0*/, 1, sample_ticks);
+
 	ADC_Cmd(ADC1, ENABLE);
 	ADC_Cmd(ADC2, ENABLE);
 	ADC_DMACmd(ADC1, ENABLE);
@@ -208,12 +206,12 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 {
 	g_adc_cycles_skip = num_skip;
 	DacSetPeriod(period);
-	AdcRoundSize(DacPeriod());
+	AdcRoundSize(DacSamplesPerPeriod());
 	AdcStartPre();
 
 	USBAdd32(DacPeriod());
 	USBAdd32(SystemCoreClock);
-	USBAdd32(g_adc_tick);
+	USBAdd32(DacSamplesPerPeriod());
 
 	if(1)
 	{

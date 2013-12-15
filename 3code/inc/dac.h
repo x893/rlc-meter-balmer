@@ -9,3 +9,5 @@ void DacSetPeriod(uint32_t period);
 void DacStart();
 
 uint32_t DacPeriod(void);
+uint32_t DacSamplesPerPeriod(void);
+uint32_t DacSampleTicks(void);

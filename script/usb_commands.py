@@ -18,36 +18,18 @@ COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
 COMMAND_SET_RESISTOR = 7
 
-PERIOD_ROUND120 = [
-        #720000, #100.00 Hz
-        #360000, #200.00 Hz
-        #240000, #300.00 Hz
-        #180000, #400.00 Hz
-        #144000, #500.00 Hz
-        120000, #600.00 Hz
-        102840, #700.12 Hz
-        90000, #800.00 Hz
-        79920, #900.90 Hz
-        72000, #1000.00 Hz
-        36000, #2000.00 Hz
-        24000, #3000.00 Hz
-        18000, #4000.00 Hz
-        14400, #5000.00 Hz
-        12000, #6000.00 Hz
-        10200, #7058.82 Hz
-        9000, #8000.00 Hz
-        7920, #9090.91 Hz
-        7200, #10000.00 Hz
-        3600, #20000.00 Hz
-        2400, #30000.00 Hz
-        1800, #40000.00 Hz
-        1440, #50000.00 Hz
-        1200, #60000.00 Hz
-        960, #75000.00 Hz
-        840, #85714.29 Hz
-        720, #100000.00 Hz
-        600, #120000.00 Hz
-        480, #150000.00 Hz
+PERIOD_ROUND = [
+        72*10000, #100 Hz
+        72*4000, #250 Hz
+        72*2000, #500 Hz
+        72*1000, #1 000 Hz
+        72*400, #2 500 Hz
+        72*200, #5 000 Hz
+        72*100, #10 000 Hz
+        72*40, #25 000 Hz
+        72*20, #50 000 Hz
+        72*10, #100 000 Hz
+        72*4, #250 000 Hz
         ]
 
 
@@ -127,11 +109,11 @@ def readCommand():
     elif cmd==COMMAND_ADC_ELAPSED_TIME:
         print "Elapset ticks=", struct.unpack_from('I', data, 1)[0]
     elif cmd==COMMAND_START_SYNCHRO:
-        (period, clock, adc_cycles) = struct.unpack_from('=III', data, 1)
+        (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
         print "period=",period
         print "clock=",clock
         print "F=",clock/float(period)
-        print "adc_cycles=", adc_cycles
+        print "ncycle=", ncycle
     elif cmd==COMMAND_SET_RESISTOR:
         r = data[1]
         if r==0:
@@ -208,11 +190,11 @@ def adcReadBuffer():
 def adcSynchro(inPeriod):
     print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
     data = dread()
-    (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
+    (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
     print "period=",period
     print "clock=",clock
     print "F=",clock/float(period)
-    print "adc_tick=", adc_tick
+    print "ncycle=", ncycle
     time.sleep(1)
     (out1, out2) = adcReadBuffer()
     with open("out1.dat", "wb") as file1:
@@ -224,13 +206,13 @@ def adcSynchro(inPeriod):
 def adcSynchro1(inPeriod):
     print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
     data = dread()
-    (period, clock, adc_tick) = struct.unpack_from('=III', data, 1)
-    print "period=",period, "clock=",clock , "F=",clock/float(period), "adc_tick=", adc_tick
+    (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
+    print "period=",period, "clock=",clock , "F=",clock/float(period), "ncycle=", ncycle
     time.sleep(0.3)
     (out1, out2) = adcReadBuffer()
 
-    result1 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out1)
-    result2 = smath.calcAll(period=period, clock=clock, adc_tick=adc_tick, data=out2)
+    result1 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out1)
+    result2 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out2)
     return (result1, result2)
 
 def setResistor(r):
@@ -242,11 +224,11 @@ def allFreq():
     out = []
 
     with open("data.py", "wb") as file:
-        P = 120000 #600.00 Hz
+        P = 72*10, #100 000 Hz
         #P = 7200 #10000.00 Hz
         #P = 3600 #20000.00 Hz
-        PERIOD_ROUND120 = [P]*10
-        for period in PERIOD_ROUND120:
+        PERIOD_ROUND = [P]*10
+        for period in PERIOD_ROUND:
             dwrite([COMMAND_SET_LED, ord('0')])
             readCommand()
             da = adcSynchro1(period)
@@ -301,9 +283,10 @@ def main():
     period = 72000000/freq
     #setResistor(2)
     time.sleep(0.3)
-    adcSynchro(period)
-    #res = adcSynchro1(period)
+    #adcSynchro(period)
+    res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
+    print "ticks=", res[1]['t_propagation']*72000000
     #allFreq()
     pass
 

@@ -21,6 +21,16 @@ uint32_t DacPeriod(void)
 	return g_dac_period;
 }
 
+uint32_t DacSamplesPerPeriod(void)
+{
+	return SinusBufferSize;
+}
+
+uint32_t DacSampleTicks(void)
+{
+	return g_dac_period/SinusBufferSize;
+}
+
 void DacSinusCalculate()
 {
 	float mul = 2*pi/SinusBufferSize;
@@ -83,21 +93,19 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	uint32_t prescaler;
 	uint32_t period;
 	prescaler = 1;
-	period = 72;
+	period = 24;
 	SinusBufferSize = sinusPeriod/period;
 
 	if(SinusBufferSize>SINUS_BUFFER_SIZE)
 	{
-		period = 120; //ADC speed in CPU tick
-		uint32_t p = 1;
-		while(SINUS_BUFFER_SIZE*p*period<sinusPeriod)
+		period = 72;
+		prescaler = sinusPeriod/period/SINUS_BUFFER_SIZE;
+		while(SINUS_BUFFER_SIZE*prescaler*period<sinusPeriod)
 		{
-			p++;
+			prescaler++;
 		}
 
-		period *= p;
-
-		SinusBufferSize = sinusPeriod/period;
+		SinusBufferSize = sinusPeriod/period/prescaler;
 	}
 
 	DacSinusCalculate();
@@ -139,7 +147,6 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	TIM_OC2Init(TIM2, &TIM_OCInitStructure);
 
 	g_dac_period = period * prescaler * SinusBufferSize;
-	//g_period = frequency;
 }
 
 void DacStart()
