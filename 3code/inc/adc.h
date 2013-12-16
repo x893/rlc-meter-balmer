@@ -1,3 +1,4 @@
+//#define USE_ADC12
 
 void AdcInit();
 

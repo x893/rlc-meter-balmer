@@ -2,6 +2,7 @@
 #include <math.h>
 //#include "SysTick/systick.h"
 #include "dac.h"
+#include "adc.h"
 
 #define pi  3.14159f
 #define SINUS_BUFFER_SIZE 1000
@@ -138,13 +139,21 @@ void DacSetPeriod(uint32_t sinusPeriod)
 
 	TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
 
-
+#ifdef USE_ADC12
 	TIM_OCInitTypeDef TIM_OCInitStructure;
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_Pulse = 1;
 	TIM_OCInitStructure.TIM_OCPolarity=TIM_OCPolarity_Low;
-	TIM_OC2Init(TIM2, &TIM_OCInitStructure);
+	TIM_OC2Init(TIM2, &TIM_OCInitStructure);//ADC1 EXT3
+#else
+	TIM_OCInitTypeDef TIM_OCInitStructure;
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_Pulse = 1;
+	TIM_OCInitStructure.TIM_OCPolarity=TIM_OCPolarity_Low;
+	TIM_OC3Init(TIM2, &TIM_OCInitStructure);//ADC3 EXT1
+#endif
 
 	g_dac_period = period * prescaler * SinusBufferSize;
 }
