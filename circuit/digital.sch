@@ -9739,6 +9739,8 @@ Source: 008-0260-0_E.pdf</description>
 <sheets>
 <sheet>
 <plain>
+<text x="-10.16" y="-38.1" size="1.778" layer="91">ADC4_IN1</text>
+<text x="99.06" y="0" size="1.778" layer="91">ADC3_IN1</text>
 </plain>
 <instances>
 <instance part="L2" gate="G$1" x="60.96" y="99.06" rot="R90"/>

@@ -39,7 +39,6 @@ void DMA1_Channel1_IRQHandler(void)
 static void NVIC_Configuration(void)
 {
         NVIC_InitTypeDef NVIC_InitStructure;
-        //EXTI_InitTypeDef EXTI_InitStructure;
 
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
@@ -48,18 +47,10 @@ static void NVIC_Configuration(void)
         NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
         NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStructure);
-/*
-        NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);
-*/
 }
 
 void AdcInit()
 {
-	//RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div2);//72/2 = 36 MHz
 	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div1);
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
@@ -161,16 +152,7 @@ void AdcStartPre()
 	g_adcStatus = 1;
 	g_adc_cycles = 0;
 }
-/*
-void AdcStart()
-{
-	AdcStartPre();
-	//ADC_ExternalTrigConvCmd(ADC1, ENABLE);
-	//TIM_Cmd(TIM3, ENABLE);
-	StartTimer();
-	ADC_SoftwareStartConvCmd(ADC1, ENABLE);
-}
-*/
+
 void AdcStartReadBuffer()
 {
 	g_adc_cur_read_pos = 0;
@@ -213,15 +195,6 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 	USBAdd32(SystemCoreClock);
 	USBAdd32(DacSamplesPerPeriod());
 
-	if(1)
-	{
-		//ADC_ExternalTrigConvCmd(ADC1, ENABLE);
-		ADC_StartConversion(ADC1);
-		TIM_Cmd(TIM2, ENABLE); //Start DAC
-	} else
-	{
-		//SET_BIT(ADC1->CR1, ADC_CR1_EOCIE);
-		//ADC1->CR2 |= ADC_CR2_SWSTART|ADC_CR2_EXTTRIG; ////Start ADC
-		//TIM3->CR1 |= TIM_CR1_CEN; //Start DAC
-	}
+	ADC_StartConversion(ADC1);
+	TIM_Cmd(TIM2, ENABLE); //Start DAC
 }
