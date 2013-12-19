@@ -171,7 +171,6 @@ def adcReadBuffer():
     result = None
     while size>0:
         data = dread()
-        #print data
         size -= len(data)/4
         if not result:
             result = data
@@ -183,10 +182,11 @@ def adcReadBuffer():
 
     arr1 = array.array('H')
     arr2 = array.array('H')
-    for i in xrange(0, len(arr), 2):
+    size2 = len(arr)/2
+    for i in xrange(0, size2):
         arr1.append(arr[i])
-        arr2.append(arr[i+1])
-    #print arr
+        arr2.append(arr[i+size2])
+
     return (arr1, arr2)
 
 def adcSynchro(inPeriod):
@@ -204,46 +204,6 @@ def adcSynchro(inPeriod):
         out1.tofile(file1)
     with open("out2.dat", "wb") as file2:
         out2.tofile(file2)
-    pass
-
-def adcReadBufferOne():
-    dwrite([COMMAND_ADC_READ_BUFFER])
-    time.sleep(0.01)
-    data = dread()
-    (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
-
-    print "adcReadBuffer size=", size
-    print "adcReadBuffer time=", time72
-    print "g_adc_cycles=", g_adc_cycles
-
-    result = None
-    while size>0:
-        data = dread()
-        #print data
-        size -= len(data)/4
-        if not result:
-            result = data
-        else:
-            result += data
-
-    arr = array.array('H')
-    arr.fromstring(result)
-
-    return arr
-
-def adcSynchroOne(inPeriod):
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
-    data = dread()
-    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
-    print "period=",period
-    print "clock=",clock
-    print "F=",clock/float(period)
-    print "ncycle=", ncycle
-    print "num_skip=", num_skip
-    time.sleep(1)
-    out1= adcReadBufferOne()
-    with open("out1.dat", "wb") as file1:
-        out1.tofile(file1)
     pass
 
 def adcSynchro1(inPeriod):
@@ -327,10 +287,9 @@ def main():
     setResistor(0)
     time.sleep(0.3)
     #adcSynchro(period)
-    adcSynchroOne(period)
-    #res = adcSynchro1(period)
+    res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
-    #print "ticks=", res[1]['t_propagation']*72000000
+    print "ticks=", res[0]['t_propagation']*72000000
     #allFreq()
     pass
 

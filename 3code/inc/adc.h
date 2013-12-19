@@ -1,7 +1,5 @@
 // balmer@inbox.ru 2013 RLC Meter
 
-//#define USE_ADC12
-
 void AdcInit();
 
 
