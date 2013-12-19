@@ -1,3 +1,4 @@
+// balmer@inbox.ru 2013 RLC Meter
 #include "hw_config.h"
 #include <math.h>
 //#include "SysTick/systick.h"
@@ -7,7 +8,8 @@
 #define pi  3.14159f
 #define SINUS_BUFFER_SIZE 1000
 #define DAC_ZERO 2047
-#define DAC_AMPLITUDE 1000
+//#define DAC_AMPLITUDE 1000
+#define DAC_AMPLITUDE 0
 
 //200 khz
 #define MIN_SINUS_PERIOD 360

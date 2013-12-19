@@ -135,7 +135,7 @@ void delay_init(void)
 
     RCC_GetClocksFreq(&RCC_ClocksStatus);
     SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
-	SysTick_ITConfig(DISABLE);
+    SysTick_ITConfig(DISABLE);
     delay_fac_us = RCC_ClocksStatus.HCLK_Frequency / 1000000;
     delay_fac_ms = RCC_ClocksStatus.HCLK_Frequency / 1000;      
 }
@@ -172,4 +172,3 @@ void delay_ms(uint16_t nms)
     SysTick_CounterCmd(SysTick_Counter_Disable);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 }
-

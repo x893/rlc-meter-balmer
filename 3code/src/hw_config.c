@@ -1,3 +1,5 @@
+// balmer@inbox.ru 2013 RLC Meter
+
 #include "main.h"
 
 ErrorStatus HSEStartUpStatus;
@@ -66,7 +68,19 @@ void Set_System(void)
   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
   EXTI_InitStructure.EXTI_LineCmd = ENABLE;
   EXTI_Init(&EXTI_InitStructure);
- }
+ 
+
+  //Set resistor pins
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOD, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+  SetResistor(0);
+}
 
 /**
   * @brief  Configures USB Clock input (48MHz).
@@ -268,4 +282,11 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
     
     pbuf[ 2* idx + 1] = 0;
   }
+}
+
+
+void SetResistor(uint8_t idx)
+{
+  GPIO_WriteBit(GPIOD, GPIO_Pin_1, idx&1);
+  GPIO_WriteBit(GPIOD, GPIO_Pin_0, (idx>>1)&1);
 }

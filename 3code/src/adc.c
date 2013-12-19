@@ -1,3 +1,4 @@
+// balmer@inbox.ru 2013 RLC Meter
 #include "hw_config.h"
 #include <math.h>
 #include "adc.h"
@@ -6,7 +7,7 @@
 #include "usb_desc.h"
 #include "systick.h"
 
-#define RESULT_BUFFER_SIZE 1000
+#define RESULT_BUFFER_SIZE 2000
 
 static uint32_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
@@ -46,20 +47,26 @@ void DMA1_Channel1_IRQHandler(void)
 //for ADC34
 void DMA2_Channel5_IRQHandler(void)
 {
-	if(DMA_GetITStatus(DMA2_IT_TC5) == SET)
+	if(DMA2->ISR & DMA_ISR_TCIF5)//transfre complete
 	{
-		DMA_ClearITPendingBit(DMA2_IT_GL5);
+	//	DMA_ClearITPendingBit(DMA2_IT_GL5);
+		//DMA2->IFCR = DMA_IFCR_CGIF5;//DMA_IFCR_CTCIF5;
+		//ADC3->CFGR |= ADC_CFGR_DMAEN;//Restart DMA
+		//DMA_Cmd(DMA2_Channel5, ENABLE);
 
-		if(g_adc_cycles++<g_adc_cycles_skip)//skip first read
-			return;
+		if(g_adc_cycles++>=g_adc_cycles_skip)
+		{
+			StopTimer();
+			g_adc_elapsed_time = GetTime();
+			g_adcStatus = 2;
 
-		//g_adc_elapsed_time = GetTime();
-		g_adcStatus = 2;
-
-		ADC_DMACmd(ADC3, DISABLE);
-		ADC_Cmd(ADC3, DISABLE);
-		ADC_Cmd(ADC4, DISABLE);
+			ADC_DMACmd(ADC3, DISABLE);
+			ADC_Cmd(ADC3, DISABLE);
+			ADC_Cmd(ADC4, DISABLE);
+		}
 	}
+
+	DMA2->IFCR = DMA_IFCR_CGIF5;
 }
 
 
@@ -220,17 +227,20 @@ static void AdcInit34()
 	while(ADC_GetCalibrationStatus(ADC4) != RESET );
 
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;
-	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_RegSimul;                                                                    
-	ADC_CommonInitStructure.ADC_Clock = ADC_Clock_AsynClkMode;                    
-	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_1;             
-	ADC_CommonInitStructure.ADC_DMAMode = ADC_DMAMode_OneShot;                  
+	//ADC_CommonInitStructure.ADC_Mode = ADC_Mode_RegSimul;
+	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
+	ADC_CommonInitStructure.ADC_Clock = ADC_Clock_SynClkModeDiv1;
+	//ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_1;
+	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+	//ADC_CommonInitStructure.ADC_DMAMode = ADC_DMAMode_OneShot;
+	ADC_CommonInitStructure.ADC_DMAMode = ADC_DMAMode_Circular;
 	ADC_CommonInitStructure.ADC_TwoSamplingDelay = 0;          
 	ADC_CommonInit(ADC3, &ADC_CommonInitStructure);
 
 	ADC_InitTypeDef ADC_InitStructure;
 
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-	if(0)
+	if(1)
 	{
 		ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Disable;
 		ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_1;
@@ -244,9 +254,15 @@ static void AdcInit34()
 
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_OverrunMode = ADC_OverrunMode_Disable;
+	//ADC_InitStructure.ADC_OverrunMode = ADC_OverrunMode_Enable;
 	ADC_InitStructure.ADC_AutoInjMode = ADC_AutoInjec_Disable;
 	ADC_InitStructure.ADC_NbrOfRegChannel = 1;
 	ADC_Init(ADC3, &ADC_InitStructure);
+
+	ADC_DMAConfig(ADC3, ADC_DMAMode_Circular);
+
+	ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_None;
+
 	ADC_Init(ADC4, &ADC_InitStructure);
 }
 
@@ -254,6 +270,7 @@ static void AdcStartPre34()
 {
 	DMA_InitTypeDef DMA_InitStructure;
 	DMA_DeInit(DMA2_Channel5);
+/*
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&ADC3_4->CDR;
     DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&g_resultBuffer[0];
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
@@ -265,6 +282,19 @@ static void AdcStartPre34()
     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+*/
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&ADC3->DR;
+    DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&g_resultBuffer[0];
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+    DMA_InitStructure.DMA_BufferSize = ResultBufferSize*2;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+
     DMA_Init(DMA2_Channel5, &DMA_InitStructure);
     DMA_Cmd(DMA2_Channel5, ENABLE);
     DMA_ITConfig(DMA2_Channel5, DMA_IT_TC, ENABLE);
@@ -273,7 +303,7 @@ static void AdcStartPre34()
 
 	uint8_t sample_ticks = DacSampleTicks()<72?ADC_SampleTime_7Cycles5:ADC_SampleTime_19Cycles5;
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_1/*PB1*/, 1, sample_ticks);
-	ADC_RegularChannelConfig(ADC4, ADC_Channel_1/*PE14*/, 1, sample_ticks);
+	//ADC_RegularChannelConfig(ADC4, ADC_Channel_1/*PE14*/, 1, sample_ticks);
 
 	ADC_Cmd(ADC3, ENABLE);
 	ADC_Cmd(ADC4, ENABLE);
@@ -301,10 +331,12 @@ void AdcStartPre()
 }
 
 void AdcStartReadBuffer()
-{
+{	
 	g_adc_cur_read_pos = 0;
 	g_adc_read_buffer = true;
 	USBAdd32(ResultBufferSize);
+	USBAdd32(g_adc_elapsed_time);
+	USBAdd32(g_adc_cycles);
 }
 
 void AdcReadBuffer()
@@ -333,6 +365,9 @@ void AdcReadBuffer()
 
 void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 {
+	for(int i=0;i<RESULT_BUFFER_SIZE;i++)
+		g_resultBuffer[i]=0x00080008;
+
 	g_adc_cycles_skip = num_skip;
 	DacSetPeriod(period);
 	AdcRoundSize(DacSamplesPerPeriod());
@@ -341,11 +376,14 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip)
 	USBAdd32(DacPeriod());
 	USBAdd32(SystemCoreClock);
 	USBAdd32(DacSamplesPerPeriod());
+	USBAdd8(g_adc_cycles_skip);
 
 #ifdef USE_ADC12
 	ADC_StartConversion(ADC1);
 #else
 	ADC_StartConversion(ADC3);
 #endif
+	g_adc_elapsed_time = 0;
+	StartTimer();
 	TIM_Cmd(TIM2, ENABLE); //Start DAC
 }

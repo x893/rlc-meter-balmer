@@ -1,4 +1,4 @@
-// balmer@inbox.ru 2013 ESR Demo
+// balmer@inbox.ru 2013 RLC Meter
 #include "hw_config.h"
 #include "voltage.h"
 #include "systick.h"
@@ -63,8 +63,8 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		AdcDacStartSynchro(*(uint32_t*)(commandBuffer+1), *(uint8_t*)(commandBuffer+5));
 		break;
 	case 7://SOMMAND_SET_RESISTOR
-		//SetResistor(commandBuffer[1]);
-		//USBAdd8(commandBuffer[1]);
+		SetResistor(commandBuffer[1]);
+		USBAdd8(commandBuffer[1]);
 		break;
 	}
 

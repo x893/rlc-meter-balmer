@@ -162,9 +162,11 @@ def adcReadBuffer():
     dwrite([COMMAND_ADC_READ_BUFFER])
     time.sleep(0.01)
     data = dread()
-    size = struct.unpack_from('=I', data, 1)[0]
+    (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
 
     print "adcReadBuffer size=", size
+    print "adcReadBuffer time=", time72
+    print "g_adc_cycles=", g_adc_cycles
 
     result = None
     while size>0:
@@ -188,19 +190,60 @@ def adcReadBuffer():
     return (arr1, arr2)
 
 def adcSynchro(inPeriod):
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
     data = dread()
-    (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
+    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
     print "period=",period
     print "clock=",clock
     print "F=",clock/float(period)
     print "ncycle=", ncycle
+    print "num_skip=", num_skip
     time.sleep(1)
     (out1, out2) = adcReadBuffer()
     with open("out1.dat", "wb") as file1:
         out1.tofile(file1)
     with open("out2.dat", "wb") as file2:
         out2.tofile(file2)
+    pass
+
+def adcReadBufferOne():
+    dwrite([COMMAND_ADC_READ_BUFFER])
+    time.sleep(0.01)
+    data = dread()
+    (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
+
+    print "adcReadBuffer size=", size
+    print "adcReadBuffer time=", time72
+    print "g_adc_cycles=", g_adc_cycles
+
+    result = None
+    while size>0:
+        data = dread()
+        #print data
+        size -= len(data)/4
+        if not result:
+            result = data
+        else:
+            result += data
+
+    arr = array.array('H')
+    arr.fromstring(result)
+
+    return arr
+
+def adcSynchroOne(inPeriod):
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
+    data = dread()
+    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
+    print "period=",period
+    print "clock=",clock
+    print "F=",clock/float(period)
+    print "ncycle=", ncycle
+    print "num_skip=", num_skip
+    time.sleep(1)
+    out1= adcReadBufferOne()
+    with open("out1.dat", "wb") as file1:
+        out1.tofile(file1)
     pass
 
 def adcSynchro1(inPeriod):
@@ -281,9 +324,10 @@ def main():
 
     freq = 10000
     period = 72000000/freq
-    #setResistor(2)
+    setResistor(0)
     time.sleep(0.3)
-    adcSynchro(period)
+    #adcSynchro(period)
+    adcSynchroOne(period)
     #res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
     #print "ticks=", res[1]['t_propagation']*72000000
