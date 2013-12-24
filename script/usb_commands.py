@@ -164,14 +164,16 @@ def adcReadBuffer():
     data = dread()
     (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
 
-    print "adcReadBuffer size=", size
+    #print "adcReadBuffer size=", size
     print "adcReadBuffer time=", time72
-    print "g_adc_cycles=", g_adc_cycles
+    #print "g_adc_cycles=", g_adc_cycles
 
     result = None
     while size>0:
         data = dread()
         size -= len(data)/4
+        #print size, "d=", len(data)
+        #print data
         if not result:
             result = data
         else:
@@ -207,7 +209,7 @@ def adcSynchro(inPeriod):
     pass
 
 def adcSynchro1(inPeriod):
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 1))
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
     data = dread()
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
     print "period=",period, "clock=",clock , "F=",clock/float(period), "ncycle=", ncycle
@@ -216,6 +218,19 @@ def adcSynchro1(inPeriod):
 
     result1 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out1)
     result2 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out2)
+
+    fiV = result1['fi']
+    fiI = result2['fi']+math.pi
+
+    if fiV > math.pi:
+        fiV -= math.pi*2
+    if fiI > math.pi:
+        fiI -= math.pi*2
+
+    print "fiV=", fiV
+    print "fiI=", fiI
+    print "dfi=", fiV-fiI
+
     return (result1, result2)
 
 def setResistor(r):
@@ -263,21 +278,10 @@ def main():
                 print e.bEndpointAddress
                 #printEndpoint(e)
 
-    if False:
-        #readOne()
-        for x in xrange(3):
-            print "write=",dwrite([COMMAND_SET_LED, ord('0')])
-            readCommand()
-
     #readOne()
-    print "write=",dwrite([1])
-    readOne()
-    print "write=",dwrite([1])
-    readOne()
-    print "write=",dwrite([1])
-    readOne()
-    print "write=",dwrite([1])
-    readOne()
+    for x in xrange(4):
+        print "write=",dwrite([1])
+        readOne()
 
     #setFreq(10000)
     #adcStart()
@@ -289,7 +293,7 @@ def main():
     #adcSynchro(period)
     res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
-    print "ticks=", res[0]['t_propagation']*72000000
+    #print "ticks=", res[0]['t_propagation']*72000000
     #allFreq()
     pass
 

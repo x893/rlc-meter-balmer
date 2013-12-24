@@ -15,13 +15,13 @@ def calcSinCos(period, clock, ncycle, data):
 		c0+csin*sin(f)+ccos*cos(f)
 	'''
 	arr = array.array('f', data)
-	print "ncycle=", ncycle
+	#print "ncycle=", ncycle
 	fsin = [ math.sin(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 	fcos = [ math.cos(2*math.pi*i/ncycle) for i in xrange(ncycle)]
 	
 	N = len(data)
 
-	print "N =", len(data), len(arr)
+	#print "N =", len(data), len(arr)
 	#N = ncycle
 	sum_c0 = 0
 	for i in xrange(N):
@@ -41,9 +41,9 @@ def calcSinCos(period, clock, ncycle, data):
 	csin = sum_sin*2/N
 	ccos = sum_cos*2/N
 
-	print "c0=", c0
-	print "csin=", csin
-	print "ccos=", ccos
+	#print "c0=", c0
+	#print "csin=", csin
+	#print "ccos=", ccos
 	#print arr
 	return (c0, csin, ccos)
 
@@ -54,14 +54,14 @@ def calcFi(csin, ccos):
 		return (amplitude, fi)
 	'''
 	amplitude = math.sqrt(csin*csin+ccos*ccos)
-	print "amplitude=", amplitude
+	print "amplitude=", "{:.2f}".format(amplitude)
 	csin /= amplitude
 	ccos /= amplitude
 
 	#print "sin=", math.acos(csin)
 	#print "cos=", math.asin(ccos)
 	fi = math.atan2(ccos, csin)
-	print "fi=", fi
+	#print "fi=", fi
 	return (amplitude, fi)
 
 def deltaError(data, c0, amplitude, fi, ncycle):

@@ -9,9 +9,7 @@ import sys
 import pylab
 import matplotlib
 
-fileName = "out.dat"
 title = ""
-
 
 def readFileAsShort(filename):
 	with open(filename, "rb") as file:
@@ -28,7 +26,7 @@ def makeTimeList(readableData):
 		xlist.append(xmin+i*xstep)
 	return xlist
 
-def plot0():
+def plotRaw(fileName):
 	out = readFileAsShort(fileName)
 	#out = out[0:100]
 	print "data_len=", len(out)
@@ -43,10 +41,29 @@ def plot0():
 
 	# !!! Покажем окно с нарисованным графиком
 	pylab.show()
+	pass
 
+def plotCircle(filePrefix):
+	out1 = readFileAsShort(filePrefix+'1.dat')
+	out2 = readFileAsShort(filePrefix+'2.dat')
 
-if len(sys.argv)>=2:
-	fileName = sys.argv[1]
-if len(sys.argv)>=3:
-	title = sys.argv[2]
-plot0()
+	pylab.plot (out1, out2, '.')
+	pylab.show()
+	pass
+
+def help():
+	print "plot.py g out1.dat - plot raw graph"
+	print "plot.py c out - plot circle graph"
+	pass
+
+def main():
+	if len(sys.argv)<3:
+		help()
+		return;
+	if sys.argv[1]=='g':
+		plotRaw(sys.argv[2])
+	if sys.argv[1]=='c':
+		plotCircle(sys.argv[2])
+	pass
+
+main()

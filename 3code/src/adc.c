@@ -7,7 +7,9 @@
 #include "usb_desc.h"
 #include "systick.h"
 
-#define RESULT_BUFFER_SIZE 2000
+//При размере RESULT_BUFFER_SIZE == 2000 начинает виснуть на низких частотах
+//Не передается последний пакет.
+#define RESULT_BUFFER_SIZE 3000
 
 static uint32_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
@@ -238,6 +240,7 @@ void AdcReadBuffer()
 	else
 	{
 		USBAdd((uint8_t*)(g_resultBuffer+g_adc_cur_read_pos), sz*sizeof(g_resultBuffer[0]));
+		g_adc_cur_read_pos+=sz;
 		g_adc_read_buffer = false;
 	}
 
