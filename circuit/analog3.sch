@@ -8053,11 +8053,9 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 </class>
 </classes>
 <parts>
-<part name="R1" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
-<part name="C1" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
 <part name="R2" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
 <part name="C2" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
-<part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
+<part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
@@ -8065,7 +8063,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="IC2" library="40xx" deviceset="4052" device="D" value="74HC4052D"/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="R0603" value="22k"/>
 <part name="P+3" library="supply1" deviceset="+5V" device=""/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="R0603" value="100k"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="R0603" value="120k"/>
 <part name="R9" library="rcl" deviceset="R-EU_" device="R0603" value="100"/>
 <part name="R10" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
 <part name="R11" library="rcl" deviceset="R-EU_" device="R0603" value="10k"/>
@@ -8080,7 +8078,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="GND8" library="supply1" deviceset="GNDA" device=""/>
 <part name="R18" library="rcl" deviceset="R-EU_" device="R0603" value="18k"/>
 <part name="U$2" library="balmer" deviceset="MCP6S21" device=""/>
-<part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
+<part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="R20" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
 <part name="GND9" library="supply1" deviceset="GNDA" device=""/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
@@ -8089,16 +8087,16 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="P+6" library="supply1" deviceset="VCC" device=""/>
 <part name="GND11" library="supply1" deviceset="GNDA" device=""/>
 <part name="R21" library="rcl" deviceset="R-EU_" device="R0603" value="1.2k"/>
-<part name="C13" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
+<part name="C13" library="rcl" deviceset="C-EU" device="C0805" value="150p"/>
 <part name="GND13" library="supply1" deviceset="GNDA" device=""/>
 <part name="GND14" library="supply1" deviceset="GNDA" device=""/>
 <part name="GND12" library="supply1" deviceset="GNDA" device=""/>
 <part name="U$4" library="balmer" deviceset="MCP6S21" device=""/>
-<part name="C14" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
+<part name="C14" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="R23" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
 <part name="GND15" library="supply1" deviceset="GNDA" device=""/>
 <part name="R24" library="rcl" deviceset="R-EU_" device="R0603" value="1.2k"/>
-<part name="C15" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
+<part name="C15" library="rcl" deviceset="C-EU" device="C0805" value="150p"/>
 <part name="GND16" library="supply1" deviceset="GNDA" device=""/>
 <part name="R25" library="rcl" deviceset="R-EU_" device="R0603" value="18k"/>
 <part name="R26" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
@@ -8125,7 +8123,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="GND4" library="supply1" deviceset="GNDA" device=""/>
 <part name="IC4" library="balmer" deviceset="AD8221" device="R"/>
 <part name="IC5" library="balmer" deviceset="AD8221" device="R"/>
-<part name="R27" library="rcl" deviceset="R-EU_" device="R0603" value="100k"/>
+<part name="R27" library="rcl" deviceset="R-EU_" device="R0603" value="120k"/>
 <part name="IC6" library="linear" deviceset="LM358" device="D" value="LM258"/>
 <part name="R28" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
 <part name="C22" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
@@ -8142,7 +8140,6 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="R7" library="rcl" deviceset="R-EU_" device="R0603" value="47k"/>
 <part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="100k"/>
 <part name="GND17" library="supply1" deviceset="GNDA" device=""/>
-<part name="C7" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C17" library="rcl" deviceset="C-EU" device="C0805" value="47n"/>
@@ -8160,14 +8157,13 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="P+5" library="supply1" deviceset="+5V" device=""/>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
+<part name="C1" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
 </parts>
 <sheets>
 <sheet>
 <plain>
 </plain>
 <instances>
-<instance part="R1" gate="G$1" x="10.16" y="78.74"/>
-<instance part="C1" gate="G$1" x="5.08" y="71.12"/>
 <instance part="R2" gate="G$1" x="-15.24" y="78.74"/>
 <instance part="C2" gate="G$1" x="-22.86" y="71.12"/>
 <instance part="C4" gate="G$1" x="-7.62" y="78.74" rot="R90"/>
@@ -8230,7 +8226,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="X5" gate="-1" x="180.34" y="63.5"/>
 <instance part="X5" gate="-2" x="180.34" y="58.42"/>
 <instance part="P+7" gate="1" x="172.72" y="109.22"/>
-<instance part="GND1" gate="1" x="5.08" y="63.5"/>
+<instance part="GND1" gate="1" x="15.24" y="63.5"/>
 <instance part="GND2" gate="1" x="-22.86" y="63.5"/>
 <instance part="GND3" gate="1" x="-43.18" y="66.04"/>
 <instance part="GND21" gate="1" x="175.26" y="83.82"/>
@@ -8269,7 +8265,6 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="R7" gate="G$1" x="76.2" y="-101.6" rot="R90"/>
 <instance part="R30" gate="G$1" x="76.2" y="-73.66" rot="R90"/>
 <instance part="GND17" gate="1" x="96.52" y="-83.82"/>
-<instance part="C7" gate="G$1" x="68.58" y="-104.14" rot="R180"/>
 <instance part="R31" gate="G$1" x="114.3" y="-68.58" rot="R90"/>
 <instance part="C8" gate="G$1" x="114.3" y="-78.74" rot="R180"/>
 <instance part="C17" gate="G$1" x="119.38" y="-76.2"/>
@@ -8285,22 +8280,13 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="P+2" gate="1" x="93.98" y="40.64"/>
 <instance part="P+4" gate="1" x="96.52" y="-5.08"/>
 <instance part="P+5" gate="1" x="96.52" y="-58.42"/>
-<instance part="P+8" gate="1" x="-20.32" y="15.24"/>
+<instance part="P+8" gate="1" x="-20.32" y="17.78"/>
 <instance part="P+9" gate="1" x="86.36" y="76.2"/>
+<instance part="C1" gate="G$1" x="63.5" y="-101.6"/>
 </instances>
 <busses>
 </busses>
 <nets>
-<net name="N$2" class="0">
-<segment>
-<pinref part="C1" gate="G$1" pin="1"/>
-<pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="5.08" y1="73.66" x2="5.08" y2="78.74" width="0.1524" layer="91"/>
-<pinref part="C4" gate="G$1" pin="2"/>
-<wire x1="5.08" y1="78.74" x2="-2.54" y2="78.74" width="0.1524" layer="91"/>
-<junction x="5.08" y="78.74"/>
-</segment>
-</net>
 <net name="N$3" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
@@ -8412,6 +8398,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <segment>
 <pinref part="IC3" gate="G$1" pin="+VS"/>
 <pinref part="P+8" gate="1" pin="+5V"/>
+<wire x1="-20.32" y1="15.24" x2="-20.32" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="IC6" gate="P" pin="V+"/>
@@ -8481,11 +8468,8 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="GND16" gate="1" pin="GNDA"/>
 </segment>
 <segment>
-<pinref part="C1" gate="G$1" pin="2"/>
 <pinref part="GND1" gate="1" pin="GNDA"/>
 <pinref part="R19" gate="G$1" pin="1"/>
-<wire x1="15.24" y1="66.04" x2="5.08" y2="66.04" width="0.1524" layer="91"/>
-<junction x="5.08" y="66.04"/>
 </segment>
 <segment>
 <pinref part="C2" gate="G$1" pin="2"/>
@@ -8551,7 +8535,6 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <junction x="96.52" y="-81.28"/>
 </segment>
 <segment>
-<pinref part="C7" gate="G$1" pin="1"/>
 <pinref part="R7" gate="G$1" pin="1"/>
 <wire x1="68.58" y1="-106.68" x2="76.2" y2="-106.68" width="0.1524" layer="91"/>
 <pinref part="C18" gate="G$1" pin="1"/>
@@ -8560,6 +8543,8 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <wire x1="114.3" y1="-106.68" x2="119.38" y2="-106.68" width="0.1524" layer="91"/>
 <junction x="76.2" y="-106.68"/>
 <pinref part="GND18" gate="1" pin="GNDA"/>
+<pinref part="C1" gate="G$1" pin="2"/>
+<wire x1="63.5" y1="-106.68" x2="68.58" y2="-106.68" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C27" gate="G$1" pin="2"/>
@@ -8981,10 +8966,11 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <net name="N$34" class="0">
 <segment>
 <pinref part="R19" gate="G$1" pin="2"/>
-<pinref part="R1" gate="G$1" pin="2"/>
 <wire x1="15.24" y1="76.2" x2="15.24" y2="78.74" width="0.1524" layer="91"/>
 <pinref part="R22" gate="G$1" pin="2"/>
 <wire x1="17.78" y1="78.74" x2="15.24" y2="78.74" width="0.1524" layer="91"/>
+<pinref part="C4" gate="G$1" pin="2"/>
+<wire x1="15.24" y1="78.74" x2="-2.54" y2="78.74" width="0.1524" layer="91"/>
 <junction x="15.24" y="78.74"/>
 </segment>
 </net>
@@ -9120,8 +9106,6 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 </net>
 <net name="N$41" class="0">
 <segment>
-<pinref part="C7" gate="G$1" pin="2"/>
-<wire x1="68.58" y1="-99.06" x2="68.58" y2="-96.52" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="-96.52" x2="76.2" y2="-96.52" width="0.1524" layer="91"/>
 <pinref part="IC7" gate="A" pin="+IN"/>
 <wire x1="88.9" y1="-68.58" x2="83.82" y2="-68.58" width="0.1524" layer="91"/>
@@ -9136,6 +9120,9 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <junction x="76.2" y="-96.52"/>
 <junction x="76.2" y="-93.98"/>
 <junction x="76.2" y="-78.74"/>
+<pinref part="C1" gate="G$1" pin="1"/>
+<wire x1="68.58" y1="-96.52" x2="63.5" y2="-96.52" width="0.1524" layer="91"/>
+<wire x1="63.5" y1="-96.52" x2="63.5" y2="-99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+2.5V0" class="0">

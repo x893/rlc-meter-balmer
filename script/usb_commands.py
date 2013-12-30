@@ -286,12 +286,12 @@ def main():
     #setFreq(10000)
     #adcStart()
 
-    freq = 10000
+    freq = 100000
     period = 72000000/freq
     setResistor(0)
     time.sleep(0.3)
-    #adcSynchro(period)
-    res = adcSynchro1(period)
+    adcSynchro(period)
+    #res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
     #print "ticks=", res[0]['t_propagation']*72000000
     #allFreq()
