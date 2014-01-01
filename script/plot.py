@@ -8,6 +8,7 @@ import sys
 # !!! Импортируем один из пакетов Matplotlib
 import pylab
 import matplotlib
+import matplotlib.pyplot as plt
 
 title = ""
 
@@ -47,8 +48,12 @@ def plotCircle(filePrefix):
 	out1 = readFileAsShort(filePrefix+'1.dat')
 	out2 = readFileAsShort(filePrefix+'2.dat')
 
-	pylab.plot (out1, out2, '.')
-	pylab.show()
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+	ax.set_xlabel('Voltage')
+	ax.set_ylabel('Current')
+	ax.plot (out1, out2, '.')
+	plt.show()
 	pass
 
 def help():

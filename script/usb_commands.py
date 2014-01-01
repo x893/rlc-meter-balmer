@@ -7,12 +7,13 @@ import struct
 import array
 import math
 import smath
+import json
 
 dev = None
 
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
-COMMAND_ADC_START = 3
+COMMAND_SET_GAIN = 3
 COMMAND_ADC_READ_BUFFER = 4
 COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
@@ -104,8 +105,8 @@ def readCommand():
         print "period=",period
         print "clock=",clock
         print "F=",clock/float(period)
-    elif cmd==COMMAND_ADC_START:
-        print "adcStart"
+    elif cmd==COMMAND_SET_GAIN:
+        print "set gain"
     elif cmd==COMMAND_ADC_ELAPSED_TIME:
         print "Elapset ticks=", struct.unpack_from('I', data, 1)[0]
     elif cmd==COMMAND_START_SYNCHRO:
@@ -145,6 +146,11 @@ def readConversionData():
 
 def setFreq(F):    
     print "write=",dwrite(struct.pack("=BI", COMMAND_SET_FREQUENCY, F))
+    readCommand()
+    pass
+
+def setSetGain(isVoltage, gain):
+    dwrite([ COMMAND_SET_GAIN, isVoltage, gain])
     readCommand()
     pass
 
@@ -208,6 +214,37 @@ def adcSynchro(inPeriod):
         out2.tofile(file2)
     pass
 
+def arrByteToShort(barray):
+    sarray = array.array('H', barray)
+    return sarray.tolist()
+
+def adcSynchroJson(inPeriod):
+    jout = {}
+    jattr = {}
+    jdata = {}
+    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
+    data = dread()
+    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
+    jattr["period"] = period
+    jattr["clock"] = clock
+    jattr["ncycle"] = ncycle
+    jattr["num_skip"] = num_skip
+
+    jout["attr"] = jattr
+    jout["data"] = jdata
+
+
+    time.sleep(1)
+    (out1, out2) = adcReadBuffer()
+
+    jdata["V"] = arrByteToShort(out1)
+    jdata["I"] = arrByteToShort(out2)
+
+    f = open('out.json', 'w')
+    f.write(json.dumps(jout))
+    f.close()
+    pass
+
 def adcSynchro1(inPeriod):
     print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
     data = dread()
@@ -227,9 +264,14 @@ def adcSynchro1(inPeriod):
     if fiI > math.pi:
         fiI -= math.pi*2
 
+    dfi = fiV-fiI+math.pi
+    if dfi > math.pi:
+        dfi -= math.pi*2
+
+
     print "fiV=", fiV
     print "fiI=", fiI
-    print "dfi=", fiV-fiI
+    print "dfi=", dfi/math.pi*180, "grad"
 
     return (result1, result2)
 
@@ -288,9 +330,12 @@ def main():
 
     freq = 100000
     period = 72000000/freq
-    setResistor(0)
+    setResistor(3)
+    setSetGain(1, 1)
+    setSetGain(0, 7)
     time.sleep(0.3)
-    adcSynchro(period)
+    #adcSynchro(period)
+    adcSynchroJson(period)
     #res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
     #print "ticks=", res[0]['t_propagation']*72000000

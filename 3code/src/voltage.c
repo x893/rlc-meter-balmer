@@ -5,6 +5,7 @@
 #include "usb_desc.h"
 #include "dac.h"
 #include "adc.h"
+#include "mcp6s21.h"
 
 void GetClockFrequency(void)
 {
@@ -49,9 +50,8 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		USBAdd32(DacPeriod());
 		USBAdd32(SystemCoreClock);
 		break;
-
-	case 3://COMMAND_ADC_START
-		//AdcStart();
+	case 3://COMMAND_SET_GAIN
+		MCPSetGain(commandBuffer[1]?true:false, commandBuffer[2]);
 		break;
 	case 4://COMMAND_ADC_READ_BUFFER
 		AdcStartReadBuffer();

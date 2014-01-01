@@ -4,7 +4,7 @@
 #include "dac.h"
 #include "adc.h"
 #include "systick.h"
-
+#include "mcp6s21.h"
 
 
 volatile float f = 12.0;
@@ -33,6 +33,8 @@ int main(void)
 
   DacInit();
   AdcInit();
+
+  MCPInit();
   //DacSetFrequency(100000);
   //DacStart();
 
