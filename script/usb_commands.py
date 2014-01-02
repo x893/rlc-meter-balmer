@@ -10,6 +10,9 @@ import smath
 import json
 
 dev = None
+gainVoltageIdx = 0
+gainCurrentIdx = 0
+resistorIdx = 0
 
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
@@ -70,8 +73,9 @@ def readOne():
         if len(data)==0:
             print "Read empty"
         else:
-            print "readb=", data
+            #print "readb=", data
             #print "read=", data.tostring()
+            pass
     except usb.core.USBError:
         print "Read USB error"
     pass
@@ -91,7 +95,8 @@ def readCommand():
             print "Read empty"
             return
         else:
-            print "readb=", data
+            #print "readb=", data
+            pass
     except usb.core.USBError:
         print "Read USB error"
         return
@@ -106,7 +111,8 @@ def readCommand():
         print "clock=",clock
         print "F=",clock/float(period)
     elif cmd==COMMAND_SET_GAIN:
-        print "set gain"
+        #print "set gain"
+        pass
     elif cmd==COMMAND_ADC_ELAPSED_TIME:
         print "Elapset ticks=", struct.unpack_from('I', data, 1)[0]
     elif cmd==COMMAND_START_SYNCHRO:
@@ -150,6 +156,11 @@ def setFreq(F):
     pass
 
 def setSetGain(isVoltage, gain):
+    global gainVoltageIdx, gainCurrentIdx
+    if isVoltage!=0:
+        gainVoltageIdx = gain
+    else:
+        gainCurrentIdx = gain
     dwrite([ COMMAND_SET_GAIN, isVoltage, gain])
     readCommand()
     pass
@@ -197,45 +208,98 @@ def adcReadBuffer():
 
     return (arr1, arr2)
 
+def arrByteToShort(barray):
+    sarray = array.array('H', barray)
+    return sarray.tolist()
+
+def getGainValue(idx):
+    mulPre = 3.74
+    mulX = [1,2,4,5,8,10,16,32]
+    return mulPre*mulX[idx]
+
+def getResistorValue(idx):
+    r = [100, 1000, 10000, 100000]
+    return r[idx]
+
 def adcSynchro(inPeriod):
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
+    dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
     data = dread()
     (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
+
+    time.sleep(0.2)
+    (out1, out2) = adcReadBuffer()
+
+    return (period, clock, ncycle, out1, out2)
+
+def adcSynchroBin(inPeriod):
+    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
     print "period=",period
     print "clock=",clock
     print "F=",clock/float(period)
     print "ncycle=", ncycle
     print "num_skip=", num_skip
-    time.sleep(1)
-    (out1, out2) = adcReadBuffer()
     with open("out1.dat", "wb") as file1:
         out1.tofile(file1)
     with open("out2.dat", "wb") as file2:
         out2.tofile(file2)
     pass
 
-def arrByteToShort(barray):
-    sarray = array.array('H', barray)
-    return sarray.tolist()
+def getMinMax(arr):
+    xmin = arr[0]
+    xmax = arr[0]
+    for x in arr:
+        if x<xmin:
+            xmin = x
+        if x>xmax:
+            xmax = x
+    return (xmin, xmax)
+
+
+def setGainAuto(inPeriod):
+    idxV = 0
+    idxI = 0
+
+    goodMin = 500
+    goodMax = 3500
+
+    for i in xrange(0,8):
+        setSetGain(1, i)
+        setSetGain(0, i)
+        (period, clock, ncycle, outV, outI) = adcSynchro(inPeriod)
+        (vmin, vmax) = getMinMax(outV)
+        (imin, imax) = getMinMax(outI)
+        print i
+        print " vmin="+str(vmin)
+        print " vmax="+str(vmax)
+        print " imin="+str(imin)
+        print " imax="+str(imax)
+        if vmin>=goodMin and vmax<=goodMax:
+            idxV = i
+        if imin>=goodMin and imax<=goodMax:
+            idxI = i
+
+    setSetGain(1, idxV)
+    setSetGain(0, idxI)
+    print "gain auto", " V="+str(idxV), "I="+str(idxI)
+    pass
 
 def adcSynchroJson(inPeriod):
+    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
     jout = {}
     jattr = {}
     jdata = {}
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
-    data = dread()
-    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
     jattr["period"] = period
     jattr["clock"] = clock
     jattr["ncycle"] = ncycle
-    jattr["num_skip"] = num_skip
+    jattr["gain_index_V"] = gainVoltageIdx
+    jattr["gain_index_I"] = gainCurrentIdx
+    jattr["gain_V"] = getGainValue(gainVoltageIdx)
+    jattr["gain_I"] = getGainValue(gainCurrentIdx)
+    jattr["resistor_index"] = resistorIdx
+    jattr["resistor"] = getResistorValue(resistorIdx)
 
     jout["attr"] = jattr
     jout["data"] = jdata
-
-
-    time.sleep(1)
-    (out1, out2) = adcReadBuffer()
 
     jdata["V"] = arrByteToShort(out1)
     jdata["I"] = arrByteToShort(out2)
@@ -246,12 +310,8 @@ def adcSynchroJson(inPeriod):
     pass
 
 def adcSynchro1(inPeriod):
-    print "adcStartSynchro=",dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
-    data = dread()
-    (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
+    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
     print "period=",period, "clock=",clock , "F=",clock/float(period), "ncycle=", ncycle
-    time.sleep(0.3)
-    (out1, out2) = adcReadBuffer()
 
     result1 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out1)
     result2 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out2)
@@ -276,6 +336,8 @@ def adcSynchro1(inPeriod):
     return (result1, result2)
 
 def setResistor(r):
+    global resistorIdx
+    resistorIdx = r
     dwrite([COMMAND_SET_RESISTOR, r])
     readCommand()
 
@@ -328,13 +390,14 @@ def main():
     #setFreq(10000)
     #adcStart()
 
-    freq = 100000
+    freq = 20000
     period = 72000000/freq
-    setResistor(3)
-    setSetGain(1, 1)
-    setSetGain(0, 7)
+    setResistor(0)
+    setGainAuto(period)
+    #setSetGain(1, 7)
+    #setSetGain(0, 0)
     time.sleep(0.3)
-    #adcSynchro(period)
+    #adcSynchroBin(period)
     adcSynchroJson(period)
     #res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']

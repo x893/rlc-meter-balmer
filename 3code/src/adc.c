@@ -30,13 +30,8 @@ void AdcRoundSize(uint32_t dac_samples_per_period)
 //for ADC34
 void DMA2_Channel5_IRQHandler(void)
 {
-	if(DMA2->ISR & DMA_ISR_TCIF5)//transfre complete
+	if(DMA2->ISR & DMA_ISR_TCIF5)//transfer complete
 	{
-	//	DMA_ClearITPendingBit(DMA2_IT_GL5);
-		//DMA2->IFCR = DMA_IFCR_CGIF5;//DMA_IFCR_CTCIF5;
-		//ADC3->CFGR |= ADC_CFGR_DMAEN;//Restart DMA
-		//DMA_Cmd(DMA2_Channel5, ENABLE);
-
 		if(g_adc_cycles++>=g_adc_cycles_skip)
 		{
 			StopTimer();
@@ -46,14 +41,6 @@ void DMA2_Channel5_IRQHandler(void)
 			ADC_StopConversion(ADC3);
 			ADC_StopConversion(ADC4);
 
-/*
-			ADC_DMACmd(ADC3, DISABLE);
-			ADC_DMACmd(ADC4, DISABLE);
-			DMA_Cmd(DMA2_Channel2, ENABLE);
-			DMA_Cmd(DMA2_Channel5, ENABLE);
-			ADC_Cmd(ADC3, DISABLE);
-			ADC_Cmd(ADC4, DISABLE);
-*/
 		}
 	}
 
