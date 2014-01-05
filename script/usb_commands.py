@@ -390,12 +390,12 @@ def main():
     #setFreq(10000)
     #adcStart()
 
-    freq = 20000
+    freq = 100000
     period = 72000000/freq
     setResistor(0)
     setGainAuto(period)
-    #setSetGain(1, 7)
-    #setSetGain(0, 0)
+    #setSetGain(1, 1) #V
+    #setSetGain(0, 4) #I
     time.sleep(0.3)
     #adcSynchroBin(period)
     adcSynchroJson(period)

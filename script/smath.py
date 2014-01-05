@@ -54,7 +54,7 @@ def calcFi(csin, ccos):
 		return (amplitude, fi)
 	'''
 	amplitude = math.sqrt(csin*csin+ccos*ccos)
-	print "amplitude=", "{:.2f}".format(amplitude)
+	#print "amplitude=", "{:.2f}".format(amplitude)
 	csin /= amplitude
 	ccos /= amplitude
 

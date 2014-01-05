@@ -5,6 +5,7 @@ import datetime
 import struct
 import sys
 import json
+import smath
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -78,8 +79,71 @@ def plotRaw(fileName, IV, average = False):
 	# !!! Покажем окно с нарисованным графиком
 	plt.show()
 
-def plotIV(fileName, average = False):
-	fig, ax = plt.subplots()
+
+def calculate(fileName):
+	jout = readJson(fileName)
+	jattr = jout["attr"]
+	period = jattr["period"]
+	clock = jattr["clock"]
+	ncycle = jattr["ncycle"]
+
+	gain_V = jattr["gain_V"]
+	gain_I = jattr["gain_I"]
+	resistor = jattr["resistor"]
+	toVolts = 3.3/4095.0
+
+	F = clock/period #frequency, herz
+
+	resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
+	resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
+	ampV = resultV['amplitude']
+	ampI = resultI['amplitude']
+	dfi = resultV['fi']-resultI['fi']
+	if dfi>math.pi:
+		dfi -= math.pi*2
+	if dfi<-math.pi:
+		dfi += math.pi*2
+
+	ampV *= toVolts/gain_V
+	ampI *= toVolts/gain_I
+
+	current = ampI/resistor # current in Ampers
+
+	cRe = math.cos(dfi)
+	cIm = math.sin(dfi)
+
+	resistanceComplex = ampV/current
+
+	print "F=", F
+	print "dfi=", dfi
+	print "ampV=", ampV, "V"
+	print "ampI=", current, "A"
+	print "resistance=", resistanceComplex, "Om"
+
+	print "cRe=", cRe
+	print "cIm=", cIm
+
+	if cIm<0:
+		# capacitor
+		Rre = resistanceComplex*cRe
+		Rim = -resistanceComplex*cIm
+		C = 1/(2*math.pi*F*Rim)
+		print "ESR=", Rre, " Om"
+		print "C=", C*1e6, " mkF"
+		pass
+
+	if cIm>0:
+		# inductance
+		Rre = resistanceComplex*cRe
+		Rim = resistanceComplex*cIm
+		L = Rim/(2*math.pi*F)
+		print "R=", Rre, " Om"
+		print "L=", L*1e6-0.137, " mkH"
+		pass
+
+	pass
+
+def plotIVInternal(ax, fileName, average = False):
 	jout = readJson(fileName)
 	jattr = jout["attr"]
 	ncycle = jattr['ncycle']
@@ -97,9 +161,22 @@ def plotIV(fileName, average = False):
 		ydata.append(ydata[0])
 
 	ax.plot (xdata, ydata, '-')
+	pass
 
-	# !!! Покажем окно с нарисованным графиком
+def plotIV(fileName, average = False):
+	calculate(fileName)
+	fig, ax = plt.subplots()
+	plotIVInternal(ax, fileName, average)
 	plt.show()
+	pass
+
+def plotIV_2():
+	average = True
+	fig, ax = plt.subplots()
+	plotIVInternal(ax, "0pF_100KHz.json", average)
+	plotIVInternal(ax, "1_5pF_100KHz.json", average)
+	plt.show()
+	pass
 
 if len(sys.argv)>=2:
 	fileName = sys.argv[1]
@@ -107,3 +184,4 @@ if len(sys.argv)>=2:
 #plot(fileName)
 #plotRaw(fileName, "I", average=False)
 plotIV(fileName, average=True)
+#plotIV_2()
