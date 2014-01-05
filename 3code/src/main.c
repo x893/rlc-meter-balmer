@@ -7,10 +7,6 @@
 #include "mcp6s21.h"
 
 
-volatile float f = 12.0;
-volatile float a = 10;
-volatile float b = 15;
-
 void USB_Config(void)
 {
   Set_System();
@@ -35,12 +31,10 @@ int main(void)
   AdcInit();
 
   MCPInit();
-  //DacSetFrequency(100000);
-  //DacStart();
 
   while (1)
   {
-    f = a*b;
+    AdcQuant();
   }
 }
 

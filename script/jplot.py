@@ -182,6 +182,6 @@ if len(sys.argv)>=2:
 	fileName = sys.argv[1]
 
 #plot(fileName)
-#plotRaw(fileName, "I", average=False)
+#plotRaw(fileName, "V", average=False)
 plotIV(fileName, average=True)
 #plotIV_2()

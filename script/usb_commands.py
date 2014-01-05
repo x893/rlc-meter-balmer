@@ -179,11 +179,12 @@ def adcReadBuffer():
     dwrite([COMMAND_ADC_READ_BUFFER])
     time.sleep(0.01)
     data = dread()
-    (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
+    (size, time72, g_adc_cycles, average_count) = struct.unpack_from('=IIIB', data, 1)
 
     #print "adcReadBuffer size=", size
     print "adcReadBuffer time=", time72
     #print "g_adc_cycles=", g_adc_cycles
+    print "average_count=", average_count
 
     result = None
     while size>0:
@@ -221,12 +222,13 @@ def getResistorValue(idx):
     r = [100, 1000, 10000, 100000]
     return r[idx]
 
-def adcSynchro(inPeriod):
-    dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
+def adcSynchro(inPeriod, average=1):
+    time.sleep(0.1)
+    dwrite(struct.pack("=BIBB", COMMAND_START_SYNCHRO, inPeriod, 2, average))
     data = dread()
     (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
 
-    time.sleep(0.2)
+    time.sleep(0.1+0.1*average)
     (out1, out2) = adcReadBuffer()
 
     return (period, clock, ncycle, out1, out2)
@@ -284,7 +286,7 @@ def setGainAuto(inPeriod):
     pass
 
 def adcSynchroJson(inPeriod):
-    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
+    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod, 20)
     jout = {}
     jattr = {}
     jdata = {}
