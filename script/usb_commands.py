@@ -137,6 +137,11 @@ def readCommand():
          adc_min_i, adc_max_i, count_i, sin_sum_i, cos_sum_i, mid_sum_i,
          error, nop_number
             )=struct.unpack_from('=HHHffIHHHffIBI', data, 1)
+
+        if count_v==0:
+            count_v = 1
+        if count_i==0:
+            count_i = 1
         print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
         print " sin_v=", sin_sum_v/count_v
         print " cos_v=", cos_sum_v/count_v

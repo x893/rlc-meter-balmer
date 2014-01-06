@@ -13,8 +13,8 @@
 
 static uint32_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
-static uint8_t g_adc_cycles;
-static uint8_t g_cur_cycle;
+static volatile uint8_t g_adc_cycles;
+static volatile uint8_t g_cur_cycle;
 static uint8_t g_adc_cycles_skip = 0;
 
 uint16_t g_adcStatus = 0;
@@ -314,9 +314,9 @@ static void AdcClearData(AdcSummaryData* data)
 	AdcClearChData(&data->ch_v);
 	AdcClearChData(&data->ch_i);
 	data->error = false;
-	data->nop_number = 0;
+	data->nop_number = 33;
 }
-
+/*
 static void AdcAddDataCh(AdcSummaryChannel* ch, uint16_t* in, uint16_t offset, uint16_t count, uint16_t mid_old)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
@@ -349,6 +349,40 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 	AdcAddDataCh(&data->ch_v, inV, offset, count, g_last_mid_v);
 	AdcAddDataCh(&data->ch_i, inI, offset, count, g_last_mid_i);
 }
+*/
+
+static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
+{
+	inV += offset;
+	inI += offset;
+	uint16_t* inV_end = inV+count;
+
+	for(; inV<inV_end; inV++, inI++)
+	{
+		{
+			uint16_t cV = *inV;
+			if(cV < data->ch_v.adc_min)
+				data->ch_v.adc_min = cV;
+			if(cV > data->ch_v.adc_max)
+				data->ch_v.adc_max = cV;
+
+			data->ch_v.mid_sum += cV;
+		}
+
+		{
+			uint16_t cI = *inI;
+			if(cI < data->ch_i.adc_min)
+				data->ch_i.adc_min = cI;
+			if(cI > data->ch_i.adc_max)
+				data->ch_i.adc_max = cI;
+
+			data->ch_i.mid_sum += cI;
+		}
+	}
+
+	data->ch_v.count += count;
+	data->ch_i.count += count;
+}
 
 void AdcQuant()
 {
@@ -359,6 +393,7 @@ void AdcQuant()
 	{
 		return;
 	}
+
 /*
 	Обрабатываем данные, приходящие с ADC "на лету".
 	После обработки одного цикла данных передаем его для хранения в другую функцию.
@@ -384,18 +419,16 @@ void AdcQuant()
 
 		if(curOffset<nextOffset)
 		{
-			AdcAddData(data, inV, inI, curOffset, nextOffset-curOffset);
+			//AdcAddData(data, inV, inI, curOffset, nextOffset-curOffset);
 			curOffset = nextOffset;
-		} else
-		{
-			data->nop_number++;
 		}
 
 	}
 
+
 	if(curOffset<ResultBufferSize)
 	{
-		AdcAddData(data, inV, inI, curOffset, ResultBufferSize-curOffset);
+		//AdcAddData(data, inV, inI, curOffset, ResultBufferSize-curOffset);
 	}
 
 	g_cur_cycle++;
