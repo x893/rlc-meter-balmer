@@ -5,8 +5,6 @@
 #include "dac.h"
 #include "adc.h"
 
-#define pi  3.14159f
-#define SINUS_BUFFER_SIZE 1000
 #define DAC_ZERO 2047
 #define DAC_AMPLITUDE 1000
 //#define DAC_AMPLITUDE 0
@@ -18,6 +16,7 @@
 static uint16_t g_sinusBuffer[SINUS_BUFFER_SIZE];
 static uint32_t SinusBufferSize = SINUS_BUFFER_SIZE;
 static uint32_t g_dac_period = 0; // * 1/SystemCoreClock sec SystemCoreClock==72000000
+float g_sinusBufferFloat[SINUS_BUFFER_SIZE];
 
 uint32_t DacPeriod(void)
 {
@@ -39,7 +38,9 @@ void DacSinusCalculate()
 	float mul = 2*pi/SinusBufferSize;
 	for(int i=0; i<SinusBufferSize; i++)
 	{
-		g_sinusBuffer[i] = (uint16_t) lround(sin(i*mul)*DAC_AMPLITUDE)+DAC_ZERO;
+		float s = sin(i*mul);
+		g_sinusBufferFloat[i] = s;
+		g_sinusBuffer[i] = (uint16_t) lround(s*DAC_AMPLITUDE)+DAC_ZERO;
 	}
 }
 

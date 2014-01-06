@@ -18,7 +18,7 @@ endif
 
 ifeq ($(MAKECMDGOALS),release)
 C_DEFINES= -DNDEBUG
-C_FLAGS= -Os
+C_FLAGS= -O3
 endif
 
 C_DEFINES+= -DHSE_VALUE=8000000

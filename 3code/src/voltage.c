@@ -60,11 +60,14 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		USBAdd32(g_adc_elapsed_time);
 		break;
 	case 6://COMMAND_START_SYNCHRO
-		AdcDacStartSynchro(*(uint32_t*)(commandBuffer+1), *(uint8_t*)(commandBuffer+5), *(uint8_t*)(commandBuffer+6));
+		AdcDacStartSynchroUsb(*(uint32_t*)(commandBuffer+1), *(uint8_t*)(commandBuffer+5));
 		break;
-	case 7://SOMMAND_SET_RESISTOR
+	case 7://COMMAND_SET_RESISTOR
 		SetResistor(commandBuffer[1]);
 		USBAdd8(commandBuffer[1]);
+		break;
+	case 8://COMMAND_LAST_COMPUTE
+		AdcSendLastCompute();
 		break;
 	}
 

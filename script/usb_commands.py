@@ -21,6 +21,7 @@ COMMAND_ADC_READ_BUFFER = 4
 COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
 COMMAND_SET_RESISTOR = 7
+COMMAND_LAST_COMPUTE = 8
 
 PERIOD_ROUND = [
         72*10000, #100 Hz
@@ -131,7 +132,19 @@ def readCommand():
             print "r=10 KOm"
         elif r==3:
             print "r=100 KOm"
+    elif cmd==COMMAND_LAST_COMPUTE:
+        (adc_min_v, adc_max_v, count_v, sin_sum_v, cos_sum_v, mid_sum_v, 
+         adc_min_i, adc_max_i, count_i, sin_sum_i, cos_sum_i, mid_sum_i,
+         error, nop_number
+            )=struct.unpack_from('=HHHffIHHHffIBI', data, 1)
+        print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
+        print " sin_v=", sin_sum_v/count_v
+        print " cos_v=", cos_sum_v/count_v
 
+        print "adc_min_i=", adc_min_i, " adc_max_i=", adc_max_i, " count_i=", count_i, " mid_sum_i=", mid_sum_i/count_i
+        print " sin_i=", sin_sum_i/count_i
+        print " cos_i=", cos_sum_i/count_i
+        print "nop_number=", nop_number, " error=", error
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -179,12 +192,11 @@ def adcReadBuffer():
     dwrite([COMMAND_ADC_READ_BUFFER])
     time.sleep(0.01)
     data = dread()
-    (size, time72, g_adc_cycles, average_count) = struct.unpack_from('=IIIB', data, 1)
+    (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
 
     #print "adcReadBuffer size=", size
     print "adcReadBuffer time=", time72
     #print "g_adc_cycles=", g_adc_cycles
-    print "average_count=", average_count
 
     result = None
     while size>0:
@@ -222,13 +234,13 @@ def getResistorValue(idx):
     r = [100, 1000, 10000, 100000]
     return r[idx]
 
-def adcSynchro(inPeriod, average=1):
+def adcSynchro(inPeriod):
     time.sleep(0.1)
-    dwrite(struct.pack("=BIBB", COMMAND_START_SYNCHRO, inPeriod, 2, average))
+    dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
     data = dread()
     (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
 
-    time.sleep(0.1+0.1*average)
+    time.sleep(0.1)
     (out1, out2) = adcReadBuffer()
 
     return (period, clock, ncycle, out1, out2)
@@ -286,7 +298,7 @@ def setGainAuto(inPeriod):
     pass
 
 def adcSynchroJson(inPeriod):
-    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod, 20)
+    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
     jout = {}
     jattr = {}
     jdata = {}
@@ -309,6 +321,10 @@ def adcSynchroJson(inPeriod):
     f = open('out.json', 'w')
     f.write(json.dumps(jout))
     f.close()
+
+    dwrite([COMMAND_LAST_COMPUTE])
+    readCommand()
+
     pass
 
 def adcSynchro1(inPeriod):
@@ -395,9 +411,9 @@ def main():
     freq = 100000
     period = 72000000/freq
     setResistor(0)
-    setGainAuto(period)
-    #setSetGain(1, 1) #V
-    #setSetGain(0, 4) #I
+    #setGainAuto(period)
+    setSetGain(1, 1) #V
+    setSetGain(0, 1) #I
     time.sleep(0.3)
     #adcSynchroBin(period)
     adcSynchroJson(period)

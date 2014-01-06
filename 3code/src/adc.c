@@ -14,6 +14,7 @@
 static uint32_t g_resultBuffer[RESULT_BUFFER_SIZE];
 static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
 static uint8_t g_adc_cycles;
+static uint8_t g_cur_cycle;
 static uint8_t g_adc_cycles_skip = 0;
 
 uint16_t g_adcStatus = 0;
@@ -21,11 +22,14 @@ uint16_t g_adc_cur_read_pos;
 bool g_adc_read_buffer = false;
 uint32_t g_adc_elapsed_time = 0;
 
-static uint8_t g_cur_cycle;
-static uint32_t g_averageBuffer[RESULT_BUFFER_SIZE];
-static uint16_t g_averageCount;
-static uint16_t g_averageNumber = 1; //max average count
-static uint16_t g_averageError;
+uint16_t g_last_mid_v = 2000;
+uint16_t g_last_mid_i = 2000;
+
+AdcSummaryData g_data;
+
+//Останавливаем ADC после того как заполнился буфер. 
+//Это необходимо для случая, когда передаем данные по USB.
+static bool g_stop_after_sample = false;
 
 
 void AdcRoundSize(uint32_t dac_samples_per_period)
@@ -51,9 +55,11 @@ void DMA2_Channel5_IRQHandler(void)
 	{
 		g_adc_cycles++;
 	/*
-		if(g_adc_cycles++>=g_adc_cycles_skip)
+		if(g_stop_after_sample)
+		if(g_adc_cycles>=g_adc_cycles_skip)
 		{
 			AdcStop();
+			g_stop_after_sample = false;
 		}
 	*/
 	}
@@ -214,42 +220,13 @@ void AdcStartPre()
 	AdcStartPre34();
 }
 
-static void AdcInitAverage(uint16_t average_number)
-{
-	g_averageCount = 0;
-	g_averageNumber = average_number;
-	for(int i=0;i<RESULT_BUFFER_SIZE;i++)
-		g_averageBuffer[i] = 0;
-	g_cur_cycle = 0;
-	g_averageError++;
-}
-
-static void AdcCalcAverage()
-{
-	if(g_averageCount==0)
-		return;
-	uint16_t* outV = (uint16_t*)g_averageBuffer;
-	uint16_t* outI = (uint16_t*)&g_averageBuffer[ResultBufferSize/2];
-
-	uint16_t a2 = g_averageCount/2;
-
-	for(int i=0;i<ResultBufferSize;i++)
-	{
-		outV[i] = (outV[i]+a2)/g_averageCount;
-		outI[i] = (outI[i]+a2)/g_averageCount;
-	}
-}
-
-
 void AdcStartReadBuffer()
 {	
-	AdcCalcAverage();
 	g_adc_cur_read_pos = 0;
 	g_adc_read_buffer = true;
 	USBAdd32(ResultBufferSize);
 	USBAdd32(g_adc_elapsed_time);
 	USBAdd32(g_adc_cycles);
-	USBAdd8(g_averageCount);
 }
 
 void AdcReadBuffer()
@@ -260,8 +237,8 @@ void AdcReadBuffer()
 		return;
 	}
 
-	//uint32_t* buffer = g_resultBuffer;
-	uint32_t* buffer = g_averageBuffer;
+	uint32_t* buffer = g_resultBuffer;
+	//uint32_t* buffer = g_averageBuffer;
 
 	uint32_t sz = ResultBufferSize - g_adc_cur_read_pos;
 	const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(buffer[0]);
@@ -281,14 +258,15 @@ void AdcReadBuffer()
 }
 
 
-void AdcDacStartSynchro(uint32_t period, uint8_t num_skip, uint16_t average_number)
+void AdcDacStartSynchro(uint32_t period)
 {
-	for(int i=0;i<RESULT_BUFFER_SIZE;i++)
-		g_resultBuffer[i]=0x00080008;
+	if(g_adcStatus==1)
+		AdcStop();//Потенциально здесь может все зависнуть, если цикл внутри AdcQuant не завершился
+	//for(int i=0;i<RESULT_BUFFER_SIZE;i++)
+	//	g_resultBuffer[i]=0x00080008;
 
-	AdcInitAverage(average_number);
+	g_cur_cycle = 0;
 
-	g_adc_cycles_skip = num_skip;
 	DacSetPeriod(period);
 	AdcRoundSize(DacSamplesPerPeriod());
 	AdcStartPre();
@@ -306,12 +284,70 @@ void AdcDacStartSynchro(uint32_t period, uint8_t num_skip, uint16_t average_numb
 	TIM_Cmd(TIM2, ENABLE); //Start DAC
 }
 
+void AdcDacStartSynchroUsb(uint32_t period, uint8_t num_skip)
+{
+	g_adc_cycles_skip = num_skip;
+	g_stop_after_sample = true;
+	AdcDacStartSynchro(period);
+}
+
 void AddArray(uint16_t* pout, uint16_t* pin, uint16_t count)
 {
 	for(uint16_t i=0; i<count; i++)
 	{
 		pout[i] +=  pin[i];
 	}
+}
+
+static void AdcClearChData(AdcSummaryChannel* ch)
+{
+	ch->adc_min = 0xFFFF;
+	ch->adc_max = 0;
+	ch->count = 0;
+	ch->sin_sum = 0.0f;
+	ch->cos_sum = 0.0f;
+	ch->mid_sum = 0;
+}
+
+static void AdcClearData(AdcSummaryData* data)
+{
+	AdcClearChData(&data->ch_v);
+	AdcClearChData(&data->ch_i);
+	data->error = false;
+	data->nop_number = 0;
+}
+
+static void AdcAddDataCh(AdcSummaryChannel* ch, uint16_t* in, uint16_t offset, uint16_t count, uint16_t mid_old)
+{
+	uint16_t nsamples = DacSamplesPerPeriod();
+	uint16_t nsamples4 = nsamples>>2;
+
+	in += offset;
+
+
+	for(uint16_t i=0; i<count; i++)
+	{
+		uint16_t c = in[i];
+		if(c < ch->adc_min)
+			ch->adc_min = c;
+		if(c > ch->adc_max)
+			ch->adc_max = c;
+
+		ch->mid_sum += c;
+
+		c -= mid_old;
+
+		//ch->sin_sum += c * g_sinusBufferFloat[(i+offset)%nsamples];
+		//ch->cos_sum += c * g_sinusBufferFloat[(i+offset+nsamples4)%nsamples];
+	}
+
+	ch->count += count;
+}
+
+static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
+{
+	AdcAddDataCh(&data->ch_v, inV, offset, count, g_last_mid_v);
+	AdcAddDataCh(&data->ch_i, inI, offset, count, g_last_mid_i);
 }
 
 void AdcQuant()
@@ -321,7 +357,6 @@ void AdcQuant()
 
 	if(g_adc_cycles<g_adc_cycles_skip)
 	{
-		g_cur_cycle++;
 		return;
 	}
 /*
@@ -329,13 +364,15 @@ void AdcQuant()
 	После обработки одного цикла данных передаем его для хранения в другую функцию.
 	Если по какимто причинам не успеваем обработать текущий frame, то ждем, пока он закончится и начинаем обработку заново.
 */
+	g_cur_cycle = g_adc_cycles;
 	uint16_t* inV = (uint16_t*)g_resultBuffer;
 	uint16_t* inI = (uint16_t*)&g_resultBuffer[ResultBufferSize/2];
 
-	uint16_t* outV = (uint16_t*)g_averageBuffer;
-	uint16_t* outI = (uint16_t*)&g_averageBuffer[ResultBufferSize/2];
-
 	uint16_t curOffset = 0;
+
+	AdcSummaryData* data = &g_data;
+
+	AdcClearData(data);
 
 	while(1)
 	{
@@ -346,27 +383,47 @@ void AdcQuant()
 
 		if(curOffset<nextOffset)
 		{
-			AddArray(outV+curOffset, inV+curOffset, nextOffset-curOffset);
-			AddArray(outI+curOffset, inI+curOffset, nextOffset-curOffset);
+			AdcAddData(data, inV, inI, curOffset, nextOffset-curOffset);
 			curOffset = nextOffset;
+		} else
+		{
+			data->nop_number++;
 		}
 
 	}
 
 	if(curOffset<ResultBufferSize)
 	{
-		AddArray(outV+curOffset, inV+curOffset, ResultBufferSize-curOffset);
-		AddArray(outI+curOffset, inI+curOffset, ResultBufferSize-curOffset);
+		AdcAddData(data, inV, inI, curOffset, ResultBufferSize-curOffset);
 	}
 
 	g_cur_cycle++;
-	g_averageCount++;
 
 	if(g_cur_cycle!=g_adc_cycles)
-		g_averageError++;
-
-	if(g_averageCount>=g_averageNumber)
 	{
+		data->error = true;
+	}
+
+	{//Пока только один цикл обрабатываем
 		AdcStop();
 	}
+}
+
+void AdcSendLastComputeCh(AdcSummaryChannel* ch)
+{
+	USBAdd16(ch->adc_min);
+	USBAdd16(ch->adc_max);
+	USBAdd16(ch->count);
+	USBAdd((uint8_t*)&ch->sin_sum, 4);
+	USBAdd((uint8_t*)&ch->cos_sum, 4);
+	USBAdd32(ch->mid_sum);
+}
+
+void AdcSendLastCompute()
+{
+	AdcSummaryData* data = &g_data;
+	AdcSendLastComputeCh(&data->ch_v);
+	AdcSendLastComputeCh(&data->ch_i);
+	USBAdd8(data->error);
+	USBAdd32(data->nop_number);
 }
