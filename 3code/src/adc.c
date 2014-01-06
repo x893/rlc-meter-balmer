@@ -323,11 +323,11 @@ static void AdcAddDataCh(AdcSummaryChannel* ch, uint16_t* in, uint16_t offset, u
 	uint16_t nsamples4 = nsamples>>2;
 
 	in += offset;
+	uint16_t* in_end = in+count;
 
-
-	for(uint16_t i=0; i<count; i++)
+	for(; in<in_end; in++)
 	{
-		uint16_t c = in[i];
+		uint16_t c = *in;
 		if(c < ch->adc_min)
 			ch->adc_min = c;
 		if(c > ch->adc_max)
@@ -335,7 +335,7 @@ static void AdcAddDataCh(AdcSummaryChannel* ch, uint16_t* in, uint16_t offset, u
 
 		ch->mid_sum += c;
 
-		c -= mid_old;
+		//c -= mid_old;
 
 		//ch->sin_sum += c * g_sinusBufferFloat[(i+offset)%nsamples];
 		//ch->cos_sum += c * g_sinusBufferFloat[(i+offset+nsamples4)%nsamples];
@@ -376,7 +376,8 @@ void AdcQuant()
 
 	while(1)
 	{
-		uint16_t counter = DMA_GetCurrDataCounter(DMA2_Channel5);//Сколько данных осталось записать
+		//uint16_t counter = DMA_GetCurrDataCounter(DMA2_Channel5);//Сколько данных осталось записать
+		uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;
 		uint16_t nextOffset = ResultBufferSize-counter;
 		if(g_cur_cycle!=g_adc_cycles)
 			break;
@@ -403,6 +404,8 @@ void AdcQuant()
 	{
 		data->error = true;
 	}
+
+	data->nop_number = DMA2_Channel5->CNDTR;
 
 	{//Пока только один цикл обрабатываем
 		AdcStop();
