@@ -8069,7 +8069,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="R11" library="rcl" deviceset="R-EU_" device="R0603" value="10k"/>
 <part name="R12" library="rcl" deviceset="R-EU_" device="R0603" value="100k"/>
 <part name="R13" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
-<part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="4.7p"/>
+<part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="0p"/>
 <part name="X1" library="con-phoenix-254" deviceset="MPT4" device=""/>
 <part name="R14" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
 <part name="R15" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>

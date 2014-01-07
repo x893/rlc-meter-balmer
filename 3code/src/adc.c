@@ -356,9 +356,13 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 	inV += offset;
 	inI += offset;
 	uint16_t* inV_end = inV+count;
-
+	//uint16_t i_end = offset+count;
 	for(; inV<inV_end; inV++, inI++)
+	//for(uint16_t i=offset; i<i_end; inV++, inI++, i++)
 	{
+		//float sin_table = g_sinusBufferFloat[i%nsamples];
+		//float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
+
 		{
 			uint16_t cV = *inV;
 			if(cV < data->ch_v.adc_min)
@@ -367,6 +371,9 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 				data->ch_v.adc_max = cV;
 
 			data->ch_v.mid_sum += cV;
+
+			//data->ch_v.sin_sum += cV * sin_table;
+			//data->ch_v.cos_sum += cV * cos_table;
 		}
 
 		{
@@ -377,11 +384,77 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 				data->ch_i.adc_max = cI;
 
 			data->ch_i.mid_sum += cI;
+
+			//data->ch_i.sin_sum += cI * sin_table;
+			//data->ch_i.cos_sum += cI * cos_table;
 		}
 	}
 
 	data->ch_v.count += count;
 	data->ch_i.count += count;
+}
+
+static void AdcAddDataSinCos(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
+{
+	uint16_t nsamples = DacSamplesPerPeriod();
+	uint16_t nsamples4 = nsamples>>2;
+
+	data->ch_v.count += count;
+	data->ch_i.count += count;
+	inV += offset;
+	inI += offset;
+
+	const uint16_t max_count = 200;
+
+	while(1)
+	{
+		uint16_t cur_count = (count>=max_count)?max_count:count;
+		uint16_t* inV_end = inV + cur_count;
+
+		int idx_sin = offset%nsamples;
+		int idx_cos = (offset+nsamples4)%nsamples;
+		int32_t sin_v = 0;
+		int32_t cos_v = 0;
+		int32_t sin_i = 0;
+		int32_t cos_i = 0;
+		for(; inV<inV_end; inV++, inI++)
+		{
+			int16_t sin_table = g_sinusBufferFloat[idx_sin++];
+			int16_t cos_table = g_sinusBufferFloat[idx_cos++];
+
+			if(idx_sin>=nsamples)
+				idx_sin = 0;
+
+			if(idx_cos>=nsamples)
+				idx_cos = 0;
+
+
+			{
+				int32_t cV = *inV;
+				sin_v += cV * sin_table;
+				cos_v += cV * cos_table;
+			}
+
+			{
+				int32_t cI = *inI;
+				sin_i += cI * sin_table;
+				cos_i += cI * cos_table;
+			}
+		}
+
+		data->ch_v.sin_sum += sin_v;
+		data->ch_v.cos_sum += cos_v;
+		data->ch_i.sin_sum += sin_i;
+		data->ch_i.cos_sum += cos_i;
+
+		if(count>=max_count)
+		{
+			count -= max_count;
+			offset += max_count;
+		} else
+			break;
+	}
+
 }
 
 void AdcQuant()
@@ -407,28 +480,54 @@ void AdcQuant()
 
 	AdcSummaryData* data = &g_data;
 
-	AdcClearData(data);
-
-	while(1)
+	if(0)
 	{
-		//uint16_t counter = DMA_GetCurrDataCounter(DMA2_Channel5);//Сколько данных осталось записать
-		uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;
-		uint16_t nextOffset = ResultBufferSize-counter;
-		if(g_cur_cycle!=g_adc_cycles)
-			break;
+		AdcClearData(data);
 
-		if(curOffset<nextOffset)
+		while(1)
 		{
-			//AdcAddData(data, inV, inI, curOffset, nextOffset-curOffset);
-			curOffset = nextOffset;
+			uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;//Сколько данных осталось записать
+			uint16_t nextOffset = ResultBufferSize-counter;
+			if(g_cur_cycle!=g_adc_cycles)
+				break;
+
+			if(curOffset<nextOffset)
+			{
+				AdcAddData(data, inV, inI, curOffset, nextOffset-curOffset);
+				curOffset = nextOffset;
+			}
+
 		}
 
-	}
 
-
-	if(curOffset<ResultBufferSize)
+		if(curOffset<ResultBufferSize)
+		{
+			AdcAddData(data, inV, inI, curOffset, ResultBufferSize-curOffset);
+		}
+	} else
 	{
-		//AdcAddData(data, inV, inI, curOffset, ResultBufferSize-curOffset);
+		AdcClearData(data);
+
+		while(1)
+		{
+			uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;//Сколько данных осталось записать
+			uint16_t nextOffset = ResultBufferSize-counter;
+			if(g_cur_cycle!=g_adc_cycles)
+				break;
+
+			if(curOffset<nextOffset)
+			{
+				AdcAddDataSinCos(data, inV, inI, curOffset, nextOffset-curOffset);
+				curOffset = nextOffset;
+			}
+
+		}
+
+
+		if(curOffset<ResultBufferSize)
+		{
+			AdcAddDataSinCos(data, inV, inI, curOffset, ResultBufferSize-curOffset);
+		}
 	}
 
 	g_cur_cycle++;
@@ -450,8 +549,10 @@ void AdcSendLastComputeCh(AdcSummaryChannel* ch)
 	USBAdd16(ch->adc_min);
 	USBAdd16(ch->adc_max);
 	USBAdd16(ch->count);
-	USBAdd((uint8_t*)&ch->sin_sum, 4);
-	USBAdd((uint8_t*)&ch->cos_sum, 4);
+	float si = ch->sin_sum/(float)(ch->count*MUL_BUFFER_FLOAT);
+	float co = ch->cos_sum/(float)(ch->count*MUL_BUFFER_FLOAT);
+	USBAdd((uint8_t*)&si, 4);
+	USBAdd((uint8_t*)&co, 4);
 	USBAdd32(ch->mid_sum);
 }
 

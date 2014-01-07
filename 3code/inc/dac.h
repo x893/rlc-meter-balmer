@@ -3,7 +3,9 @@
 
 #define pi  3.14159f
 #define SINUS_BUFFER_SIZE 1000
-extern float g_sinusBufferFloat[SINUS_BUFFER_SIZE];
+
+#define MUL_BUFFER_FLOAT 4096
+extern int16_t g_sinusBufferFloat[SINUS_BUFFER_SIZE];
 
 void DacInit(void);
 

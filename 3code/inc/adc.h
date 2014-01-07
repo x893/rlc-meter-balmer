@@ -4,8 +4,8 @@ typedef struct {
 	uint16_t adc_min;
 	uint16_t adc_max;
 	uint16_t count;
-	float sin_sum;
-	float cos_sum;
+	int64_t sin_sum;
+	int64_t cos_sum;
 	uint32_t mid_sum;
 } AdcSummaryChannel;
 

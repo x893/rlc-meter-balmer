@@ -143,12 +143,12 @@ def readCommand():
         if count_i==0:
             count_i = 1
         print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
-        print " sin_v=", sin_sum_v/count_v
-        print " cos_v=", cos_sum_v/count_v
+        print " sin_v=", sin_sum_v
+        print " cos_v=", cos_sum_v
 
         print "adc_min_i=", adc_min_i, " adc_max_i=", adc_max_i, " count_i=", count_i, " mid_sum_i=", mid_sum_i/count_i
-        print " sin_i=", sin_sum_i/count_i
-        print " cos_i=", cos_sum_i/count_i
+        print " sin_i=", sin_sum_i
+        print " cos_i=", cos_sum_i
         print "nop_number=", nop_number, " error=", error
     else:
         print "Unknown command="+str(data[0])
@@ -417,7 +417,7 @@ def main():
     period = 72000000/freq
     setResistor(0)
     #setGainAuto(period)
-    setSetGain(1, 1) #V
+    setSetGain(1, 7) #V
     setSetGain(0, 1) #I
     time.sleep(0.3)
     #adcSynchroBin(period)

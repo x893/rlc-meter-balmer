@@ -138,7 +138,8 @@ def calculate(fileName):
 		Rim = resistanceComplex*cIm
 		L = Rim/(2*math.pi*F)
 		print "R=", Rre, " Om"
-		print "L=", L*1e6-0.137, " mkH"
+		#print "L=", L*1e6-0.137, " mkH"
+		print "L=", L*1e6, " mkH"
 		pass
 
 	pass
@@ -160,7 +161,8 @@ def plotIVInternal(ax, fileName, average = False):
 		xdata.append(xdata[0])
 		ydata.append(ydata[0])
 
-	ax.plot (xdata, ydata, '-')
+	#ax.plot (xdata, ydata, '-')
+	ax.plot (xdata, ydata, '.')
 	pass
 
 def plotIV(fileName, average = False):
@@ -183,5 +185,5 @@ if len(sys.argv)>=2:
 
 #plot(fileName)
 #plotRaw(fileName, "V", average=False)
-plotIV(fileName, average=True)
+plotIV(fileName, average=False)
 #plotIV_2()
