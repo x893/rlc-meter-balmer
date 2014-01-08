@@ -25,7 +25,7 @@ C_DEFINES+= -DHSE_VALUE=8000000
 C_DEFINES+= -std=c99
 
 C_FLAGS+= -Wall -c -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -MMD $(C_INCLIDES) $(C_DEFINES) 
-C_FLAGS+= -g -Wa,-adhls #asm listing
+#C_FLAGS+= -g -Wa,-adhls #asm listing
 
 LDFLAGS = -nostartfiles -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 LDFLAGS += -T "stm32_flash_md.ld"  -Wl,-Map=linker.map -Wl,-cref  -Wl,--gc-sections 

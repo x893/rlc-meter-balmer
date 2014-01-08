@@ -22,6 +22,8 @@ COMMAND_ADC_ELAPSED_TIME = 5
 COMMAND_START_SYNCHRO = 6
 COMMAND_SET_RESISTOR = 7
 COMMAND_LAST_COMPUTE = 8
+COMMAND_REQUEST_DATA = 9
+COMMAND_DATA_COMPLETE = 10
 
 PERIOD_ROUND = [
         72*10000, #100 Hz
@@ -183,11 +185,6 @@ def setSetGain(isVoltage, gain):
     readCommand()
     pass
 
-def adcStart():
-    dwrite([COMMAND_ADC_START])
-    readCommand()
-    pass
-
 def adcElapsedTime():
     dwrite([COMMAND_ADC_ELAPSED_TIME])
     readCommand()
@@ -240,12 +237,18 @@ def getResistorValue(idx):
     return r[idx]
 
 def adcSynchro(inPeriod):
-    time.sleep(0.1)
-    dwrite(struct.pack("=BIB", COMMAND_START_SYNCHRO, inPeriod, 2))
+    dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
     data = dread()
-    (period, clock, ncycle, num_skip) = struct.unpack_from('=IIIB', data, 1)
-
+    (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
     time.sleep(0.1)
+
+    dwrite([COMMAND_REQUEST_DATA]);
+    dread()
+    time.sleep(0.001)
+    dwrite([COMMAND_DATA_COMPLETE]);
+    data = dread()
+    print "complete = ", struct.unpack_from('=B', data, 1)
+
     (out1, out2) = adcReadBuffer()
 
     return (period, clock, ncycle, out1, out2)
@@ -256,7 +259,6 @@ def adcSynchroBin(inPeriod):
     print "clock=",clock
     print "F=",clock/float(period)
     print "ncycle=", ncycle
-    print "num_skip=", num_skip
     with open("out1.dat", "wb") as file1:
         out1.tofile(file1)
     with open("out2.dat", "wb") as file2:
@@ -411,9 +413,8 @@ def main():
         readOne()
 
     #setFreq(10000)
-    #adcStart()
 
-    freq = 100000
+    freq = 1000
     period = 72000000/freq
     setResistor(0)
     #setGainAuto(period)

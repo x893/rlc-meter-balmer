@@ -54,13 +54,13 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		MCPSetGain(commandBuffer[1]?true:false, commandBuffer[2]);
 		break;
 	case 4://COMMAND_ADC_READ_BUFFER
-		AdcStartReadBuffer();
+		AdcUsbStartReadBuffer();
 		break;
 	case 5://COMMAND_ADC_ELAPSED_TIME
 		USBAdd32(g_adc_elapsed_time);
 		break;
 	case 6://COMMAND_START_SYNCHRO
-		AdcDacStartSynchroUsb(*(uint32_t*)(commandBuffer+1), *(uint8_t*)(commandBuffer+5));
+		AdcDacStartSynchro(*(uint32_t*)(commandBuffer+1));
 		break;
 	case 7://COMMAND_SET_RESISTOR
 		SetResistor(commandBuffer[1]);
@@ -68,6 +68,12 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		break;
 	case 8://COMMAND_LAST_COMPUTE
 		AdcSendLastCompute();
+		break;
+	case 9://COMMAND_REQUEST_DATA
+		AdcUsbRequestData();
+		break;
+	case 10://COMMAND_DATA_COMPLETE
+		USBAdd8(AdcUsbBufferComplete()?1:0);
 		break;
 	}
 

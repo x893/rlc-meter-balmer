@@ -50,9 +50,7 @@ void USBSend(void)
 void EP1_IN_Callback(void)
 {
   if(g_adc_read_buffer)
-    AdcReadBuffer();
-	//USBAddStr("Hello!");
-	//USBSend();
+    AdcUsbReadBuffer();
 }
 
 void EP1_OUT_Callback(void)

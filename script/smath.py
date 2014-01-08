@@ -42,8 +42,8 @@ def calcSinCos(period, clock, ncycle, data):
 	ccos = sum_cos*2/N
 
 	#print "c0=", c0
-	#print "csin=", csin
-	#print "ccos=", ccos
+	print "csin=", csin
+	print "ccos=", ccos
 	#print arr
 	return (c0, csin, ccos)
 
