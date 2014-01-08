@@ -27,16 +27,13 @@ static uint32_t ResultBufferSize = RESULT_BUFFER_SIZE;
 static volatile uint8_t g_adc_cycles;
 static volatile uint8_t g_cur_cycle;
 
-static bool g_usb_request_data = false; //Данные затребованы для получения
-static bool g_usb_sampled_data = false; //Данные отсэмплированны и помещенны в буфер g_resultBufferCopy
+static volatile bool g_usb_request_data = false; //Данные затребованы для получения
+static volatile bool g_usb_sampled_data = false; //Данные отсэмплированны и помещенны в буфер g_resultBufferCopy
 
 uint16_t g_adcStatus = 0;
 uint16_t g_adc_cur_read_pos;
 bool g_adc_read_buffer = false;
 uint32_t g_adc_elapsed_time = 0;
-
-uint16_t g_last_mid_v = 2000;
-uint16_t g_last_mid_i = 2000;
 
 AdcSummaryData g_data;
 
@@ -243,6 +240,7 @@ bool AdcUsbBufferComplete()
 void AdcUsbRequestData()
 {
 	g_usb_request_data = true;
+	g_usb_sampled_data = false;
 }
 
 void AdcUsbReadBuffer()
@@ -311,8 +309,8 @@ static void AdcClearChData(AdcSummaryChannel* ch)
 	ch->adc_min = 0xFFFF;
 	ch->adc_max = 0;
 	ch->count = 0;
-	ch->sin_sum = 0.0f;
-	ch->cos_sum = 0.0f;
+	ch->sin_sum = 0.1f;
+	ch->cos_sum = 0.2f;
 	ch->mid_sum = 0;
 }
 
@@ -323,52 +321,55 @@ static void AdcClearData(AdcSummaryData* data)
 	data->error = false;
 	data->nop_number = 33;
 }
+
 /*
-static void AdcAddDataCh(AdcSummaryChannel* ch, uint16_t* in, uint16_t offset, uint16_t count, uint16_t mid_old)
+Для улучшения точности неплохо бы суммировать так
+Для синуса идем от начала и от конца синуса.
+Для косинуса идем так-же как и для синуса, но сдвигаем массив данных на nsamples4
+*/
+
+static float AdcSumSinus(uint16_t* in, uint16_t count)
+{
+	float s = 0;
+	uint16_t nsamples = DacSamplesPerPeriod();
+	uint16_t nsamples2 = nsamples/2;
+	uint16_t cycles = count/nsamples;
+
+	for(uint16_t k=0; k<cycles; k++)
+	{
+
+		for(uint16_t i=0; i<nsamples2; i++)
+		{
+			uint16_t im = nsamples-1-i;
+			s += in[i]*g_sinusBufferFloat[i] +
+			     in[im]*g_sinusBufferFloat[im]; 
+		}
+
+		in += nsamples;
+	}
+
+	return s;
+}
+
+static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
 	uint16_t nsamples4 = nsamples>>2;
 
-	in += offset;
-	uint16_t* in_end = in+count;
+	float sin_v = 0;
+	float cos_v = 0;
+	float sin_i = 0;
+	float cos_i = 0;
 
-	for(; in<in_end; in++)
+	data->ch_v.sin_sum = 1;
+	data->ch_v.cos_sum = 2;
+	data->ch_i.sin_sum = 3;
+	data->ch_i.cos_sum = 4;
+
+	for(uint16_t i=0; i<count; inV++, inI++, i++)
 	{
-		uint16_t c = *in;
-		if(c < ch->adc_min)
-			ch->adc_min = c;
-		if(c > ch->adc_max)
-			ch->adc_max = c;
-
-		ch->mid_sum += c;
-
-		//c -= mid_old;
-
-		//ch->sin_sum += c * g_sinusBufferFloat[(i+offset)%nsamples];
-		//ch->cos_sum += c * g_sinusBufferFloat[(i+offset+nsamples4)%nsamples];
-	}
-
-	ch->count += count;
-}
-
-static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
-{
-	AdcAddDataCh(&data->ch_v, inV, offset, count, g_last_mid_v);
-	AdcAddDataCh(&data->ch_i, inI, offset, count, g_last_mid_i);
-}
-*/
-
-static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
-{
-	inV += offset;
-	inI += offset;
-	uint16_t* inV_end = inV+count;
-	//uint16_t i_end = offset+count;
-	for(; inV<inV_end; inV++, inI++)
-	//for(uint16_t i=offset; i<i_end; inV++, inI++, i++)
-	{
-		//float sin_table = g_sinusBufferFloat[i%nsamples];
-		//float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
+		float sin_table = g_sinusBufferFloat[i%nsamples];
+		float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
 
 		{
 			uint16_t cV = *inV;
@@ -379,8 +380,8 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 
 			data->ch_v.mid_sum += cV;
 
-			//data->ch_v.sin_sum += cV * sin_table;
-			//data->ch_v.cos_sum += cV * cos_table;
+			sin_v += cV * sin_table;
+			cos_v += cV * cos_table;
 		}
 
 		{
@@ -392,22 +393,22 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 
 			data->ch_i.mid_sum += cI;
 
-			//data->ch_i.sin_sum += cI * sin_table;
-			//data->ch_i.cos_sum += cI * cos_table;
+			sin_i += cI * sin_table;
+			cos_i += cI * cos_table;
 		}
 	}
 
-	data->ch_v.count += count;
-	data->ch_i.count += count;
+	data->ch_v.sin_sum = sin_v;
+	data->ch_v.cos_sum = cos_v;
+	data->ch_i.sin_sum = sin_i;
+	data->ch_i.cos_sum = cos_i;
 }
-
+/*
 static void AdcAddDataSinCos(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
 	uint16_t nsamples4 = nsamples>>2;
 
-	data->ch_v.count += count;
-	data->ch_i.count += count;
 	inV += offset;
 	inI += offset;
 
@@ -466,7 +467,7 @@ static void AdcAddDataSinCos(AdcSummaryData* data, uint16_t* inV, uint16_t* inI,
 	}
 
 }
-
+*/
 static void AdcResultBufferCopy(uint16_t offset, uint16_t count)
 {
 	uint16_t* inV = offset+(uint16_t*)g_resultBuffer;
@@ -493,13 +494,30 @@ static bool AdcOnNextRequest()
 static void AdcOnComplete()
 {
 	g_usb_request_data = false;
-	g_usb_sampled_data = true;
+
+	AdcSummaryData* data = &g_data;
+
+	uint16_t* inV = (uint16_t*)g_resultBufferCopy;
+	uint16_t* inI = (uint16_t*)&g_resultBufferCopy[ResultBufferSize/2];
+
+	g_data.ch_v.count = ResultBufferSize;
+	g_data.ch_i.count = ResultBufferSize;
+
+	AdcAddData(&g_data, inV, inI, ResultBufferSize);
+
+	g_data.ch_v.cos_sum =  AdcSumSinus(inV, ResultBufferSize) - g_data.ch_v.sin_sum;
+	g_data.ch_i.cos_sum =  AdcSumSinus(inI, ResultBufferSize) - g_data.ch_i.sin_sum;
+
 //		AdcStop();
+
+	g_usb_sampled_data = true;
 }
 
 void AdcQuant()
 {
 	if(g_adcStatus!=1)
+		return;
+	if(g_usb_sampled_data)
 		return;
 
 	bool isNextQuant = g_cur_cycle!=g_adc_cycles;
@@ -507,7 +525,7 @@ void AdcQuant()
 
 	if(isNextQuant)
 	{
-		if(DMA2_Channel5->CNDTR> (ResultBufferSize/4) )
+		if(DMA2_Channel5->CNDTR > ResultBufferSize-(ResultBufferSize/4) )
 		{
 			//Этот квант уже не успеем скопировать, пропускаем
 			return;
@@ -518,76 +536,39 @@ void AdcQuant()
 
 	}
 
-/*
-	Обрабатываем данные, приходящие с ADC "на лету".
-	После обработки одного цикла данных передаем его для хранения в другую функцию.
-	Если по какимто причинам не успеваем обработать текущий frame, то ждем, пока он закончится и начинаем обработку заново.
-*/
-	uint16_t* inV = (uint16_t*)g_resultBuffer;
-	uint16_t* inI = (uint16_t*)&g_resultBuffer[ResultBufferSize/2];
-
 	uint16_t curOffset = 0;
 
-	AdcSummaryData* data = &g_data;
 
-	if(1)
+	while(1)
 	{
-		AdcClearData(data);
+		uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;//Сколько данных осталось записать
+		uint16_t nextOffset = ResultBufferSize-counter;
+		if(g_cur_cycle!=g_adc_cycles)
+			break;
 
-		while(1)
+		if(curOffset<nextOffset)
 		{
-			uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;//Сколько данных осталось записать
-			uint16_t nextOffset = ResultBufferSize-counter;
-			if(g_cur_cycle!=g_adc_cycles)
-				break;
-
-			if(curOffset<nextOffset)
-			{
-				AdcResultBufferCopy(curOffset, nextOffset-curOffset);
-				curOffset = nextOffset;
-			}
-
+			AdcResultBufferCopy(curOffset, nextOffset-curOffset);
+			curOffset = nextOffset;
 		}
 
+	}
 
-		if(curOffset<ResultBufferSize)
-		{
-			AdcResultBufferCopy(curOffset, ResultBufferSize-curOffset);
-		}
-	} else
+
+	if(curOffset<ResultBufferSize)
 	{
-		AdcClearData(data);
-
-		while(1)
-		{
-			uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;//Сколько данных осталось записать
-			uint16_t nextOffset = ResultBufferSize-counter;
-			if(g_cur_cycle!=g_adc_cycles)
-				break;
-
-			if(curOffset<nextOffset)
-			{
-				AdcAddDataSinCos(data, inV, inI, curOffset, nextOffset-curOffset);
-				curOffset = nextOffset;
-			}
-
-		}
-
-
-		if(curOffset<ResultBufferSize)
-		{
-			AdcAddDataSinCos(data, inV, inI, curOffset, ResultBufferSize-curOffset);
-		}
+		AdcResultBufferCopy(curOffset, ResultBufferSize-curOffset);
 	}
 
 	g_cur_cycle++;
 
+	AdcClearData(&g_data);
 	if(g_cur_cycle!=g_adc_cycles)
 	{
-		data->error = true;
+		g_data.error = true;
 	}
 
-	data->nop_number = DMA2_Channel5->CNDTR;
+	g_data.nop_number = DMA2_Channel5->CNDTR;
 
 	AdcOnComplete();
 
@@ -598,8 +579,10 @@ void AdcSendLastComputeCh(AdcSummaryChannel* ch)
 	USBAdd16(ch->adc_min);
 	USBAdd16(ch->adc_max);
 	USBAdd16(ch->count);
-	float si = ch->sin_sum/(float)(ch->count*MUL_BUFFER_FLOAT);
-	float co = ch->cos_sum/(float)(ch->count*MUL_BUFFER_FLOAT);
+	float si = ch->sin_sum*2.0f/(float)(ch->count);
+	float co = ch->cos_sum*2.0f/(float)(ch->count);
+	//float si = ch->sin_sum;
+	//float co = ch->cos_sum;
 	USBAdd((uint8_t*)&si, 4);
 	USBAdd((uint8_t*)&co, 4);
 	USBAdd32(ch->mid_sum);

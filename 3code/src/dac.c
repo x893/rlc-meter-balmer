@@ -16,7 +16,7 @@
 static uint16_t g_sinusBuffer[SINUS_BUFFER_SIZE];
 static uint32_t SinusBufferSize = SINUS_BUFFER_SIZE;
 static uint32_t g_dac_period = 0; // * 1/SystemCoreClock sec SystemCoreClock==72000000
-int16_t g_sinusBufferFloat[SINUS_BUFFER_SIZE];
+float g_sinusBufferFloat[SINUS_BUFFER_SIZE];
 
 uint32_t DacPeriod(void)
 {
@@ -39,7 +39,7 @@ void DacSinusCalculate()
 	for(int i=0; i<SinusBufferSize; i++)
 	{
 		float s = sin(i*mul);
-		g_sinusBufferFloat[i] = (int16_t) lround(s*MUL_BUFFER_FLOAT);
+		g_sinusBufferFloat[i] = s;
 		g_sinusBuffer[i] = (uint16_t) lround(s*DAC_AMPLITUDE)+DAC_ZERO;
 	}
 }
