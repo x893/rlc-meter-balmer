@@ -366,13 +366,10 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 	data->ch_i.sin_sum = 3;
 	data->ch_i.cos_sum = 4;
 
-	for(uint16_t i=0; i<count; inV++, inI++, i++)
+	for(uint16_t i=0; i<count; i++)
 	{
-		float sin_table = g_sinusBufferFloat[i%nsamples];
-		float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
-
 		{
-			uint16_t cV = *inV;
+			uint16_t cV = inV[i];
 			if(cV < data->ch_v.adc_min)
 				data->ch_v.adc_min = cV;
 			if(cV > data->ch_v.adc_max)
@@ -380,12 +377,10 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 
 			data->ch_v.mid_sum += cV;
 
-			sin_v += cV * sin_table;
-			cos_v += cV * cos_table;
 		}
 
 		{
-			uint16_t cI = *inI;
+			uint16_t cI = inI[i];
 			if(cI < data->ch_i.adc_min)
 				data->ch_i.adc_min = cI;
 			if(cI > data->ch_i.adc_max)
@@ -393,6 +388,25 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 
 			data->ch_i.mid_sum += cI;
 
+		}
+	}
+
+	float mid_v = data->ch_v.mid_sum/(float)count;
+	float mid_i = data->ch_i.mid_sum/(float)count;
+
+	for(uint16_t i=0; i<count; i++)
+	{
+		float sin_table = g_sinusBufferFloat[i%nsamples];
+		float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
+
+		{
+			float cV = inV[i]-mid_v;
+			sin_v += cV * sin_table;
+			cos_v += cV * cos_table;
+		}
+
+		{
+			float cI = inI[i]-mid_i;
 			sin_i += cI * sin_table;
 			cos_i += cI * cos_table;
 		}
@@ -403,71 +417,7 @@ static void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint1
 	data->ch_i.sin_sum = sin_i;
 	data->ch_i.cos_sum = cos_i;
 }
-/*
-static void AdcAddDataSinCos(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t offset, uint16_t count)
-{
-	uint16_t nsamples = DacSamplesPerPeriod();
-	uint16_t nsamples4 = nsamples>>2;
 
-	inV += offset;
-	inI += offset;
-
-	const uint16_t max_count = 200;
-
-	int16_t* psin = g_sinusBufferFloat+offset%nsamples;
-	int16_t* pcos = g_sinusBufferFloat+(offset+nsamples4)%nsamples;
-	int16_t* pend = g_sinusBufferFloat+nsamples;
-
-	while(1)
-	{
-		uint16_t cur_count = (count>=max_count)?max_count:count;
-		uint16_t* inV_end = inV + cur_count;
-
-		int32_t sin_v = 0;
-		int32_t cos_v = 0;
-		int32_t sin_i = 0;
-		int32_t cos_i = 0;
-		for(; inV<inV_end; inV++, inI++)
-		{
-			int16_t sin_table = *psin;
-			int16_t cos_table = *pcos;
-
-			{
-				int32_t cV = *inV;
-				sin_v += cV * sin_table;
-				cos_v += cV * cos_table;
-			}
-
-			{
-				int32_t cI = *inI;
-				sin_i += cI * sin_table;
-				cos_i += cI * cos_table;
-			}
-
-			psin++;
-			if(psin>=pend)
-				psin = g_sinusBufferFloat;
-
-			pcos++;
-			if(pcos>=pend)
-				pcos = g_sinusBufferFloat;
-		}
-
-		data->ch_v.sin_sum += sin_v;
-		data->ch_v.cos_sum += cos_v;
-		data->ch_i.sin_sum += sin_i;
-		data->ch_i.cos_sum += cos_i;
-
-		if(count>=max_count)
-		{
-			count -= max_count;
-			offset += max_count;
-		} else
-			break;
-	}
-
-}
-*/
 static void AdcResultBufferCopy(uint16_t offset, uint16_t count)
 {
 	uint16_t* inV = offset+(uint16_t*)g_resultBuffer;
@@ -495,8 +445,6 @@ static void AdcOnComplete()
 {
 	g_usb_request_data = false;
 
-	AdcSummaryData* data = &g_data;
-
 	uint16_t* inV = (uint16_t*)g_resultBufferCopy;
 	uint16_t* inI = (uint16_t*)&g_resultBufferCopy[ResultBufferSize/2];
 
@@ -504,9 +452,6 @@ static void AdcOnComplete()
 	g_data.ch_i.count = ResultBufferSize;
 
 	AdcAddData(&g_data, inV, inI, ResultBufferSize);
-
-	g_data.ch_v.cos_sum =  AdcSumSinus(inV, ResultBufferSize) - g_data.ch_v.sin_sum;
-	g_data.ch_i.cos_sum =  AdcSumSinus(inI, ResultBufferSize) - g_data.ch_i.sin_sum;
 
 //		AdcStop();
 
