@@ -244,7 +244,7 @@ def adcSynchro(inPeriod):
 
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
-    time.sleep(0.1)
+    time.sleep(0.01)
     dwrite([COMMAND_DATA_COMPLETE]);
     data = dread()
     print "complete = ", struct.unpack_from('=B', data, 1)

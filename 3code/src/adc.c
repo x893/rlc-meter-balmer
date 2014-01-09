@@ -462,24 +462,24 @@ void AdcQuant()
 {
 	if(g_adcStatus!=1)
 		return;
-	if(g_usb_sampled_data)
-		return;
+	//if(g_usb_sampled_data)
+	//	return;
 
 	bool isNextQuant = g_cur_cycle!=g_adc_cycles;
+
+	if(!isNextQuant)
+		return;
+
 	g_cur_cycle = g_adc_cycles;
 
-	if(isNextQuant)
+	if(DMA2_Channel5->CNDTR < ResultBufferSize-(ResultBufferSize/4) )
 	{
-		if(DMA2_Channel5->CNDTR > ResultBufferSize-(ResultBufferSize/4) )
-		{
-			//Этот квант уже не успеем скопировать, пропускаем
-			return;
-		}
-
-		if(!AdcOnNextRequest())
-			return;			
-
+		//Этот квант уже не успеем скопировать, пропускаем
+		return;
 	}
+
+	if(!AdcOnNextRequest())
+		return;
 
 	uint16_t curOffset = 0;
 
