@@ -185,5 +185,5 @@ if len(sys.argv)>=2:
 
 #plot(fileName)
 #plotRaw(fileName, "V", average=False)
-plotIV(fileName, average=True)
+plotIV(fileName, average=False)
 #plotIV_2()

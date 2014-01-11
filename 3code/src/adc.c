@@ -255,19 +255,19 @@ void AdcUsbReadBuffer()
 
 	uint32_t sz = ResultBufferSize - g_adc_cur_read_pos;
 	const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(buffer[0]);
-	if(sz>max_elements)
-	{
-		USBAdd((uint8_t*)(buffer+g_adc_cur_read_pos), max_elements*sizeof(buffer[0]));
-		g_adc_cur_read_pos+=max_elements;
-	}
-	else
-	{
-		USBAdd((uint8_t*)(buffer+g_adc_cur_read_pos), sz*sizeof(buffer[0]));
-		g_adc_cur_read_pos+=sz;
-		AdcReadBufferComplete();
-	}
+
+	uint32_t to_send = sz>max_elements?max_elements:sz;
+	
+	USBAdd((uint8_t*)(buffer+g_adc_cur_read_pos), to_send*sizeof(buffer[0]));
+	g_adc_cur_read_pos+=to_send;
 
 	USBSend();
+
+	if(g_adc_cur_read_pos>=ResultBufferSize)
+	{
+		AdcReadBufferComplete();
+		return;
+	}
 }
 
 

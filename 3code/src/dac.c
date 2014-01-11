@@ -98,6 +98,10 @@ void DacSetPeriod(uint32_t sinusPeriod)
 	uint32_t period;
 	prescaler = 1;
 	period = 24;
+
+	//Нужно чтобы SinusBufferSize был кратен 4
+	sinusPeriod = (sinusPeriod/(period*4))*(period*4);
+
 	SinusBufferSize = sinusPeriod/period;
 
 	if(SinusBufferSize>SINUS_BUFFER_SIZE)

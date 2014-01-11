@@ -37,6 +37,7 @@ PERIOD_ROUND = [
         72*20, #50 000 Hz
         72*10, #100 000 Hz
         72*4, #250 000 Hz
+        192, #375 000 Hz
         ]
 
 
@@ -155,20 +156,6 @@ def readCommand():
     else:
         print "Unknown command="+str(data[0])
     pass
-"""
-def readConversionData():
-    with open("out.dat", "wb") as file:
-        step = 30
-        for i in xrange(0, 34):
-            offset = i*30
-            print "write=",dev.write(3, [COMMAND_GET_RESULT, offset%256, offset//256], interface=0)
-            data = dev.read(129, 128, interface=1, timeout=50)
-            values =data[4:]
-            print values
-            file.write(values)
-
-    pass
-"""
 
 def setFreq(F):    
     print "write=",dwrite(struct.pack("=BI", COMMAND_SET_FREQUENCY, F))
@@ -196,15 +183,15 @@ def adcReadBuffer():
     data = dread()
     (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
 
-    #print "adcReadBuffer size=", size
-    print "adcReadBuffer time=", time72
+    print "adcReadBuffer size=", size
+    #print "adcReadBuffer time=", time72
     #print "g_adc_cycles=", g_adc_cycles
 
     result = None
     while size>0:
         data = dread()
         size -= len(data)/4
-        #print size, "d=", len(data)
+        print size, "d=", len(data)
         #print data
         if not result:
             result = data
@@ -248,6 +235,7 @@ def adcSynchro(inPeriod):
     dwrite([COMMAND_DATA_COMPLETE]);
     data = dread()
     print "complete = ", struct.unpack_from('=B', data, 1)
+    print "period=",period, " cycle_x4=", period/(24.0*4)
 
     (out1, out2) = adcReadBuffer()
 
@@ -414,8 +402,12 @@ def main():
 
     #setFreq(10000)
 
-    freq = 1000
-    period = 72000000/freq
+    #freq = 1000
+    #period = 72000000/freq
+
+    period = 400
+    #period = 192
+
     setResistor(0)
     #setGainAuto(period)
     setSetGain(1, 7) #V
