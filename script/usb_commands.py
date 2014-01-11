@@ -13,6 +13,9 @@ dev = None
 gainVoltageIdx = 0
 gainCurrentIdx = 0
 resistorIdx = 0
+ncycle = 0
+period = 0
+clock = 0
 
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
@@ -92,6 +95,7 @@ def readInt():
         print data[0]+data[1]*0x100+data[2]*0x10000+data[3]*0x1000000
 
 def readCommand():
+    global ncycle, period, clock
     time.sleep(0.01)
     try:
         data = dread()
@@ -183,7 +187,7 @@ def adcReadBuffer():
     data = dread()
     (size, time72, g_adc_cycles) = struct.unpack_from('=III', data, 1)
 
-    print "adcReadBuffer size=", size
+    #print "adcReadBuffer size=", size
     #print "adcReadBuffer time=", time72
     #print "g_adc_cycles=", g_adc_cycles
 
@@ -191,7 +195,7 @@ def adcReadBuffer():
     while size>0:
         data = dread()
         size -= len(data)/4
-        print size, "d=", len(data)
+        #print size, "d=", len(data)
         #print data
         if not result:
             result = data
@@ -214,44 +218,42 @@ def arrByteToShort(barray):
     sarray = array.array('H', barray)
     return sarray.tolist()
 
+def getGainValuesX():
+    return [1,2,4,5,8,10,16,32]
+
 def getGainValue(idx):
     mulPre = 3.74
-    mulX = [1,2,4,5,8,10,16,32]
+    mulX = getGainValuesX()
     return mulPre*mulX[idx]
 
+def getResistorValues():
+    return [100, 1000, 10000, 100000]
+
 def getResistorValue(idx):
-    r = [100, 1000, 10000, 100000]
+    r = getResistorValues()
     return r[idx]
 
 def adcSynchro(inPeriod):
+    global ncycle, period, clock
     dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
     data = dread()
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
+    print "period=",period, " cycle_x4=", period/(24.0*4)
     time.sleep(0.1)
 
+def adcRequestData():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
     time.sleep(0.01)
     dwrite([COMMAND_DATA_COMPLETE]);
     data = dread()
-    print "complete = ", struct.unpack_from('=B', data, 1)
-    print "period=",period, " cycle_x4=", period/(24.0*4)
+    complete = struct.unpack_from('=B', data, 1)[0]
+    if complete!=1:
+        print "complete error = ", complete
 
     (out1, out2) = adcReadBuffer()
 
-    return (period, clock, ncycle, out1, out2)
-
-def adcSynchroBin(inPeriod):
-    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
-    print "period=",period
-    print "clock=",clock
-    print "F=",clock/float(period)
-    print "ncycle=", ncycle
-    with open("out1.dat", "wb") as file1:
-        out1.tofile(file1)
-    with open("out2.dat", "wb") as file2:
-        out2.tofile(file2)
-    pass
+    return (out1, out2)
 
 def getMinMax(arr):
     xmin = arr[0]
@@ -264,24 +266,41 @@ def getMinMax(arr):
     return (xmin, xmax)
 
 
-def setGainAuto(inPeriod):
+def setGainAuto():
     idxV = 0
     idxI = 0
 
     goodMin = 500
     goodMax = 3500
+    setSetGain(1, 1)
+    setSetGain(0, 1)
 
-    for i in xrange(0,8):
+    resistorValues = getResistorValues()
+
+    #ищем резистор с максимальным значением, при котором нет перегруза
+    for i in xrange(len(resistorValues)-1, -1, -1):
+        setResistor(i)
+        (outV, outI) = adcRequestData()
+        (imin, imax) = getMinMax(outI)
+        #print "gainR=", i
+        #print " imin="+str(imin)
+        #print " imax="+str(imax)
+        if imin>=goodMin and imax<=goodMax:
+            break
+        pass
+
+    gainValues = getGainValuesX()
+    for i in xrange(0, len(gainValues)):
         setSetGain(1, i)
         setSetGain(0, i)
-        (period, clock, ncycle, outV, outI) = adcSynchro(inPeriod)
+        (outV, outI) = adcRequestData()
         (vmin, vmax) = getMinMax(outV)
         (imin, imax) = getMinMax(outI)
-        print i
-        print " vmin="+str(vmin)
-        print " vmax="+str(vmax)
-        print " imin="+str(imin)
-        print " imax="+str(imax)
+        #print "gainI=", i
+        #print " vmin="+str(vmin)
+        #print " vmax="+str(vmax)
+        #print " imin="+str(imin)
+        #print " imax="+str(imax)
         if vmin>=goodMin and vmax<=goodMax:
             idxV = i
         if imin>=goodMin and imax<=goodMax:
@@ -289,11 +308,11 @@ def setGainAuto(inPeriod):
 
     setSetGain(1, idxV)
     setSetGain(0, idxI)
-    print "gain auto", " V="+str(idxV), "I="+str(idxI)
+    print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
     pass
 
-def adcSynchroJson(inPeriod):
-    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
+def adcSynchroJson():
+    (out1, out2) = adcRequestData()
     jout = {}
     jattr = {}
     jdata = {}
@@ -322,8 +341,8 @@ def adcSynchroJson(inPeriod):
 
     pass
 
-def adcSynchro1(inPeriod):
-    (period, clock, ncycle, out1, out2) = adcSynchro(inPeriod)
+def adcSynchro1():
+    (out1, out2) = adcRequestData()
     print "period=",period, "clock=",clock , "F=",clock/float(period), "ncycle=", ncycle
 
     result1 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out1)
@@ -354,7 +373,7 @@ def setResistor(r):
     dwrite([COMMAND_SET_RESISTOR, r])
     readCommand()
 
-
+'''
 def allFreq():
     out = []
 
@@ -371,7 +390,7 @@ def allFreq():
             for data in da:
                 print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi'], ' amplitude='+'{:3.1f}'.format(data['amplitude'])
                 #print>>file, data
-
+'''
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -408,13 +427,16 @@ def main():
     period = 400
     #period = 192
 
-    setResistor(0)
-    #setGainAuto(period)
-    setSetGain(1, 7) #V
-    setSetGain(0, 1) #I
-    time.sleep(0.3)
-    #adcSynchroBin(period)
-    adcSynchroJson(period)
+    adcSynchro(period)
+
+    if True:
+        setGainAuto()
+    else:
+        setResistor(0)
+        setSetGain(1, 7) #V
+        setSetGain(0, 1) #I
+    time.sleep(0.1)
+    adcSynchroJson()
     #res = adcSynchro1(period)
     #print "quants=", res[1]['t_propagation']
     #print "ticks=", res[0]['t_propagation']*72000000
