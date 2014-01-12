@@ -79,6 +79,9 @@ def plotRaw(fileName, IV, average = False):
 	# !!! Покажем окно с нарисованным графиком
 	plt.show()
 
+def calcFast(period, clock, ncycle, sdata):
+	(amplitude, fi) = smath.calcFi(sdata["sin"], sdata["cos"])
+	return {"amplitude": amplitude, "fi": fi}
 
 def calculate(fileName):
 	jout = readJson(fileName)
@@ -94,8 +97,12 @@ def calculate(fileName):
 
 	F = clock/period #frequency, herz
 
-	resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
-	resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
+	if 'summary' in jout:
+		resultV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
+		resultI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+	else:
+		resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
+		resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
 	ampV = resultV['amplitude']
 	ampI = resultI['amplitude']
 	dfi = resultV['fi']-resultI['fi']
@@ -142,7 +149,7 @@ def calculate(fileName):
 		print "L=", L*1e6, " mkH"
 		pass
 
-	pass
+	return 'data' in jout
 
 def plotIVInternal(ax, fileName, average = False):
 	jout = readJson(fileName)
@@ -166,7 +173,9 @@ def plotIVInternal(ax, fileName, average = False):
 	pass
 
 def plotIV(fileName, average = False):
-	calculate(fileName)
+	is_data = calculate(fileName)
+	if not is_data:
+		return
 	fig, ax = plt.subplots()
 	plotIVInternal(ax, fileName, average)
 	plt.show()

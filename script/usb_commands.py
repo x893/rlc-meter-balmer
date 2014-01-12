@@ -58,7 +58,8 @@ def findDevice():
 def dwrite(data):
     return dev.write(1, data, interface=0)
 def dread():
-    return dev.read(129, 128, interface=0, timeout=50)
+    d = dev.read(129, 128, interface=0, timeout=50)
+    return d
 
 def readAll():
     time.sleep(0.1)
@@ -237,6 +238,7 @@ def adcSynchro(inPeriod):
     global ncycle, period, clock
     dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
     data = dread()
+    print data
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
     print "period=",period, " cycle_x4=", period/(24.0*4)
     time.sleep(0.1)
@@ -244,7 +246,7 @@ def adcSynchro(inPeriod):
 def adcRequestData():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
-    time.sleep(0.01)
+    time.sleep(0.1)
     dwrite([COMMAND_DATA_COMPLETE]);
     data = dread()
     complete = struct.unpack_from('=B', data, 1)[0]
@@ -311,11 +313,51 @@ def setGainAuto():
     print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
     pass
 
-def adcSynchroJson():
-    (out1, out2) = adcRequestData()
+def adcLastCompute():
+    dwrite([COMMAND_LAST_COMPUTE])
+    data = dread()
+    (adc_min_v, adc_max_v, count_v, sin_v, cos_v, mid_sum_v, 
+     adc_min_i, adc_max_i, count_i, sin_i, cos_i, mid_sum_i,
+     error, nop_number
+        )=struct.unpack_from('=HHHffIHHHffIBI', data, 1)
+
+    if count_v==0:
+        count_v = 1
+    if count_i==0:
+        count_i = 1
+    print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
+    print " sin_v=", sin_v
+    print " cos_v=", cos_v
+
+    print "adc_min_i=", adc_min_i, " adc_max_i=", adc_max_i, " count_i=", count_i, " mid_sum_i=", mid_sum_i/count_i
+    print " sin_i=", sin_i
+    print " cos_i=", cos_i
+    print "nop_number=", nop_number, " error=", error
     jout = {}
-    jattr = {}
     jdata = {}
+    jout["attr"] = getAttr()
+    jout["summary"] = jdata
+
+    jdata["V"] = {
+        "min": adc_min_v,
+        "max": adc_max_v,
+        "mid": mid_sum_v/float(count_v),
+        "sin": sin_v,
+        "cos": cos_v,
+    }
+
+    jdata["I"] = {
+        "min": adc_min_i,
+        "max": adc_max_i,
+        "mid": mid_sum_i/float(count_i),
+        "sin": sin_i,
+        "cos": cos_i,
+    }
+
+    return jout
+
+def getAttr():
+    jattr = {}
     jattr["period"] = period
     jattr["clock"] = clock
     jattr["ncycle"] = ncycle
@@ -325,8 +367,14 @@ def adcSynchroJson():
     jattr["gain_I"] = getGainValue(gainCurrentIdx)
     jattr["resistor_index"] = resistorIdx
     jattr["resistor"] = getResistorValue(resistorIdx)
+    return jattr
 
-    jout["attr"] = jattr
+def adcSynchroJson():
+    (out1, out2) = adcRequestData()
+    jout = {}
+    jdata = {}
+
+    jout["attr"] = getAttr()
     jout["data"] = jdata
 
     jdata["V"] = arrByteToShort(out1)
@@ -335,37 +383,12 @@ def adcSynchroJson():
     f = open('out.json', 'w')
     f.write(json.dumps(jout))
     f.close()
-
-    dwrite([COMMAND_LAST_COMPUTE])
-    readCommand()
+    
+    f = open('sout.json', 'w')
+    f.write(json.dumps(adcLastCompute()))
+    f.close()
 
     pass
-
-def adcSynchro1():
-    (out1, out2) = adcRequestData()
-    print "period=",period, "clock=",clock , "F=",clock/float(period), "ncycle=", ncycle
-
-    result1 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out1)
-    result2 = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=out2)
-
-    fiV = result1['fi']
-    fiI = result2['fi']+math.pi
-
-    if fiV > math.pi:
-        fiV -= math.pi*2
-    if fiI > math.pi:
-        fiI -= math.pi*2
-
-    dfi = fiV-fiI+math.pi
-    if dfi > math.pi:
-        dfi -= math.pi*2
-
-
-    print "fiV=", fiV
-    print "fiI=", fiI
-    print "dfi=", dfi/math.pi*180, "grad"
-
-    return (result1, result2)
 
 def setResistor(r):
     global resistorIdx
@@ -373,24 +396,22 @@ def setResistor(r):
     dwrite([COMMAND_SET_RESISTOR, r])
     readCommand()
 
-'''
+
 def allFreq():
-    out = []
+    jout = []
 
-    with open("data.py", "wb") as file:
-        P = 72*10, #100 000 Hz
-        #P = 7200 #10000.00 Hz
-        #P = 3600 #20000.00 Hz
-        PERIOD_ROUND = [P]*10
-        for period in PERIOD_ROUND:
-            dwrite([COMMAND_SET_LED, ord('0')])
-            readCommand()
-            da = adcSynchro1(period)
+    for period in PERIOD_ROUND:
+        adcSynchro(period)
+        setGainAuto()
+        time.sleep(0.01)
+        (outV, outI) = adcRequestData()
+        result = adcLastCompute()
+        jout.append(result)
+        pass
 
-            for data in da:
-                print>>file, 'ticks=', '{:3.2f}'.format(72000000*data['t_propagation']), 'fi=', data['fi'], ' amplitude='+'{:3.1f}'.format(data['amplitude'])
-                #print>>file, data
-'''
+    f = open('freq.json', 'w')
+    f.write(json.dumps(jout))
+    f.close()
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -421,26 +442,26 @@ def main():
 
     #setFreq(10000)
 
-    #freq = 1000
-    #period = 72000000/freq
+    if False:
+        freq = 100
+        period = 72000000/freq
 
-    period = 400
-    #period = 192
+        #period = 864
+        #period = 192
+        #period = 400
 
-    adcSynchro(period)
+        adcSynchro(period)
 
-    if True:
-        setGainAuto()
+        if True:
+            setGainAuto()
+        else:
+            setResistor(0)
+            setSetGain(1, 7) #V
+            setSetGain(0, 1) #I
+        time.sleep(0.1)
+        adcSynchroJson()
     else:
-        setResistor(0)
-        setSetGain(1, 7) #V
-        setSetGain(0, 1) #I
-    time.sleep(0.1)
-    adcSynchroJson()
-    #res = adcSynchro1(period)
-    #print "quants=", res[1]['t_propagation']
-    #print "ticks=", res[0]['t_propagation']*72000000
-    #allFreq()
+        allFreq()
     pass
 
 

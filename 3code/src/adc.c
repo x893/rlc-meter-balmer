@@ -254,10 +254,11 @@ void AdcUsbReadBuffer()
 	uint32_t* buffer = g_resultBufferCopy;
 
 	uint32_t sz = ResultBufferSize - g_adc_cur_read_pos;
-	const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(buffer[0]);
+	//const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(buffer[0]);
+	const uint32_t max_elements = VIRTUAL_COM_PORT_DATA_SIZE/sizeof(buffer[0])/2; //BUGFIX Чтото не понимаю в USB
 
 	uint32_t to_send = sz>max_elements?max_elements:sz;
-	
+
 	USBAdd((uint8_t*)(buffer+g_adc_cur_read_pos), to_send*sizeof(buffer[0]));
 	g_adc_cur_read_pos+=to_send;
 

@@ -51,8 +51,8 @@ void EP1_IN_Callback(void)
 {
   if(g_adc_read_buffer)
     AdcUsbReadBuffer();
-  else
-  	USBSend();
+  //else
+  //	USBSend();
 }
 
 void EP1_OUT_Callback(void)
