@@ -83,8 +83,7 @@ def calcFast(period, clock, ncycle, sdata):
 	(amplitude, fi) = smath.calcFi(sdata["sin"], sdata["cos"])
 	return {"amplitude": amplitude, "fi": fi}
 
-def calculate(fileName):
-	jout = readJson(fileName)
+def calculateJson(jout):
 	jattr = jout["attr"]
 	period = jattr["period"]
 	clock = jattr["clock"]
@@ -120,29 +119,49 @@ def calculate(fileName):
 	cIm = math.sin(dfi)
 
 	resistanceComplex = ampV/current
+	Rre = resistanceComplex*cRe
+	Rim = resistanceComplex*cIm
 
+	return {
+		"ampV": ampV,
+		"ampI": ampI,
+		"cRe": cRe,
+		"cIm": cIm,
+		"Rre": Rre,
+		"Rim": Rim,
+		"F": F,
+		"dfi": dfi,
+		"current": current,
+		"resistance": resistanceComplex,
+	}
+
+def calculate(fileName):
+	jout = readJson(fileName)
+	res = calculateJson(jout)
+
+	F = res['F']
+	Rre = res['Rre']
+	Rim = res['Rim']
 	print "F=", F
-	print "dfi=", dfi
-	print "ampV=", ampV, "V"
-	print "ampI=", current, "A"
-	print "resistance=", resistanceComplex, "Om"
+	print "dfi=", res['dfi']
+	print "ampV=", res['ampV'], "V"
+	print "ampI=", res['current'], "A"
+	print "resistance=", res['resistance'], "Om"
+	print "Rre=", Rre, "Om"
+	print "Rim=", Rim, "Om"
 
-	print "cRe=", cRe
-	print "cIm=", cIm
+	print "cRe=", res['cRe']
+	print "cIm=", res['cIm']
 
-	if cIm<0:
+	if Rim<0:
 		# capacitor
-		Rre = resistanceComplex*cRe
-		Rim = -resistanceComplex*cIm
+		Rim = -Rim
 		C = 1/(2*math.pi*F*Rim)
 		print "ESR=", Rre, " Om"
 		print "C=", C*1e6, " mkF"
 		pass
-
-	if cIm>0:
+	else:
 		# inductance
-		Rre = resistanceComplex*cRe
-		Rim = resistanceComplex*cIm
 		L = Rim/(2*math.pi*F)
 		print "R=", Rre, " Om"
 		#print "L=", L*1e6-0.137, " mkH"
@@ -168,8 +187,8 @@ def plotIVInternal(ax, fileName, average = False):
 		xdata.append(xdata[0])
 		ydata.append(ydata[0])
 
-	#ax.plot (xdata, ydata, '-')
-	ax.plot (xdata, ydata, '.')
+	ax.plot (xdata, ydata, '-')
+	#ax.plot (xdata, ydata, '.')
 	pass
 
 def plotIV(fileName, average = False):
@@ -189,10 +208,34 @@ def plotIV_2():
 	plt.show()
 	pass
 
+def plotFreq(fileName):
+	jout = readJson(fileName)
+	jfreq = jout['freq']
+
+	f_data = []
+	re_data = []
+	im_data = []
+
+	for jf in jfreq:
+		res = calculateJson(jf)
+		f_data.append(res['F'])
+		re_data.append(res['Rre'])
+		im_data.append(res['Rim'])
+
+
+	fig, ax = plt.subplots()
+
+	ax.plot (f_data, re_data, '-')
+	#ax.plot (f_data, im_data, '.')
+
+	plt.show()
+	pass
+
 if len(sys.argv)>=2:
 	fileName = sys.argv[1]
 
 #plot(fileName)
-#plotRaw(fileName, "V", average=False)
-plotIV(fileName, average=False)
+#plotRaw(fileName, "I", average=False)
+#plotIV(fileName, average=True)
 #plotIV_2()
+plotFreq(fileName)

@@ -6,7 +6,8 @@
 #include "adc.h"
 
 #define DAC_ZERO 2047
-#define DAC_AMPLITUDE 1000
+//#define DAC_AMPLITUDE 1000
+#define DAC_AMPLITUDE 800
 //#define DAC_AMPLITUDE 0
 
 //max 375 khz
@@ -112,6 +113,9 @@ void DacSetPeriod(uint32_t sinusPeriod)
 		{
 			prescaler++;
 		}
+
+		uint32_t p4 = period*prescaler*4;
+		sinusPeriod = (sinusPeriod/p4)*p4;
 
 		SinusBufferSize = sinusPeriod/period/prescaler;
 	}

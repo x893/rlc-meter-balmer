@@ -177,6 +177,14 @@ def setSetGain(isVoltage, gain):
     readCommand()
     pass
 
+def setResistor(r):
+    global resistorIdx
+    resistorIdx = r
+    dwrite([COMMAND_SET_RESISTOR, r])
+    #readCommand()
+    data = dread()
+    assert(data[0]==COMMAND_SET_RESISTOR)
+
 def adcElapsedTime():
     dwrite([COMMAND_ADC_ELAPSED_TIME])
     readCommand()
@@ -238,7 +246,7 @@ def adcSynchro(inPeriod):
     global ncycle, period, clock
     dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
     data = dread()
-    print data
+    #print data
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
     print "period=",period, " cycle_x4=", period/(24.0*4)
     time.sleep(0.1)
@@ -257,6 +265,24 @@ def adcRequestData():
 
     return (out1, out2)
 
+def adcRequestLastCompute():
+    dwrite([COMMAND_REQUEST_DATA]);
+    dread()
+
+    for i in xrange(0,10):
+        time.sleep(0.01)
+        dwrite([COMMAND_DATA_COMPLETE]);
+        data = dread()
+        complete = struct.unpack_from('=B', data, 1)[0]
+        if complete==1:
+            break
+
+    if complete!=1:
+        print "complete error = ", complete
+    #else:
+        #print "complete ok"
+    return adcLastCompute()
+
 def getMinMax(arr):
     xmin = arr[0]
     xmax = arr[0]
@@ -272,21 +298,23 @@ def setGainAuto():
     idxV = 0
     idxI = 0
 
-    goodMin = 500
+    goodMin = 1500
     goodMax = 3500
-    setSetGain(1, 1)
-    setSetGain(0, 1)
+    setSetGain(1, 0)
+    setSetGain(0, 0)
 
     resistorValues = getResistorValues()
 
     #ищем резистор с максимальным значением, при котором нет перегруза
     for i in xrange(len(resistorValues)-1, -1, -1):
         setResistor(i)
-        (outV, outI) = adcRequestData()
-        (imin, imax) = getMinMax(outI)
-        #print "gainR=", i
-        #print " imin="+str(imin)
-        #print " imax="+str(imax)
+        jout = adcRequestLastCompute()
+        jI = jout['summary']['I']
+        imin = jI['min']
+        imax = jI['max']
+        print "gainR=", i
+        print " imin="+str(imin)
+        print " imax="+str(imax)
         if imin>=goodMin and imax<=goodMax:
             break
         pass
@@ -295,9 +323,13 @@ def setGainAuto():
     for i in xrange(0, len(gainValues)):
         setSetGain(1, i)
         setSetGain(0, i)
-        (outV, outI) = adcRequestData()
-        (vmin, vmax) = getMinMax(outV)
-        (imin, imax) = getMinMax(outI)
+        jout = adcRequestLastCompute()
+        jV = jout['summary']['V']
+        vmin = jV['min']
+        vmax = jV['max']
+        jI = jout['summary']['I']
+        imin = jI['min']
+        imax = jI['max']
         #print "gainI=", i
         #print " vmin="+str(vmin)
         #print " vmax="+str(vmax)
@@ -325,14 +357,7 @@ def adcLastCompute():
         count_v = 1
     if count_i==0:
         count_i = 1
-    print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
-    print " sin_v=", sin_v
-    print " cos_v=", cos_v
-
-    print "adc_min_i=", adc_min_i, " adc_max_i=", adc_max_i, " count_i=", count_i, " mid_sum_i=", mid_sum_i/count_i
-    print " sin_i=", sin_i
-    print " cos_i=", cos_i
-    print "nop_number=", nop_number, " error=", error
+    #print "nop_number=", nop_number, " error=", error
     jout = {}
     jdata = {}
     jout["attr"] = getAttr()
@@ -390,23 +415,49 @@ def adcSynchroJson():
 
     pass
 
-def setResistor(r):
-    global resistorIdx
-    resistorIdx = r
-    dwrite([COMMAND_SET_RESISTOR, r])
-    readCommand()
+
+def period100Hz_1KHz():
+    arr = []
+    for freq in xrange(100, 1000, 20):
+        period = 72000000/freq
+        period = (period/96)*96;
+        arr.append(period)
+    return arr
+
+def period1KHz_10KHz():
+    arr = []
+    for freq in xrange(1000, 10000, 200):
+        period = 72000000/freq
+        period = (period/96)*96;
+        arr.append(period)
+    return arr
+
+def period10Khz_max():
+    arr = []
+    for period in xrange(75*96, 96, -96):
+        arr.append(period)
+    return arr
+
+def periodAll():
+    return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
 
 
 def allFreq():
-    jout = []
+    jout = {}
+    jfreq = []
 
+    jout['freq'] = jfreq
+    PERIOD_ROUND = period100Hz_1KHz()
+    #PERIOD_ROUND = period1KHz_10KHz()
+    #PERIOD_ROUND = period10Khz_max()
+    #PERIOD_ROUND = periodAll()
+    print PERIOD_ROUND
     for period in PERIOD_ROUND:
         adcSynchro(period)
         setGainAuto()
         time.sleep(0.01)
-        (outV, outI) = adcRequestData()
-        result = adcLastCompute()
-        jout.append(result)
+        jresult = adcRequestLastCompute()
+        jfreq.append(jresult)
         pass
 
     f = open('freq.json', 'w')
@@ -443,7 +494,7 @@ def main():
     #setFreq(10000)
 
     if False:
-        freq = 100
+        freq = 13700
         period = 72000000/freq
 
         #period = 864
@@ -455,8 +506,8 @@ def main():
         if True:
             setGainAuto()
         else:
-            setResistor(0)
-            setSetGain(1, 7) #V
+            setResistor(1)
+            setSetGain(1, 0) #V
             setSetGain(0, 1) #I
         time.sleep(0.1)
         adcSynchroJson()

@@ -541,4 +541,6 @@ void AdcSendLastCompute()
 	AdcSendLastComputeCh(&data->ch_i);
 	USBAdd8(data->error);
 	USBAdd32(data->nop_number);
+
+	g_usb_sampled_data = false;
 }
