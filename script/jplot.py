@@ -219,14 +219,21 @@ def plotFreq(fileName):
 	for jf in jfreq:
 		res = calculateJson(jf)
 		f_data.append(res['F'])
-		re_data.append(res['Rre'])
-		im_data.append(res['Rim'])
+		re_data.append(math.fabs(res['Rre']))
+		im_data.append(math.fabs(res['Rim']))
 
 
 	fig, ax = plt.subplots()
+	ax.set_title("100 nF 100 uH")
+	ax.set_xscale('log')
+	ax.set_yscale('log')
+	ax.set_xlabel("Hz")
 
-	ax.plot (f_data, re_data, '-')
-	#ax.plot (f_data, im_data, '.')
+	ax.set_ylabel("Om")
+	#ax.set_ylabel("Om Re")
+	ax.plot (f_data, re_data, '-', color="red")
+	#ax.set_ylabel("Om Im")
+	ax.plot (f_data, im_data, '-', color="blue")
 
 	plt.show()
 	pass

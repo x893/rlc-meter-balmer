@@ -283,6 +283,27 @@ def adcRequestLastCompute():
         #print "complete ok"
     return adcLastCompute()
 
+def adcRequestLastComputeX(count=10):
+    data = adcRequestLastCompute()
+    dataI = data['summary']['I']
+    dataV = data['summary']['V']
+    for i in xrange(1, count):
+        d = adcRequestLastCompute()
+        dV = d['summary']['V']
+        dI = d['summary']['I']
+
+        dataV['sin'] += dV['sin']
+        dataV['cos'] += dV['cos']
+        dataI['sin'] += dI['sin']
+        dataI['cos'] += dI['cos']
+
+    dataV['sin'] /= count
+    dataV['cos'] /= count
+    dataI['sin'] /= count
+    dataI['cos'] /= count
+    return data
+
+
 def getMinMax(arr):
     xmin = arr[0]
     xmax = arr[0]
@@ -312,9 +333,9 @@ def setGainAuto():
         jI = jout['summary']['I']
         imin = jI['min']
         imax = jI['max']
-        print "gainR=", i
-        print " imin="+str(imin)
-        print " imax="+str(imax)
+        #print "gainR=", i
+        #print " imin="+str(imin)
+        #print " imax="+str(imax)
         if imin>=goodMin and imax<=goodMax:
             break
         pass
@@ -447,16 +468,16 @@ def allFreq():
     jfreq = []
 
     jout['freq'] = jfreq
-    PERIOD_ROUND = period100Hz_1KHz()
+    #PERIOD_ROUND = period100Hz_1KHz()
     #PERIOD_ROUND = period1KHz_10KHz()
     #PERIOD_ROUND = period10Khz_max()
-    #PERIOD_ROUND = periodAll()
+    PERIOD_ROUND = periodAll()
     print PERIOD_ROUND
     for period in PERIOD_ROUND:
         adcSynchro(period)
         setGainAuto()
         time.sleep(0.01)
-        jresult = adcRequestLastCompute()
+        jresult = adcRequestLastComputeX()
         jfreq.append(jresult)
         pass
 
