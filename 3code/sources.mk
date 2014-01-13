@@ -6,6 +6,7 @@
 DEPS += \
 	output/CMSIS/startup_stm32f30x.d \
 	output/base/src/adc.d \
+	output/base/src/calc.d \
 	output/base/src/dac.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
@@ -40,6 +41,7 @@ DEPS += \
 OBJS += \
 	output/CMSIS/startup_stm32f30x.o \
 	output/base/src/adc.o \
+	output/base/src/calc.o \
 	output/base/src/dac.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
@@ -77,6 +79,10 @@ output/CMSIS/startup_stm32f30x.o: Libraries/CMSIS/Device/ST/STM32F30x/Source/Tem
 
 output/base/src/adc.o: ./src/adc.c
 	@echo 'Building target: adc.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/calc.o: ./src/calc.c
+	@echo 'Building target: calc.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/dac.o: ./src/dac.c

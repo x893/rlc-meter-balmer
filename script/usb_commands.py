@@ -141,23 +141,7 @@ def readCommand():
         elif r==3:
             print "r=100 KOm"
     elif cmd==COMMAND_LAST_COMPUTE:
-        (adc_min_v, adc_max_v, count_v, sin_sum_v, cos_sum_v, mid_sum_v, 
-         adc_min_i, adc_max_i, count_i, sin_sum_i, cos_sum_i, mid_sum_i,
-         error, nop_number
-            )=struct.unpack_from('=HHHffIHHHffIBI', data, 1)
-
-        if count_v==0:
-            count_v = 1
-        if count_i==0:
-            count_i = 1
-        print "adc_min_v=", adc_min_v, " adc_max_v=", adc_max_v, " count_v=", count_v, " mid_sum_v=", mid_sum_v/count_v
-        print " sin_v=", sin_sum_v
-        print " cos_v=", cos_sum_v
-
-        print "adc_min_i=", adc_min_i, " adc_max_i=", adc_max_i, " count_i=", count_i, " mid_sum_i=", mid_sum_i/count_i
-        print " sin_i=", sin_sum_i
-        print " cos_i=", cos_sum_i
-        print "nop_number=", nop_number, " error=", error
+        pass
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -294,13 +278,19 @@ def adcRequestLastComputeX(count=10):
 
         dataV['sin'] += dV['sin']
         dataV['cos'] += dV['cos']
+        dataV['square_error'] += dV['square_error']
+        
         dataI['sin'] += dI['sin']
         dataI['cos'] += dI['cos']
+        dataI['square_error'] += dI['square_error']
 
     dataV['sin'] /= count
     dataV['cos'] /= count
+    dataV['square_error'] /= count
+
     dataI['sin'] /= count
     dataI['cos'] /= count
+    dataI['square_error'] /= count
     return data
 
 
@@ -369,15 +359,14 @@ def setGainAuto():
 def adcLastCompute():
     dwrite([COMMAND_LAST_COMPUTE])
     data = dread()
-    (adc_min_v, adc_max_v, count_v, sin_v, cos_v, mid_sum_v, 
-     adc_min_i, adc_max_i, count_i, sin_i, cos_i, mid_sum_i,
+    (count, 
+     adc_min_v, adc_max_v, sin_v, cos_v, mid_v, square_error_v,
+     adc_min_i, adc_max_i, sin_i, cos_i, mid_i, square_error_i,
      error, nop_number
-        )=struct.unpack_from('=HHHffIHHHffIBI', data, 1)
+        )=struct.unpack_from('=HHHffffHHffffBI', data, 1)
 
-    if count_v==0:
-        count_v = 1
-    if count_i==0:
-        count_i = 1
+    if count==0:
+        count = 1
     #print "nop_number=", nop_number, " error=", error
     jout = {}
     jdata = {}
@@ -387,19 +376,22 @@ def adcLastCompute():
     jdata["V"] = {
         "min": adc_min_v,
         "max": adc_max_v,
-        "mid": mid_sum_v/float(count_v),
+        "mid": mid_v,
         "sin": sin_v,
         "cos": cos_v,
+        "square_error": square_error_v,
     }
 
     jdata["I"] = {
         "min": adc_min_i,
         "max": adc_max_i,
-        "mid": mid_sum_i/float(count_i),
+        "mid": mid_i,
         "sin": sin_i,
         "cos": cos_i,
+        "square_error": square_error_i,
     }
 
+    #print jout
     return jout
 
 def getAttr():
@@ -515,7 +507,7 @@ def main():
     #setFreq(10000)
 
     if False:
-        freq = 13700
+        freq = 100
         period = 72000000/freq
 
         #period = 864

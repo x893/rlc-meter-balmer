@@ -85,6 +85,8 @@ def calcAll(period, clock, ncycle, data):
 	square_error = correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle)
 	t_propagation = fi/2*math.pi*ncycle/clock
 
+	print "square_error=", square_error
+
 	return {"period": period, "clock": clock, "ncycle": ncycle,
 		"c0": c0, "csin": csin, "ccos": ccos, "amplitude": amplitude,
 		"fi": fi, "square_error": square_error, "t_propagation": t_propagation}

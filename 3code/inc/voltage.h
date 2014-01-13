@@ -8,6 +8,7 @@ void USBAddStr(char* data);
 void USBAdd8(uint8_t data);
 void USBAdd16(uint16_t data);
 void USBAdd32(uint32_t data);
+void USBAddFloat(float data);
 void USBSend(void);
 
 

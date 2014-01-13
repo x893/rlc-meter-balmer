@@ -39,6 +39,11 @@ void USBAdd32(uint32_t data)
   USBAdd((uint8_t*)&data, sizeof(data));
 }
 
+void USBAddFloat(float data)
+{
+	USBAdd((uint8_t*)&data, sizeof(data));
+}
+
 void USBSend(void)
 {
   USB_SIL_Write(EP1_IN, Rx_Buffer, Rx_length);

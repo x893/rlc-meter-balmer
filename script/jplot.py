@@ -215,12 +215,16 @@ def plotFreq(fileName):
 	f_data = []
 	re_data = []
 	im_data = []
+	re_error = []
+	im_error = []
 
 	for jf in jfreq:
 		res = calculateJson(jf)
 		f_data.append(res['F'])
 		re_data.append(math.fabs(res['Rre']))
 		im_data.append(math.fabs(res['Rim']))
+		re_error.append(jf['summary']['V']['square_error'])
+		im_error.append(jf['summary']['I']['square_error'])
 
 
 	fig, ax = plt.subplots()
@@ -232,8 +236,10 @@ def plotFreq(fileName):
 	ax.set_ylabel("Om")
 	#ax.set_ylabel("Om Re")
 	ax.plot (f_data, re_data, '-', color="red")
+	#ax.plot (f_data, re_error, '.', color="red")
 	#ax.set_ylabel("Om Im")
 	ax.plot (f_data, im_data, '-', color="blue")
+	#ax.plot (f_data, im_error, '.', color="blue")
 
 	plt.show()
 	pass
