@@ -6,8 +6,8 @@
 #include "adc.h"
 
 #define DAC_ZERO 2047
-//#define DAC_AMPLITUDE 1000
-#define DAC_AMPLITUDE 800
+#define DAC_AMPLITUDE 1200
+//#define DAC_AMPLITUDE 800
 //#define DAC_AMPLITUDE 0
 
 //max 375 khz

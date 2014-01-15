@@ -221,17 +221,17 @@ def getGainValuesXV(idx):
 def getGainValuesXI(idx):
     k = getGainValuesX()[idx]
 
-    if resistorIdx==0:
-        #100 Om
-        k0 = [0.9854473080477981, 0.9875172259658508, 0.9882146508255546, 0.9912066417767416, 0.9931192698984098, 0.9921645049747444]
-        if idx<=5:
-            k /= k0[idx]
+    #if resistorIdx==0:
+    #    #100 Om
+    #    k0 = [0.9854473080477981, 0.9875172259658508, 0.9882146508255546, 0.9912066417767416, 0.9931192698984098, 0.9921645049747444]
+    #    if idx<=5:
+    #        k /= k0[idx]
 
-    if resistorIdx==1:
-        #1 KOm
-        k0 = [0.9867411190934384, 0.9882005031539411, 0.9894009477327412, 0.9922429422273069, 0.9940168413611414, 0.9931864720269113]
-        if idx<=5:
-            k /= k0[idx]        
+    #if resistorIdx==1:
+    #    #1 KOm
+    #    k0 = [0.9867411190934384, 0.9882005031539411, 0.9894009477327412, 0.9922429422273069, 0.9940168413611414, 0.9931864720269113]
+    #    if idx<=5:
+    #        k /= k0[idx]        
 
     return k
 
@@ -336,8 +336,13 @@ def setGainAuto():
     idxI = 0
 
     goodMin = 1500
-    goodMax = 2300
+    goodMax = 4000
+    #goodMin = 500
+    #goodMax = 3300
+
     goodDelta = goodMax-goodMin
+    goodDeltaIdx = [goodDelta, goodDelta, goodDelta, goodDelta, goodDelta, 600, 600, 600]
+
     setSetGain(1, 0)
     setSetGain(0, 0)
 
@@ -377,9 +382,14 @@ def setGainAuto():
 
 
     gainValues = getGainValuesX()
+    stopV = False
+    stopI = False
     for i in xrange(0, len(gainValues)):
-        setSetGain(1, i)
-        setSetGain(0, i)
+        if not stopV:
+            setSetGain(1, i)
+        if not stopI:
+            setSetGain(0, i)
+
         jout = adcRequestLastCompute()
         jV = jout['summary']['V']
         vmin = jV['min']
@@ -392,10 +402,17 @@ def setGainAuto():
         #print " vmax="+str(vmax)
         #print " imin="+str(imin)
         #print " imax="+str(imax)
-        if vmin>=goodMin and vmax<=goodMax:
+        delta = goodDeltaIdx[i]
+
+        if not stopV and vmax-vmin<delta:
             idxV = i
-        if imin>=goodMin and imax<=goodMax:
+        else:
+            stopV = True
+
+        if not stopI and imax-imin<delta:
             idxI = i
+        else:
+            stopI = True
 
     setSetGain(1, idxV)
     setSetGain(0, idxI)
@@ -629,9 +646,9 @@ def main():
     #calibrate1_Om()
     #return
 
-    if True:
+    if False:
         #period = periodByFreq(123)
-        period = periodByFreq(200000)
+        period = periodByFreq(6500)
         #period = periodByFreq(6646)
         #period = 384
 
@@ -641,7 +658,7 @@ def main():
             setGainAuto()
         else:
             setResistor(0)
-            setSetGain(1, 0) #V
+            setSetGain(1, 5) #V
             setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson()

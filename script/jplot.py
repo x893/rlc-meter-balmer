@@ -243,7 +243,7 @@ def plotFreq(fileName):
 	fig, ax = plt.subplots()
 	ax.set_title("100 uH")
 	ax.set_xscale('log')
-	ax.set_yscale('log')
+	#ax.set_yscale('log')
 	ax.set_xlabel("Hz")
 
 	ax.set_ylabel("Om")

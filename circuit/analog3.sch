@@ -8054,7 +8054,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 </classes>
 <parts>
 <part name="R2" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
-<part name="C2" library="rcl" deviceset="C-EU" device="C0805" value="100p"/>
+<part name="C2" library="rcl" deviceset="C-EU" device="C0805" value="33p"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
@@ -8138,7 +8138,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="R22" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
 <part name="IC7" library="linear" deviceset="LM358" device="D" value="LM258"/>
 <part name="R7" library="rcl" deviceset="R-EU_" device="R0603" value="47k"/>
-<part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="100k"/>
+<part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
 <part name="GND17" library="supply1" deviceset="GNDA" device=""/>
 <part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
@@ -9046,7 +9046,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="C18" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="+1.6V1" class="0">
+<net name="+2.2V1" class="0">
 <segment>
 <pinref part="IC7" gate="A" pin="OUT"/>
 <wire x1="104.14" y1="-71.12" x2="104.14" y2="-63.5" width="0.1524" layer="91"/>
@@ -9075,7 +9075,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <junction x="114.3" y="12.7"/>
 </segment>
 </net>
-<net name="+1.6V2" class="0">
+<net name="+2.2V2" class="0">
 <segment>
 <pinref part="IC7" gate="B" pin="-IN"/>
 <wire x1="88.9" y1="-99.06" x2="88.9" y2="-104.14" width="0.1524" layer="91"/>
