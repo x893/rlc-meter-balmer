@@ -135,6 +135,17 @@ def calculateJson(jout):
 		"resistance": resistanceComplex,
 	}
 
+def printC(C):
+	if C>=1:
+		print "C=", C, "F"
+	elif C>=1e-6:
+		print "C=", C*1e6, "mkF"
+	elif C>=1e-9:
+		print "C=", C*1e9, "nF"
+	else:
+		print "C=", C*1e12, "pF"
+
+
 def calculate(fileName):
 	jout = readJson(fileName)
 	res = calculateJson(jout)
@@ -158,7 +169,7 @@ def calculate(fileName):
 		Rim = -Rim
 		C = 1/(2*math.pi*F*Rim)
 		print "ESR=", Rre, " Om"
-		print "C=", C*1e6, " mkF"
+		printC(C)
 		pass
 	else:
 		# inductance
@@ -221,14 +232,16 @@ def plotFreq(fileName):
 	for jf in jfreq:
 		res = calculateJson(jf)
 		f_data.append(res['F'])
-		re_data.append(math.fabs(res['Rre']))
-		im_data.append(math.fabs(res['Rim']))
+		#re_data.append(math.fabs(res['Rre']))
+		re_data.append(res['Rre'])
+		#im_data.append(math.fabs(res['Rim']))
+		im_data.append(res['Rim'])
 		re_error.append(jf['summary']['V']['square_error'])
 		im_error.append(jf['summary']['I']['square_error'])
 
 
 	fig, ax = plt.subplots()
-	ax.set_title("100 nF 100 uH")
+	ax.set_title("100 uH")
 	ax.set_xscale('log')
 	ax.set_yscale('log')
 	ax.set_xlabel("Hz")
@@ -244,11 +257,18 @@ def plotFreq(fileName):
 	plt.show()
 	pass
 
-if len(sys.argv)>=2:
-	fileName = sys.argv[1]
 
-#plot(fileName)
-#plotRaw(fileName, "I", average=False)
-#plotIV(fileName, average=True)
-#plotIV_2()
-plotFreq(fileName)
+def main():
+	if len(sys.argv)>=2:
+		fileName = sys.argv[1]
+
+	if fileName[0]=='f':
+		plotFreq(fileName)
+	else:
+		#plot(fileName)
+		#plotRaw(fileName, "V", average=False)
+		plotIV(fileName, average=True)
+		#plotIV_2()
+
+if __name__ == "__main__":
+	main()

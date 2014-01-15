@@ -7,6 +7,7 @@ import struct
 import array
 import math
 import smath
+from jplot import calculateJson
 import json
 
 dev = None
@@ -214,10 +215,35 @@ def arrByteToShort(barray):
 def getGainValuesX():
     return [1,2,4,5,8,10,16,32]
 
-def getGainValue(idx):
+def getGainValuesXV(idx):
+    return getGainValuesX()[idx]
+
+def getGainValuesXI(idx):
+    k = getGainValuesX()[idx]
+
+    if resistorIdx==0:
+        #100 Om
+        k0 = [0.9854473080477981, 0.9875172259658508, 0.9882146508255546, 0.9912066417767416, 0.9931192698984098, 0.9921645049747444]
+        if idx<=5:
+            k /= k0[idx]
+
+    if resistorIdx==1:
+        #1 KOm
+        k0 = [0.9867411190934384, 0.9882005031539411, 0.9894009477327412, 0.9922429422273069, 0.9940168413611414, 0.9931864720269113]
+        if idx<=5:
+            k /= k0[idx]        
+
+    return k
+
+def getGainValueV(idx):
     mulPre = 3.74
-    mulX = getGainValuesX()
-    return mulPre*mulX[idx]
+    mulX = getGainValuesXV(idx)
+    return mulPre*mulX
+
+def getGainValueI(idx):
+    mulPre = 3.74
+    mulX = getGainValuesXI(idx)
+    return mulPre*mulX
 
 def getResistorValues():
     return [100, 1000, 10000, 100000]
@@ -310,25 +336,45 @@ def setGainAuto():
     idxI = 0
 
     goodMin = 1500
-    goodMax = 3500
+    goodMax = 2300
+    goodDelta = goodMax-goodMin
     setSetGain(1, 0)
     setSetGain(0, 0)
 
     resistorValues = getResistorValues()
 
     #ищем резистор с максимальным значением, при котором нет перегруза
-    for i in xrange(len(resistorValues)-1, -1, -1):
-        setResistor(i)
-        jout = adcRequestLastCompute()
-        jI = jout['summary']['I']
-        imin = jI['min']
-        imax = jI['max']
-        #print "gainR=", i
-        #print " imin="+str(imin)
-        #print " imax="+str(imax)
-        if imin>=goodMin and imax<=goodMax:
-            break
-        pass
+    if False:
+        for i in xrange(len(resistorValues)-1, -1, -1):
+            setResistor(i)
+            jout = adcRequestLastCompute()
+            jI = jout['summary']['I']
+            imin = jI['min']
+            imax = jI['max']
+            #print "gainR=", i
+            #print " imin="+str(imin)
+            #print " imax="+str(imax)
+            if imin>=goodMin and imax<=goodMax:
+                break
+            pass
+    else:
+        #ищем резистор начиная с минимальных значений, ибо при перегрузе могут быть странные эффекты
+        for i in xrange(0, len(resistorValues)):
+            setResistor(i)
+            jout = adcRequestLastCompute()
+            jI = jout['summary']['I']
+            imin = jI['min']
+            imax = jI['max']
+            di = imax - imin
+            print "gainR=", i
+            print " imin="+str(imin)
+            print " imax="+str(imax)
+
+            #прикидываем, что следующий диапазон уже плох
+            if di*10>goodDelta:
+                break
+            pass
+
 
     gainValues = getGainValuesX()
     for i in xrange(0, len(gainValues)):
@@ -401,8 +447,8 @@ def getAttr():
     jattr["ncycle"] = ncycle
     jattr["gain_index_V"] = gainVoltageIdx
     jattr["gain_index_I"] = gainCurrentIdx
-    jattr["gain_V"] = getGainValue(gainVoltageIdx)
-    jattr["gain_I"] = getGainValue(gainCurrentIdx)
+    jattr["gain_V"] = getGainValueV(gainVoltageIdx)
+    jattr["gain_I"] = getGainValueI(gainCurrentIdx)
     jattr["resistor_index"] = resistorIdx
     jattr["resistor"] = getResistorValue(resistorIdx)
     return jattr
@@ -423,8 +469,14 @@ def adcSynchroJson():
     f.close()
     
     f = open('sout.json', 'w')
-    f.write(json.dumps(adcLastCompute()))
+    #jout = adcLastCompute()
+    jout = adcRequestLastComputeX()
+    f.write(json.dumps(jout))
     f.close()
+
+    data = calculateJson(jout)
+    print "Rre=", data['Rre']
+    print "Rim=", data['Rim']
 
     pass
 
@@ -454,7 +506,6 @@ def period10Khz_max():
 def periodAll():
     return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
 
-
 def allFreq():
     jout = {}
     jfreq = []
@@ -476,6 +527,77 @@ def allFreq():
     f = open('freq.json', 'w')
     f.write(json.dumps(jout))
     f.close()
+
+def calibrate1Kom():
+    period = periodByFreq(123)
+    Kout = []
+    adcSynchro(period)
+    setResistor(0)
+    for igain in xrange(0, 6):
+        setSetGain(1, 0) #V
+        setSetGain(0, igain) #I
+        time.sleep(0.01)
+        jresult = adcRequestLastComputeX()
+        data = calculateJson(jresult)
+        Kout.append(data['Rre']/1e3)
+
+    print "KI 1Kom = ", Kout
+    pass
+
+def calibrate10Kom():
+    period = periodByFreq(123)
+    Kout = []
+    adcSynchro(period)
+    setResistor(1)
+    for igain in xrange(0, 6):
+        setSetGain(1, 0) #V
+        setSetGain(0, igain) #I
+        time.sleep(0.01)
+        jresult = adcRequestLastComputeX()
+        data = calculateJson(jresult)
+        Kout.append(data['Rre']/10e3)
+
+    print "KI 10Kom = ", Kout
+    pass
+
+def calibrate10_Om():
+    R = 9.9
+    Rzero = 0.0098
+    period = periodByFreq(123)
+    Kout = []
+    adcSynchro(period)
+    setResistor(0)
+    for vgain in xrange(0, 4):
+        setSetGain(1, vgain) #V
+        setSetGain(0, 0) #I
+        time.sleep(0.01)
+        jresult = adcRequestLastComputeX()
+        data = calculateJson(jresult)
+        Kout.append((data['Rre']-Rzero)/R)
+
+    print "KV 10 Om = ", Kout
+    pass
+
+def calibrate1_Om():
+    R = 0.99
+    Rzero = 0.0098
+    period = periodByFreq(123)
+    Kout = []
+    adcSynchro(period)
+    setResistor(0)
+    for vgain in xrange(4, 8):
+        setSetGain(1, vgain) #V
+        setSetGain(0, 0) #I
+        time.sleep(0.01)
+        jresult = adcRequestLastComputeX()
+        data = calculateJson(jresult)
+        Kout.append((data['Rre']-Rzero)/R)
+
+    print "KV 1 Om = ", Kout
+    pass
+
+def periodByFreq(freq):
+    return 72000000/freq
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -504,24 +626,23 @@ def main():
         print "write=",dwrite([1])
         readOne()
 
-    #setFreq(10000)
+    #calibrate1_Om()
+    #return
 
-    if False:
-        freq = 100
-        period = 72000000/freq
-
-        #period = 864
-        #period = 192
-        #period = 400
+    if True:
+        #period = periodByFreq(123)
+        period = periodByFreq(200000)
+        #period = periodByFreq(6646)
+        #period = 384
 
         adcSynchro(period)
 
         if True:
             setGainAuto()
         else:
-            setResistor(1)
+            setResistor(0)
             setSetGain(1, 0) #V
-            setSetGain(0, 1) #I
+            setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson()
     else:
