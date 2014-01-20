@@ -331,7 +331,7 @@ def getMinMax(arr):
     return (xmin, xmax)
 
 
-def setGainAuto():
+def setGainAuto(predefinedRes=-1):
     idxV = 0
     idxI = 0
 
@@ -342,26 +342,15 @@ def setGainAuto():
 
     goodDelta = goodMax-goodMin
     goodDeltaIdx = [goodDelta, goodDelta, goodDelta, goodDelta, goodDelta, 600, 600, 600]
+    #goodDeltaIdx = [goodDelta]*8
 
     setSetGain(1, 0)
     setSetGain(0, 0)
 
     resistorValues = getResistorValues()
 
-    #ищем резистор с максимальным значением, при котором нет перегруза
-    if False:
-        for i in xrange(len(resistorValues)-1, -1, -1):
-            setResistor(i)
-            jout = adcRequestLastCompute()
-            jI = jout['summary']['I']
-            imin = jI['min']
-            imax = jI['max']
-            #print "gainR=", i
-            #print " imin="+str(imin)
-            #print " imax="+str(imax)
-            if imin>=goodMin and imax<=goodMax:
-                break
-            pass
+    if predefinedRes>=0:
+        setResistor(predefinedRes)
     else:
         #ищем резистор начиная с минимальных значений, ибо при перегрузе могут быть странные эффекты
         for i in xrange(0, len(resistorValues)):
@@ -487,7 +476,7 @@ def adcSynchroJson():
     
     f = open('sout.json', 'w')
     #jout = adcLastCompute()
-    jout = adcRequestLastComputeX()
+    jout = adcRequestLastComputeX(100)
     f.write(json.dumps(jout))
     f.close()
 
@@ -535,7 +524,8 @@ def allFreq():
     print PERIOD_ROUND
     for period in PERIOD_ROUND:
         adcSynchro(period)
-        setGainAuto()
+        #setGainAuto()
+        setGainAuto(predefinedRes=0)
         time.sleep(0.01)
         jresult = adcRequestLastComputeX()
         jfreq.append(jresult)
@@ -648,8 +638,8 @@ def main():
 
     if False:
         #period = periodByFreq(123)
-        period = periodByFreq(6500)
-        #period = periodByFreq(6646)
+        period = periodByFreq(100000)
+        #period = periodByFreq(50000)
         #period = 384
 
         adcSynchro(period)
@@ -658,7 +648,7 @@ def main():
             setGainAuto()
         else:
             setResistor(0)
-            setSetGain(1, 5) #V
+            setSetGain(1, 7) #V
             setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson()

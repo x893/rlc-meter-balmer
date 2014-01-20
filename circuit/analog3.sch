@@ -8140,11 +8140,11 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="R7" library="rcl" deviceset="R-EU_" device="R0603" value="47k"/>
 <part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
 <part name="GND17" library="supply1" deviceset="GNDA" device=""/>
-<part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
-<part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
+<part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="22"/>
+<part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="4.7mk"/>
 <part name="C17" library="rcl" deviceset="C-EU" device="C0805" value="47n"/>
-<part name="R32" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
-<part name="C18" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
+<part name="R32" library="rcl" deviceset="R-EU_" device="R0805" value="22"/>
+<part name="C18" library="rcl" deviceset="C-EU" device="C0603" value="4.7mk"/>
 <part name="C26" library="rcl" deviceset="C-EU" device="C0805" value="47n"/>
 <part name="GND18" library="supply1" deviceset="GNDA" device=""/>
 <part name="C27" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>

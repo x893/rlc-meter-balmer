@@ -133,6 +133,7 @@ def calculateJson(jout):
 		"dfi": dfi,
 		"current": current,
 		"resistance": resistanceComplex,
+		"period": period
 	}
 
 def printC(C):
@@ -144,6 +145,93 @@ def printC(C):
 		print "C=", C*1e9, "nF"
 	else:
 		print "C=", C*1e12, "pF"
+
+class Corrector:	
+	def __init__(self):
+		self.load()
+		pass
+
+	def load(self):		
+		self.load0()
+		#self.load3()
+		pass
+
+	def correct(self, Rre, Rim, period):
+		return self.correct0(Rre, Rim, period)
+		#return self.correct3(Rre, Rim, period)
+
+	def load0(self):
+		json_short = readJson("cor/0_short.json")
+		json_load = readJson("cor/0_load_1.json")
+
+		data = {}
+
+		jfreq_short = json_short['freq']
+		for jf in jfreq_short:
+			res = calculateJson(jf)
+			data[res['period']] = { 'short': res }
+
+		jfreq_load = json_load['freq']
+		for jf in jfreq_load:
+			res = calculateJson(jf)
+			data[res['period']]['load'] = res
+
+		self.data = data
+		self.R = json_load['R']
+
+		pass
+
+	def load3(self):
+		json_open = readJson("cor/3_open.json")
+		json_load = readJson("cor/3_load.json")
+
+		data = {}
+
+		jfreq_open = json_open['freq']
+		for jf in jfreq_open:
+			res = calculateJson(jf)
+			data[res['period']] = { 'open': res }
+
+		jfreq_load = json_load['freq']
+		for jf in jfreq_load:
+			res = calculateJson(jf)
+			data[res['period']]['load'] = res
+
+		self.data = data
+		self.R = json_load['R']
+
+		pass
+
+	def correct0(self, Rre, Rim, period):
+		d = self.data[period]
+		Zsm = complex(d['short']['Rre'] , d['short']['Rim'])
+		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Zstd = complex(self.R, 0)
+		Zxm = complex(Rre , Rim)
+		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
+		if period==720000:
+			print "Zsm=", Zsm
+			print "Zstdm=", Zstdm
+			print "Zstd=", Zstd
+			print "Zxm=", Zxm
+			print "Zx=", Zx
+		return Zx
+
+	def correct3(self, Rre, Rim, period):
+		d = self.data[period]
+		Zom = complex(d['open']['Rre'] , d['open']['Rim'])
+		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Zstd = complex(self.R, 0)
+		Zxm = complex(Rre , Rim)
+		Zx = Zstd*(complex(1)/Zstdm-complex(1)/Zom)*Zxm/(1-Zxm/Zom)
+		if period==96:
+			print "Zsm=", Zsm
+			print "Zstdm=", Zstdm
+			print "Zstd=", Zstd
+			print "Zxm=", Zxm
+			print "Zx=", Zx
+		return Zx
+
 
 
 def calculate(fileName):
@@ -228,31 +316,63 @@ def plotFreq(fileName):
 	im_data = []
 	re_error = []
 	im_error = []
+	re_corr = []
+	im_corr = []
+	arr_L = []
+	arr_C = []
+
+	corr = Corrector()
 
 	for jf in jfreq:
 		res = calculateJson(jf)
 		f_data.append(res['F'])
-		#re_data.append(math.fabs(res['Rre']))
-		re_data.append(res['Rre'])
-		#im_data.append(math.fabs(res['Rim']))
-		im_data.append(res['Rim'])
+
+		re_data.append(math.fabs(res['Rre']))
+		#re_data.append(res['Rre'])
+		im_data.append(math.fabs(res['Rim']))
+		#im_data.append(res['Rim'])
 		re_error.append(jf['summary']['V']['square_error'])
 		im_error.append(jf['summary']['I']['square_error'])
 
+		Zx = corr.correct(res['Rre'], res['Rim'], res['period'])
+		re_corr.append(Zx.real)
+		im_corr.append(math.fabs(Zx.imag))
+		
+		F = res['F']
+		if Zx.imag>0:
+			L = Zx.imag/(2*math.pi*F)
+		else:
+			L = 0
+
+		if Zx.imag<-1e-10:
+			C = -1/(2*math.pi*F*Zx.imag)
+		else:
+			C = 0
+		arr_L.append(L*1e6)
+		arr_C.append(C*1e6)
+
 
 	fig, ax = plt.subplots()
-	ax.set_title("100 uH")
+	ax.set_title("4700 uF")
 	ax.set_xscale('log')
-	#ax.set_yscale('log')
+	ax.set_yscale('log')
 	ax.set_xlabel("Hz")
 
-	ax.set_ylabel("Om")
-	#ax.set_ylabel("Om Re")
-	ax.plot (f_data, re_data, '-', color="red")
+	#ax.set_ylabel("Om")
+	#ax.plot (f_data, re_data, '-', color="red")
+	#ax.plot (f_data, im_data, '-', color="blue")
+
 	#ax.plot (f_data, re_error, '.', color="red")
-	#ax.set_ylabel("Om Im")
-	ax.plot (f_data, im_data, '-', color="blue")
 	#ax.plot (f_data, im_error, '.', color="blue")
+
+	#ax.plot (f_data, re_corr, '.-', color="red")
+	#ax.plot (f_data, im_corr, '.-', color="blue")
+
+	#ax.set_ylabel("uH")
+	#ax.plot (f_data, arr_L, '-', color="red")
+
+	#ax.set_ylabel("uF")
+	ax.plot (f_data, arr_C, '-', color="red")
 
 	plt.show()
 	pass
@@ -262,7 +382,7 @@ def main():
 	if len(sys.argv)>=2:
 		fileName = sys.argv[1]
 
-	if fileName[0]=='f':
+	if True or fileName[0]=='f':
 		plotFreq(fileName)
 	else:
 		#plot(fileName)

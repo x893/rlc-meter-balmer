@@ -1,6 +1,7 @@
 import math
 import array
 
+
 fileName = "out.dat"
 def readFileAsShort(filename):
 	with open(filename, "rb") as file:
@@ -91,6 +92,8 @@ def calcAll(period, clock, ncycle, data):
 		"c0": c0, "csin": csin, "ccos": ccos, "amplitude": amplitude,
 		"fi": fi, "square_error": square_error, "t_propagation": t_propagation}
 
+
+
 def main():
 	data = readFileAsShort(fileName)
 	#period = 720 # F=100000
@@ -120,21 +123,5 @@ def main():
 	print "dt=", fi/2*math.pi*ncycle/clock
 	pass
 
-def goodF():
-	Finit = [100,200,300,400,500,600,700,800, 900, 
-		 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 
-		 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 100000,
-		 120000, 150000
-	    ]
-	FCPU = 72000000
-	adc_tick = 120
-	min_period = FCPU/adc_tick
-	#F = FCPU/(adc_tick*N) = min_period/N
-	for f in Finit:
-		#print str(min_period/(min_period/f))+", N="+str((min_period/f))
-		N = (min_period/f)
-		print str(N*adc_tick)+", #"+'{:3.2f}'.format(min_period/float(N))+' Hz'
-
 if __name__ == "__main__":
-	#main()
-	goodF()
+	main()
