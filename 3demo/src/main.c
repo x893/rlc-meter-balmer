@@ -93,25 +93,32 @@ int main(void)
   }
 */
   
+  STM_EVAL_LEDInit(LED3);
+  STM_EVAL_LEDToggle(LED3);
   LcdInit();
 
   LcdClear();
   LcdGotoXYFont ( 2, 2 );
   LcdStr( FONT_1X, "1234" );
-  //LcdGotoXYFont ( 1, 2 );
-  //LcdStr( FONT_1X, "2345" );
-  //LcdGotoXYFont ( 4, 4 );
-  //LcdChr( FONT_1X, 'X' );
-
-  //LcdRect( 5, 30, 5, 30, PIXEL_ON );
-  //LcdLine( 5, 30, 5, 35, PIXEL_ON );
   LcdUpdate();
+
 
   while (1)
   {
-    //LcdGotoXYFont ( 1, 2 );
-    //LcdStr( FONT_1X, "2345" );
-    //LcdUpdate();
+    STM_EVAL_LEDToggle(LED3);
+    LcdClear();
+    LcdGotoXYFont ( 2, 2 );
+    LcdStr( FONT_1X, "1234" );
+    LcdUpdate();
+
+    Delay(200);
+
+    LcdClear();
+    LcdGotoXYFont ( 2, 2 );
+    LcdStr( FONT_1X, "5678" );
+    LcdUpdate();
+
+    Delay(200);
   }
 
   /* Initialize LEDs and User Button available on STM32F3-Discovery board */

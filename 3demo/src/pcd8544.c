@@ -213,18 +213,11 @@ void LcdInit ( void )
     DelaySome();
 
     LcdSend( 0x21, LCD_CMD ); // LCD Extended Commands.    
-    DelaySome();
     LcdSend( 0xC8, LCD_CMD ); // Set LCD Vop (Contrast).
-    DelaySome();
     LcdSend( 0x06, LCD_CMD ); // Set Temp coefficent.
-    DelaySome();
-
     LcdSend( 0x13, LCD_CMD ); // LCD bias mode 1:48.
-    DelaySome();
     LcdSend( 0x20, LCD_CMD ); // LCD Standard Commands,Horizontal addressing mode
-    DelaySome();
     LcdSend( 0x0C, LCD_CMD ); // LCD in normal mode.
-    DelaySome();
 
     /* Reset watermark pointers to empty */
     LoWaterMark = LCD_CACHE_SIZE;
@@ -740,10 +733,6 @@ void LcdUpdate ( void )
 {
     int i;
 
-    //balmer temp code 
-    LoWaterMark = 0;
-    LoWaterMark = LCD_CACHE_SIZE - 1;
-
     if ( LoWaterMark < 0 )
         LoWaterMark = 0;
     else if ( LoWaterMark >= LCD_CACHE_SIZE )
@@ -755,18 +744,13 @@ void LcdUpdate ( void )
         HiWaterMark = LCD_CACHE_SIZE - 1;
 
     /*  Set base address according to LoWaterMark. */
-    DelaySome();
     LcdSend( 0x80 | ( LoWaterMark % LCD_X_RES ), LCD_CMD );
-    DelaySome();
     LcdSend( 0x40 | ( LoWaterMark / LCD_X_RES ), LCD_CMD );
-    DelaySome();
 
     /*  Serialize the display buffer. */
-    //for ( i = LoWaterMark; i <= HiWaterMark; i++ )
-    //    LcdSend( LcdCache[ i ], LCD_DATA );
-
-    for ( i = 0; i < LCD_CACHE_SIZE; i++ )
+    for ( i = LoWaterMark; i <= HiWaterMark; i++ )
         LcdSend( LcdCache[ i ], LCD_DATA );
+
     /*  Reset watermark pointers. */
     LoWaterMark = LCD_CACHE_SIZE - 1;
     HiWaterMark = 0;
