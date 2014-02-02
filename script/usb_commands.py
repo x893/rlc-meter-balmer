@@ -29,22 +29,6 @@ COMMAND_LAST_COMPUTE = 8
 COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 
-PERIOD_ROUND = [
-        72*10000, #100 Hz
-        72*4000, #250 Hz
-        72*2000, #500 Hz
-        72*1000, #1 000 Hz
-        72*400, #2 500 Hz
-        72*200, #5 000 Hz
-        72*100, #10 000 Hz
-        72*40, #25 000 Hz
-        72*20, #50 000 Hz
-        72*10, #100 000 Hz
-        72*4, #250 000 Hz
-        192, #375 000 Hz
-        ]
-
-
 def findDevice():
     global dev
     dev = usb.core.find(idVendor=0x16C0, idProduct=0x05DC)
@@ -220,19 +204,6 @@ def getGainValuesXV(idx):
 
 def getGainValuesXI(idx):
     k = getGainValuesX()[idx]
-
-    #if resistorIdx==0:
-    #    #100 Om
-    #    k0 = [0.9854473080477981, 0.9875172259658508, 0.9882146508255546, 0.9912066417767416, 0.9931192698984098, 0.9921645049747444]
-    #    if idx<=5:
-    #        k /= k0[idx]
-
-    #if resistorIdx==1:
-    #    #1 KOm
-    #    k0 = [0.9867411190934384, 0.9882005031539411, 0.9894009477327412, 0.9922429422273069, 0.9940168413611414, 0.9931864720269113]
-    #    if idx<=5:
-    #        k /= k0[idx]        
-
     return k
 
 def getGainValueV(idx):
@@ -258,7 +229,8 @@ def adcSynchro(inPeriod):
     data = dread()
     #print data
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
-    print "period=",period, " cycle_x4=", period/(24.0*4)
+    print "period=",period, "freq=", clock/period
+    # " cycle_x4=", period/(24.0*4)
     time.sleep(0.1)
 
 def adcRequestData():
@@ -341,8 +313,9 @@ def setGainAuto(predefinedRes=-1):
     #goodMax = 3300
 
     goodDelta = goodMax-goodMin
-    goodDeltaIdx = [goodDelta, goodDelta, goodDelta, goodDelta, goodDelta, 600, 600, 600]
+    #goodDeltaIdx = [goodDelta, goodDelta, goodDelta, goodDelta, goodDelta, 600, 600, 600]
     #goodDeltaIdx = [goodDelta]*8
+    goodDeltaIdx = [600]*8
 
     setSetGain(1, 0)
     setSetGain(0, 0)
@@ -484,8 +457,27 @@ def adcSynchroJson():
     print "Rre=", data['Rre']
     print "Rim=", data['Rim']
 
+    print "ErrV=", jout['summary']['V']['square_error']
+    print "ErrI=", jout['summary']['I']['square_error']
+
     pass
 
+
+def period100Hz_300Hz():
+    arr = []
+    for freq in xrange(100, 300, 1):
+        period = 72000000/freq
+        period = (period/96)*96;
+        arr.append(period)
+    return arr
+
+def period50Hz_150Hz():
+    arr = []
+    for freq in xrange(50, 150, 1):
+        period = 72000000/freq
+        period = (period/96)*96;
+        arr.append(period)
+    return arr
 
 def period100Hz_1KHz():
     arr = []
@@ -517,15 +509,27 @@ def allFreq():
     jfreq = []
 
     jout['freq'] = jfreq
-    #PERIOD_ROUND = period100Hz_1KHz()
+    #PERIOD_ROUND = period100Hz_300Hz()
+    #PERIOD_ROUND = period50Hz_150Hz()
+    #PERIOD_ROUND = period100Hz_1KHz() + period1KHz_10KHz()
+    PERIOD_ROUND = period100Hz_1KHz()
     #PERIOD_ROUND = period1KHz_10KHz()
     #PERIOD_ROUND = period10Khz_max()
-    PERIOD_ROUND = periodAll()
+    #PERIOD_ROUND = periodAll()
     print PERIOD_ROUND
+    adcSynchro(PERIOD_ROUND[0])
+    time.sleep(0.2)
+
+
     for period in PERIOD_ROUND:
         adcSynchro(period)
-        #setGainAuto()
-        setGainAuto(predefinedRes=0)
+        if True:
+            setGainAuto()
+        if False:
+            setResistor(3)
+            setSetGain(1, 0) #V
+            setSetGain(0, 4) #I
+
         time.sleep(0.01)
         jresult = adcRequestLastComputeX()
         jfreq.append(jresult)
@@ -534,74 +538,6 @@ def allFreq():
     f = open('freq.json', 'w')
     f.write(json.dumps(jout))
     f.close()
-
-def calibrate1Kom():
-    period = periodByFreq(123)
-    Kout = []
-    adcSynchro(period)
-    setResistor(0)
-    for igain in xrange(0, 6):
-        setSetGain(1, 0) #V
-        setSetGain(0, igain) #I
-        time.sleep(0.01)
-        jresult = adcRequestLastComputeX()
-        data = calculateJson(jresult)
-        Kout.append(data['Rre']/1e3)
-
-    print "KI 1Kom = ", Kout
-    pass
-
-def calibrate10Kom():
-    period = periodByFreq(123)
-    Kout = []
-    adcSynchro(period)
-    setResistor(1)
-    for igain in xrange(0, 6):
-        setSetGain(1, 0) #V
-        setSetGain(0, igain) #I
-        time.sleep(0.01)
-        jresult = adcRequestLastComputeX()
-        data = calculateJson(jresult)
-        Kout.append(data['Rre']/10e3)
-
-    print "KI 10Kom = ", Kout
-    pass
-
-def calibrate10_Om():
-    R = 9.9
-    Rzero = 0.0098
-    period = periodByFreq(123)
-    Kout = []
-    adcSynchro(period)
-    setResistor(0)
-    for vgain in xrange(0, 4):
-        setSetGain(1, vgain) #V
-        setSetGain(0, 0) #I
-        time.sleep(0.01)
-        jresult = adcRequestLastComputeX()
-        data = calculateJson(jresult)
-        Kout.append((data['Rre']-Rzero)/R)
-
-    print "KV 10 Om = ", Kout
-    pass
-
-def calibrate1_Om():
-    R = 0.99
-    Rzero = 0.0098
-    period = periodByFreq(123)
-    Kout = []
-    adcSynchro(period)
-    setResistor(0)
-    for vgain in xrange(4, 8):
-        setSetGain(1, vgain) #V
-        setSetGain(0, 0) #I
-        time.sleep(0.01)
-        jresult = adcRequestLastComputeX()
-        data = calculateJson(jresult)
-        Kout.append((data['Rre']-Rzero)/R)
-
-    print "KV 1 Om = ", Kout
-    pass
 
 def periodByFreq(freq):
     return 72000000/freq
@@ -637,18 +573,20 @@ def main():
     #return
 
     if False:
-        #period = periodByFreq(123)
-        period = periodByFreq(100000)
+        period = periodByFreq(100)
+        #period = periodByFreq(1000)
         #period = periodByFreq(50000)
         #period = 384
 
         adcSynchro(period)
 
+        #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
         if True:
             setGainAuto()
+            #setGainAuto(predefinedRes=2)
         else:
-            setResistor(0)
-            setSetGain(1, 7) #V
+            setResistor(3)
+            setSetGain(1, 0) #V
             setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson()
