@@ -68,22 +68,119 @@
  */
 
 //#include <stdio.h>
-#include <avr/io.h>
-#include <string.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
 #include <stdbool.h>
+#include <string.h>
 #include "pcd8544.h"
+#include "hw_pcd8544.h"
+
+ /*
+ * Character lookup table code was taken from the work of Sylvain Bissonette
+ * This table defines the standard ASCII characters in a 5x7 dot format.
+ */
+static const byte FontLookup [][5] =
+{
+    { 0x00, 0x00, 0x00, 0x00, 0x00 },   /* space */
+    { 0x00, 0x00, 0x2f, 0x00, 0x00 },   /* ! */
+    { 0x00, 0x07, 0x00, 0x07, 0x00 },   /* " */
+    { 0x14, 0x7f, 0x14, 0x7f, 0x14 },   /* # */
+    { 0x24, 0x2a, 0x7f, 0x2a, 0x12 },   /* $ */
+    { 0x62, 0x64, 0x08, 0x13, 0x23 },   /* % */
+    { 0x36, 0x49, 0x55, 0x22, 0x50 },   /* & */
+    { 0x00, 0x05, 0x03, 0x00, 0x00 },   /* ' */
+    { 0x00, 0x1c, 0x22, 0x41, 0x00 },   /* ( */
+    { 0x00, 0x41, 0x22, 0x1c, 0x00 },   /* ) */
+    { 0x14, 0x08, 0x3E, 0x08, 0x14 },   /* * */
+    { 0x08, 0x08, 0x3E, 0x08, 0x08 },   /* + */
+    { 0x00, 0x00, 0x50, 0x30, 0x00 },   /* , */
+    { 0x10, 0x10, 0x10, 0x10, 0x10 },   /* - */
+    { 0x00, 0x60, 0x60, 0x00, 0x00 },   /* . */
+    { 0x20, 0x10, 0x08, 0x04, 0x02 },   /* / */
+    { 0x3E, 0x51, 0x49, 0x45, 0x3E },   /* 0 */
+    { 0x00, 0x42, 0x7F, 0x40, 0x00 },   /* 1 */
+    { 0x42, 0x61, 0x51, 0x49, 0x46 },   /* 2 */
+    { 0x21, 0x41, 0x45, 0x4B, 0x31 },   /* 3 */
+    { 0x18, 0x14, 0x12, 0x7F, 0x10 },   /* 4 */
+    { 0x27, 0x45, 0x45, 0x45, 0x39 },   /* 5 */
+    { 0x3C, 0x4A, 0x49, 0x49, 0x30 },   /* 6 */
+    { 0x01, 0x71, 0x09, 0x05, 0x03 },   /* 7 */
+    { 0x36, 0x49, 0x49, 0x49, 0x36 },   /* 8 */
+    { 0x06, 0x49, 0x49, 0x29, 0x1E },   /* 9 */
+    { 0x00, 0x36, 0x36, 0x00, 0x00 },   /* : */
+    { 0x00, 0x56, 0x36, 0x00, 0x00 },   /* ; */
+    { 0x08, 0x14, 0x22, 0x41, 0x00 },   /* < */
+    { 0x14, 0x14, 0x14, 0x14, 0x14 },   /* = */
+    { 0x00, 0x41, 0x22, 0x14, 0x08 },   /* > */
+    { 0x02, 0x01, 0x51, 0x09, 0x06 },   /* ? */
+    { 0x32, 0x49, 0x59, 0x51, 0x3E },   /* @ */
+    { 0x7E, 0x11, 0x11, 0x11, 0x7E },   /* A */
+    { 0x7F, 0x49, 0x49, 0x49, 0x36 },   /* B */
+    { 0x3E, 0x41, 0x41, 0x41, 0x22 },   /* C */
+    { 0x7F, 0x41, 0x41, 0x22, 0x1C },   /* D */
+    { 0x7F, 0x49, 0x49, 0x49, 0x41 },   /* E */
+    { 0x7F, 0x09, 0x09, 0x09, 0x01 },   /* F */
+    { 0x3E, 0x41, 0x49, 0x49, 0x7A },   /* G */
+    { 0x7F, 0x08, 0x08, 0x08, 0x7F },   /* H */
+    { 0x00, 0x41, 0x7F, 0x41, 0x00 },   /* I */
+    { 0x20, 0x40, 0x41, 0x3F, 0x01 },   /* J */
+    { 0x7F, 0x08, 0x14, 0x22, 0x41 },   /* K */
+    { 0x7F, 0x40, 0x40, 0x40, 0x40 },   /* L */
+    { 0x7F, 0x02, 0x0C, 0x02, 0x7F },   /* M */
+    { 0x7F, 0x04, 0x08, 0x10, 0x7F },   /* N */
+    { 0x3E, 0x41, 0x41, 0x41, 0x3E },   /* O */
+    { 0x7F, 0x09, 0x09, 0x09, 0x06 },   /* P */
+    { 0x3E, 0x41, 0x51, 0x21, 0x5E },   /* Q */
+    { 0x7F, 0x09, 0x19, 0x29, 0x46 },   /* R */
+    { 0x46, 0x49, 0x49, 0x49, 0x31 },   /* S */
+    { 0x01, 0x01, 0x7F, 0x01, 0x01 },   /* T */
+    { 0x3F, 0x40, 0x40, 0x40, 0x3F },   /* U */
+    { 0x1F, 0x20, 0x40, 0x20, 0x1F },   /* V */
+    { 0x3F, 0x40, 0x38, 0x40, 0x3F },   /* W */
+    { 0x63, 0x14, 0x08, 0x14, 0x63 },   /* X */
+    { 0x07, 0x08, 0x70, 0x08, 0x07 },   /* Y */
+    { 0x61, 0x51, 0x49, 0x45, 0x43 },   /* Z */
+    { 0x00, 0x7F, 0x41, 0x41, 0x00 },   /* [ */
+    { 0x55, 0x2A, 0x55, 0x2A, 0x55 },   /* "Yen" */
+    { 0x00, 0x41, 0x41, 0x7F, 0x00 },   /* ] */
+    { 0x04, 0x02, 0x01, 0x02, 0x04 },   /* ^ */
+    { 0x40, 0x40, 0x40, 0x40, 0x40 },   /* _ */
+    { 0x00, 0x01, 0x02, 0x04, 0x00 },   /* ' */
+    { 0x20, 0x54, 0x54, 0x54, 0x78 },   /* a */
+    { 0x7F, 0x48, 0x44, 0x44, 0x38 },   /* b */
+    { 0x38, 0x44, 0x44, 0x44, 0x20 },   /* c */
+    { 0x38, 0x44, 0x44, 0x48, 0x7F },   /* d */
+    { 0x38, 0x54, 0x54, 0x54, 0x18 },   /* e */
+    { 0x08, 0x7E, 0x09, 0x01, 0x02 },   /* f */
+    { 0x0C, 0x52, 0x52, 0x52, 0x3E },   /* g */
+    { 0x7F, 0x08, 0x04, 0x04, 0x78 },   /* h */
+    { 0x00, 0x44, 0x7D, 0x40, 0x00 },   /* i */
+    { 0x20, 0x40, 0x44, 0x3D, 0x00 },   /* j */
+    { 0x7F, 0x10, 0x28, 0x44, 0x00 },   /* k */
+    { 0x00, 0x41, 0x7F, 0x40, 0x00 },   /* l */
+    { 0x7C, 0x04, 0x18, 0x04, 0x78 },   /* m */
+    { 0x7C, 0x08, 0x04, 0x04, 0x78 },   /* n */
+    { 0x38, 0x44, 0x44, 0x44, 0x38 },   /* o */
+    { 0x7C, 0x14, 0x14, 0x14, 0x08 },   /* p */
+    { 0x08, 0x14, 0x14, 0x18, 0x7C },   /* q */
+    { 0x7C, 0x08, 0x04, 0x04, 0x08 },   /* r */
+    { 0x48, 0x54, 0x54, 0x54, 0x20 },   /* s */
+    { 0x04, 0x3F, 0x44, 0x40, 0x20 },   /* t */
+    { 0x3C, 0x40, 0x40, 0x20, 0x7C },   /* u */
+    { 0x1C, 0x20, 0x40, 0x20, 0x1C },   /* v */
+    { 0x3C, 0x40, 0x30, 0x40, 0x3C },   /* w */
+    { 0x44, 0x28, 0x10, 0x28, 0x44 },   /* x */
+    { 0x0C, 0x50, 0x50, 0x50, 0x3C },   /* y */
+    { 0x44, 0x64, 0x54, 0x4C, 0x44 }    /* z */
+};
+
 
 /* Function prototypes */
 
 static void LcdSend    ( byte data, LcdCmdData cd );
-static void Delay      ( void );
 
 /* Global variables */
 
 /* Cache buffer in SRAM 84*48 bits or 504 bytes */
-byte  LcdCache [ LCD_CACHE_SIZE ] __attribute__ ((section (".noinit")));
+byte  LcdCache [ LCD_CACHE_SIZE ];
 
 /* Cache index */
 static int   LcdCacheIdx;
@@ -105,33 +202,29 @@ static bool  UpdateLcd;
  */
 void LcdInit ( void )
 {
-    /* Pull-up on reset pin. */
-    LCD_RST_PORT |= (1<<LCD_RST_PIN);
-    /* Disable LCD controller */
-    LCD_PORT |= _BV( LCD_CE_PIN );
-
-    //SPI initialization moved to main code
-    /* Enable SPI port:
-    * No interrupt, MSBit first, Master mode, CPOL->0, CPHA->0, Clk/16
-    */
-    //SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
-    /* Set output bits on LCD Port. */
-    //LCD_DDR |= _BV( LCD_DC_PIN ) | _BV( LCD_CE_PIN ) | _BV( SPI_MOSI_PIN ) | _BV( SPI_CLK_PIN );
-    //LCD_DDR |= _BV(SPI_MISO_PIN); //Enable miso output, to use in slave mode (not with LCD)
-    LCD_RST_DDR |= (1<<LCD_RST_PIN);
-
-    Delay();
+    HwLcdInit();
+    HwLcdPinRst(1);
+    HwLcdPinCE(0);
+    DelaySome();
     /* Toggle display reset pin. */
-    LCD_RST_PORT &= ~( 1<<LCD_RST_PIN );
-    Delay();
-    LCD_RST_PORT |= ( 1<<LCD_RST_PIN );
+    HwLcdPinRst(0);
+    DelaySome();
+    HwLcdPinRst(1);
+    DelaySome();
 
-    LcdSend( 0x21, LCD_CMD ); /* LCD Extended Commands. */
-    LcdSend( 0xC8, LCD_CMD ); /* Set LCD Vop (Contrast).*/
-    LcdSend( 0x06, LCD_CMD ); /* Set Temp coefficent. */
-    LcdSend( 0x13, LCD_CMD ); /* LCD bias mode 1:48. */
-    LcdSend( 0x20, LCD_CMD ); /* LCD Standard Commands,Horizontal addressing mode */
-    LcdSend( 0x0C, LCD_CMD ); /* LCD in normal mode. */
+    LcdSend( 0x21, LCD_CMD ); // LCD Extended Commands.    
+    DelaySome();
+    LcdSend( 0xC8, LCD_CMD ); // Set LCD Vop (Contrast).
+    DelaySome();
+    LcdSend( 0x06, LCD_CMD ); // Set Temp coefficent.
+    DelaySome();
+
+    LcdSend( 0x13, LCD_CMD ); // LCD bias mode 1:48.
+    DelaySome();
+    LcdSend( 0x20, LCD_CMD ); // LCD Standard Commands,Horizontal addressing mode
+    DelaySome();
+    LcdSend( 0x0C, LCD_CMD ); // LCD in normal mode.
+    DelaySome();
 
     /* Reset watermark pointers to empty */
     LoWaterMark = LCD_CACHE_SIZE;
@@ -140,27 +233,6 @@ void LcdInit ( void )
     /* Clear display on first time use */
     //LcdClear();
     //LcdUpdate();
-}
-
-void LcdInitAfterWatchdog ( void )
-{
-    /* Pull-up on reset pin. */
-    LCD_RST_PORT |= (1<<LCD_RST_PIN);
-    /* Disable LCD controller */
-    LCD_PORT |= _BV( LCD_CE_PIN );
-
-    /* Enable SPI port:
-    * No interrupt, MSBit first, Master mode, CPOL->0, CPHA->0, Clk/4
-    */
-    SPCR = 0x50;
-    /* Set output bits on LCD Port. */
-    LCD_DDR |= _BV( LCD_DC_PIN ) | _BV( LCD_CE_PIN ) | _BV( SPI_MOSI_PIN ) | _BV( SPI_CLK_PIN );
-    LCD_DDR |= _BV(SPI_MISO_PIN); //Enable miso output, to use in slave mode (not with LCD)
-    LCD_RST_DDR |= (1<<LCD_RST_PIN);
-
-    /* Reset watermark pointers to empty */
-    LoWaterMark = LCD_CACHE_SIZE;
-    HiWaterMark = 0;
 }
 
 /*
@@ -200,12 +272,13 @@ void LcdClear ( void )
 //        LcdCache[ i ] = 0x00;
 //    }
 	memset(LcdCache,0x00,LCD_CACHE_SIZE); //Sugestion - its faster and its 10 bytes less in program mem
+    //memset(LcdCache,0xFF,LCD_CACHE_SIZE);
     /* Reset watermark pointers to full */
     LoWaterMark = 0;
     HiWaterMark = LCD_CACHE_SIZE - 1;
 
     /* Set update flag to be true */
-    UpdateLcd = TRUE;
+    UpdateLcd = true;
 }
 
 /*
@@ -261,7 +334,7 @@ byte LcdChr ( LcdFontSize size, byte ch )
         for ( i = 0; i < 5; i++ )
         {
             /* Copy lookup table from Flash ROM to LcdCache */
-            LcdCache[LcdCacheIdx++] = pgm_read_byte(&( FontLookup[ ch - 32 ][ i ] ) ) << 1;
+            LcdCache[LcdCacheIdx++] = ( FontLookup[ ch - 32 ][ i ] )  << 1;
         }
     }
     else if ( size == FONT_2X )
@@ -278,7 +351,7 @@ byte LcdChr ( LcdFontSize size, byte ch )
         for ( i = 0; i < 5; i++ )
         {
             /* Copy lookup table from Flash ROM to temporary c */
-            c = pgm_read_byte(&(FontLookup[ch - 32][i])) << 1;
+            c = (FontLookup[ch - 32][i]) << 1;
             /* Enlarge image */
             /* First part */
             b1 =  (c & 0x01) * 3;
@@ -354,32 +427,6 @@ byte LcdStr ( LcdFontSize size, byte dataArray[] )
     return OK;
 }
 
-/*
- * Name         :  LcdFStr
- * Description  :  Displays a characters at current cursor location and increment
- *                 cursor location according to font size. This function is
- *                 dedicated to print string laid in Flash ROM
- * Argument(s)  :  size    -> Font size. See enum.
- *                 dataPtr -> Pointer contained string of char to be written
- *                            into cache.
- * Return value :  see return value on pcd8544.h
- * Example      :  LcdFStr(FONT_1X, PSTR("Hello World"));
- *                 LcdFStr(FONT_1X, &name_of_string_as_array);
- */
-byte LcdFStr ( LcdFontSize size, const byte *dataPtr )
-{
-    byte c;
-    byte response;
-    for ( c = pgm_read_byte( dataPtr ); c; ++dataPtr, c = pgm_read_byte( dataPtr ) )
-    {
-        /* Put char */
-        response = LcdChr( size, c );
-        if(response == OUT_OF_BORDER)
-            return OUT_OF_BORDER;
-    }
-	/* Fixed by Jakub Lasinski. Version 0.2.6, March 14, 2009 */
-    return OK;
-}
 
 /*
  * Name         :  LcdPixel
@@ -538,7 +585,7 @@ byte LcdLine ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode )
     }
 
     /* Set update flag to be true */
-    UpdateLcd = TRUE;
+    UpdateLcd = true;
     return OK;
 }
 
@@ -579,7 +626,7 @@ byte LcdSingleBar ( byte baseX, byte baseY, byte height, byte width, LcdPixelMod
 	}
 
     /* Set update flag to be true */
-	UpdateLcd = TRUE;
+	UpdateLcd = true;
     return OK;
 }
 
@@ -613,7 +660,7 @@ byte LcdBars ( byte data[], byte numbBars, byte width, byte multiplier )
 	}
 
 	/* Set update flag to be true */
-	UpdateLcd = TRUE;
+	UpdateLcd = true;
     return OK;
 
 }
@@ -652,7 +699,7 @@ byte LcdRect ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode )
 		}
 
 		/* Set update flag to be true */
-		UpdateLcd = TRUE;
+		UpdateLcd = true;
 	}
     return OK;
 }
@@ -674,13 +721,13 @@ void LcdImage ( const byte *imageData )
 //        LcdCache[LcdCacheIdx] = pgm_read_byte( imageData++ );
 //    }
 	/* optimized by Jakub Lasinski, version 0.2.6, March 14, 2009 */
-    memcpy_P(LcdCache,imageData,LCD_CACHE_SIZE);	//Same as aboeve - 6 bytes less and faster instruction
+    memcpy(LcdCache,imageData,LCD_CACHE_SIZE);	//Same as aboeve - 6 bytes less and faster instruction
 	/* Reset watermark pointers to be full */
     LoWaterMark = 0;
     HiWaterMark = LCD_CACHE_SIZE - 1;
 
 	/* Set update flag to be true */
-    UpdateLcd = TRUE;
+    UpdateLcd = true;
 }
 
 /*
@@ -693,6 +740,10 @@ void LcdUpdate ( void )
 {
     int i;
 
+    //balmer temp code 
+    LoWaterMark = 0;
+    LoWaterMark = LCD_CACHE_SIZE - 1;
+
     if ( LoWaterMark < 0 )
         LoWaterMark = 0;
     else if ( LoWaterMark >= LCD_CACHE_SIZE )
@@ -704,21 +755,24 @@ void LcdUpdate ( void )
         HiWaterMark = LCD_CACHE_SIZE - 1;
 
     /*  Set base address according to LoWaterMark. */
+    DelaySome();
     LcdSend( 0x80 | ( LoWaterMark % LCD_X_RES ), LCD_CMD );
+    DelaySome();
     LcdSend( 0x40 | ( LoWaterMark / LCD_X_RES ), LCD_CMD );
+    DelaySome();
 
     /*  Serialize the display buffer. */
-    for ( i = LoWaterMark; i <= HiWaterMark; i++ )
-    {
-        LcdSend( LcdCache[ i ], LCD_DATA );
-    }
+    //for ( i = LoWaterMark; i <= HiWaterMark; i++ )
+    //    LcdSend( LcdCache[ i ], LCD_DATA );
 
+    for ( i = 0; i < LCD_CACHE_SIZE; i++ )
+        LcdSend( LcdCache[ i ], LCD_DATA );
     /*  Reset watermark pointers. */
     LoWaterMark = LCD_CACHE_SIZE - 1;
     HiWaterMark = 0;
 
     /* Set update flag to be true */
-	UpdateLcd = FALSE;
+	UpdateLcd = false;
 }
 
 /*
@@ -728,46 +782,24 @@ void LcdUpdate ( void )
  *                 cd   -> Command or data (see enum in pcd8544.h)
  * Return value :  None.
  */
-bool isCommandMode(void);
-void masterWrite(uint8_t data);
 
 static void LcdSend ( byte data, LcdCmdData cd )
 {
-    if(isCommandMode())
-        return;
     /*  Enable display controller (active low). */
-    LCD_PORT &= ~( _BV( LCD_CE_PIN ) );
+    HwLcdPinCE(0);
 
     if ( cd == LCD_DATA )
     {
-        LCD_PORT |= _BV( LCD_DC_PIN );
+        HwLcdPinDC(1);
     }
     else
     {
-        LCD_PORT &= ~( _BV( LCD_DC_PIN ) );
+        HwLcdPinDC(0);
     }
 
-    masterWrite(data);
-/*
-    //  Send data to display controller.
-    SPDR = data;
-    //  Wait until Tx register empty.
-    while ( (SPSR & 0x80) != 0x80 );
-*/
+    HwLcdSend(data);
 
     /* Disable display controller. */
-    LCD_PORT |= _BV( LCD_CE_PIN );
+    HwLcdPinCE(1);
 }
 
-/*
- * Name         :  Delay
- * Description  :  Uncalibrated delay for LCD init routine.
- * Argument(s)  :  None.
- * Return value :  None.
- */
-static void Delay ( void )
-{
-    int i;
-
-    for ( i = -32000; i < 32000; i++ );
-}

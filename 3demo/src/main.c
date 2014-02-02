@@ -28,6 +28,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "pcd8544.h"
 
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
@@ -75,7 +76,44 @@ int main(void)
   /* SysTick end of count event each 10ms */
   RCC_GetClocksFreq(&RCC_Clocks);
   SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
+
+/*
+  lcd8544_init();
+  lcd8544_clear();
+
+  lcd8544_putstr(1,1, "ABCD", 0);
+
+  lcd8544_refresh();
+
+  lcd8544_putstr(1,1, "FGH", 0);
+  while (1)
+  {
+    lcd8544_putstr(1,1, "ABCD", 0);
+    lcd8544_refresh();
+  }
+*/
   
+  LcdInit();
+
+  LcdClear();
+  LcdGotoXYFont ( 2, 2 );
+  LcdStr( FONT_1X, "1234" );
+  //LcdGotoXYFont ( 1, 2 );
+  //LcdStr( FONT_1X, "2345" );
+  //LcdGotoXYFont ( 4, 4 );
+  //LcdChr( FONT_1X, 'X' );
+
+  //LcdRect( 5, 30, 5, 30, PIXEL_ON );
+  //LcdLine( 5, 30, 5, 35, PIXEL_ON );
+  LcdUpdate();
+
+  while (1)
+  {
+    //LcdGotoXYFont ( 1, 2 );
+    //LcdStr( FONT_1X, "2345" );
+    //LcdUpdate();
+  }
+
   /* Initialize LEDs and User Button available on STM32F3-Discovery board */
   STM_EVAL_LEDInit(LED3);
   STM_EVAL_LEDInit(LED4);
