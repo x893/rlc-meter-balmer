@@ -5,10 +5,12 @@
 
 DEPS += \
 	output/CMSIS/startup_stm32f30x.d \
+	output/base/src/format_print.d \
 	output/base/src/hw_config.d \
 	output/base/src/hw_pcd8544.d \
 	output/base/src/main.d \
 	output/base/src/pcd8544.d \
+	output/base/src/pressure.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
 	output/base/src/vg_pcd8544.d \
@@ -30,10 +32,12 @@ DEPS += \
 
 OBJS += \
 	output/CMSIS/startup_stm32f30x.o \
+	output/base/src/format_print.o \
 	output/base/src/hw_config.o \
 	output/base/src/hw_pcd8544.o \
 	output/base/src/main.o \
 	output/base/src/pcd8544.o \
+	output/base/src/pressure.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
 	output/base/src/vg_pcd8544.o \
@@ -57,6 +61,10 @@ output/CMSIS/startup_stm32f30x.o: ../3code/Libraries/CMSIS/Device/ST/STM32F30x/S
 	@echo 'Building target: startup_stm32f30x.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
 
+output/base/src/format_print.o: ./src/format_print.c
+	@echo 'Building target: format_print.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
 output/base/src/hw_config.o: ./src/hw_config.c
 	@echo 'Building target: hw_config.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
@@ -71,6 +79,10 @@ output/base/src/main.o: ./src/main.c
 
 output/base/src/pcd8544.o: ./src/pcd8544.c
 	@echo 'Building target: pcd8544.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/pressure.o: ./src/pressure.c
+	@echo 'Building target: pressure.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c

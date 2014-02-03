@@ -29,6 +29,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "pcd8544.h"
+#include "pressure.h"
 
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
@@ -95,6 +96,7 @@ int main(void)
   
   STM_EVAL_LEDInit(LED3);
   STM_EVAL_LEDToggle(LED3);
+  PressureInit();
   LcdInit();
 
   LcdClear();
@@ -102,20 +104,24 @@ int main(void)
   LcdStr( FONT_1X, "1234" );
   LcdUpdate();
 
+  //uint16_t  pdata = PressureSend(0x8F00);
+  //uint16_t  pdata = PressureSend(0x9000);
+  PressureWrite(0x20, 0b10010000);
+
 
   while (1)
   {
+
+    //uint16_t temp_lo = PressureRead(0x20);
+    //uint16_t temp_hi = PressureRead(0x0F);
     STM_EVAL_LEDToggle(LED3);
     LcdClear();
-    LcdGotoXYFont ( 2, 2 );
-    LcdStr( FONT_1X, "1234" );
-    LcdUpdate();
-
-    Delay(200);
-
-    LcdClear();
-    LcdGotoXYFont ( 2, 2 );
-    LcdStr( FONT_1X, "5678" );
+    LcdGotoXYFont ( 1, 3 );
+    LcdStr(FONT_1X, "P=");
+    printInt(PressureReadPressure(), FONT_1X);
+    LcdGotoXYFont ( 1, 5 );
+    LcdStr(FONT_1X, "T=");
+    printIntFixed(PressureReadTemp(), FONT_1X, 3, 1);
     LcdUpdate();
 
     Delay(200);

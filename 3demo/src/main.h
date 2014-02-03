@@ -50,6 +50,9 @@ void Demo_CompassReadAcc(float* pfData);
 void TimingDelay_Decrement(void);
 void Delay(__IO uint32_t nTime);
 
+void printInt(int16_t value, uint8_t font);
+void printIntFixed(int16_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint);
+
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
