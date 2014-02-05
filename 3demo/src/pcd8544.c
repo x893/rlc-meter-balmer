@@ -185,12 +185,6 @@ byte  LcdCache [ LCD_CACHE_SIZE ];
 /* Cache index */
 static int   LcdCacheIdx;
 
-/* Lower part of water mark */
-static int   LoWaterMark;
-
-/* Higher part of water mark */
-static int   HiWaterMark;
-
 /* Variable to decide whether update Lcd Cache is active/nonactive */
 static bool  UpdateLcd;
 
@@ -218,10 +212,6 @@ void LcdInit ( void )
     LcdSend( 0x13, LCD_CMD ); // LCD bias mode 1:48.
     LcdSend( 0x20, LCD_CMD ); // LCD Standard Commands,Horizontal addressing mode
     LcdSend( 0x0C, LCD_CMD ); // LCD in normal mode.
-
-    /* Reset watermark pointers to empty */
-    LoWaterMark = LCD_CACHE_SIZE;
-    HiWaterMark = 0;
 
     /* Clear display on first time use */
     //LcdClear();
@@ -255,21 +245,7 @@ void LcdContrast ( byte contrast )
  */
 void LcdClear ( void )
 {
-// Removed in version 0.2.6, March 14 2009
-// Optimized by Jakub Lasinski
-//    int i;
-//
-//    /* Set 0x00 to all LcdCache's contents */
-//    for ( i = 0; i < LCD_CACHE_SIZE; i++ )
-//    {
-//        LcdCache[ i ] = 0x00;
-//    }
-	memset(LcdCache,0x00,LCD_CACHE_SIZE); //Sugestion - its faster and its 10 bytes less in program mem
-    //memset(LcdCache,0xFF,LCD_CACHE_SIZE);
-    /* Reset watermark pointers to full */
-    LoWaterMark = 0;
-    HiWaterMark = LCD_CACHE_SIZE - 1;
-
+	memset(LcdCache,0x00,LCD_CACHE_SIZE);
     /* Set update flag to be true */
     UpdateLcd = true;
 }
@@ -310,12 +286,6 @@ byte LcdChr ( LcdFontSize size, byte ch )
     byte b1, b2;
     int  tmpIdx;
 
-    if ( LcdCacheIdx < LoWaterMark )
-    {
-        /* Update low marker. */
-        LoWaterMark = LcdCacheIdx;
-    }
-
     if ( (ch < 0x20) || (ch > 0x7b) )
     {
         /* Convert to a printable character. */
@@ -333,11 +303,6 @@ byte LcdChr ( LcdFontSize size, byte ch )
     else if ( size == FONT_2X )
     {
         tmpIdx = LcdCacheIdx - 84;
-
-        if ( tmpIdx < LoWaterMark )
-        {
-            LoWaterMark = tmpIdx;
-        }
 
         if ( tmpIdx < 0 ) return OUT_OF_BORDER;
 
@@ -369,12 +334,6 @@ byte LcdChr ( LcdFontSize size, byte ch )
         /* Update x cursor position. */
         /* Version 0.2.5 - Possible bug fixed on Dec 25,2008 */
         LcdCacheIdx = (LcdCacheIdx + 11) % LCD_CACHE_SIZE;
-    }
-
-    if ( LcdCacheIdx > HiWaterMark )
-    {
-        /* Update high marker. */
-        HiWaterMark = LcdCacheIdx;
     }
 
     /* Horizontal gap between characters. */
@@ -468,17 +427,6 @@ byte LcdPixel ( byte x, byte y, LcdPixelMode mode )
     /* Final result copied to cache */
     LcdCache[ index ] = data;
 
-    if ( index < LoWaterMark )
-    {
-        /*  Update low marker. */
-        LoWaterMark = index;
-    }
-
-    if ( index > HiWaterMark )
-    {
-        /*  Update high marker. */
-        HiWaterMark = index;
-    }
     return OK;
 }
 
@@ -705,19 +653,7 @@ byte LcdRect ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode )
  */
 void LcdImage ( const byte *imageData )
 {
-	/* Initialize cache index to 0 */
-//	LcdCacheIdx = 0;
-//	/* While within cache range */
-//    for ( LcdCacheIdx = 0; LcdCacheIdx < LCD_CACHE_SIZE; LcdCacheIdx++ )
-//    {
-//		/* Copy data from pointer to cache buffer */
-//        LcdCache[LcdCacheIdx] = pgm_read_byte( imageData++ );
-//    }
-	/* optimized by Jakub Lasinski, version 0.2.6, March 14, 2009 */
-    memcpy(LcdCache,imageData,LCD_CACHE_SIZE);	//Same as aboeve - 6 bytes less and faster instruction
-	/* Reset watermark pointers to be full */
-    LoWaterMark = 0;
-    HiWaterMark = LCD_CACHE_SIZE - 1;
+    memcpy(LcdCache,imageData,LCD_CACHE_SIZE);
 
 	/* Set update flag to be true */
     UpdateLcd = true;
@@ -731,29 +667,13 @@ void LcdImage ( const byte *imageData )
  */
 void LcdUpdate ( void )
 {
-    int i;
-
-    if ( LoWaterMark < 0 )
-        LoWaterMark = 0;
-    else if ( LoWaterMark >= LCD_CACHE_SIZE )
-        LoWaterMark = LCD_CACHE_SIZE - 1;
-
-    if ( HiWaterMark < 0 )
-        HiWaterMark = 0;
-    else if ( HiWaterMark >= LCD_CACHE_SIZE )
-        HiWaterMark = LCD_CACHE_SIZE - 1;
-
-    /*  Set base address according to LoWaterMark. */
-    LcdSend( 0x80 | ( LoWaterMark % LCD_X_RES ), LCD_CMD );
-    LcdSend( 0x40 | ( LoWaterMark / LCD_X_RES ), LCD_CMD );
+    /*  Set base address 0,0 */
+    LcdSend( 0x80 , LCD_CMD );
+    LcdSend( 0x40 , LCD_CMD );
 
     /*  Serialize the display buffer. */
-    for ( i = LoWaterMark; i <= HiWaterMark; i++ )
+    for (int i = 0; i <LCD_CACHE_SIZE; i++ )
         LcdSend( LcdCache[ i ], LCD_DATA );
-
-    /*  Reset watermark pointers. */
-    LoWaterMark = LCD_CACHE_SIZE - 1;
-    HiWaterMark = 0;
 
     /* Set update flag to be true */
 	UpdateLcd = false;
