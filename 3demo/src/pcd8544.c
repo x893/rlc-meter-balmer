@@ -173,9 +173,12 @@ static const byte FontLookup [][5] =
 };
 
 
-/* Function prototypes */
-
-static void LcdSend    ( byte data, LcdCmdData cd );
+// Send two byte
+// First sent Hi byte
+static void LcdSend    ( uint16_t data )
+{
+    HwLcdSend(data);
+}
 
 /* Global variables */
 
@@ -206,16 +209,24 @@ void LcdInit ( void )
     HwLcdPinRst(1);
     DelaySome();
 
-    LcdSend( 0x21, LCD_CMD ); // LCD Extended Commands.    
-    LcdSend( 0xC8, LCD_CMD ); // Set LCD Vop (Contrast).
-    LcdSend( 0x06, LCD_CMD ); // Set Temp coefficent.
-    LcdSend( 0x13, LCD_CMD ); // LCD bias mode 1:48.
-    LcdSend( 0x20, LCD_CMD ); // LCD Standard Commands,Horizontal addressing mode
-    LcdSend( 0x0C, LCD_CMD ); // LCD in normal mode.
+    HwLcdPinCE(0); //Enable display controller (active low).
+    HwLcdPinDC(0); //Send command
+    // 0x21 LCD Extended Commands.
+    // 0xC8 Set LCD Vop (Contrast).
+    LcdSend( 0x21C8 );
+
+    // 0x06 Set Temp coefficent.     
+    // 0x13 LCD bias mode 1:48.
+    LcdSend( 0x0613 ); 
+
+    // 0x20 LCD Standard Commands,Horizontal addressing mode
+    // 0x0C LCD in normal mode.
+    LcdSend( 0x200C ); 
 
     /* Clear display on first time use */
     //LcdClear();
     //LcdUpdate();
+    HwLcdPinCE(1); //Disable display controller. 
 }
 
 /*
@@ -226,14 +237,15 @@ void LcdInit ( void )
  */
 void LcdContrast ( byte contrast )
 {
+    HwLcdPinCE(0); //Enable display controller (active low).
+    HwLcdPinDC(0); //Send command
     /* LCD Extended Commands. */
-    LcdSend( 0x21, LCD_CMD );
-
     /* Set LCD contrast level. */
-    LcdSend( 0x80 | contrast, LCD_CMD );
+    LcdSend( 0x2180 | contrast );
 
     /* LCD Standard Commands, horizontal addressing mode. */
-    LcdSend( 0x20, LCD_CMD );
+    LcdSend( 0x20 );
+    HwLcdPinCE(1); //Disable display controller. 
 }
 
 /*
@@ -280,11 +292,12 @@ byte LcdGotoXYFont ( byte x, byte y )
  *                 ch   -> Character to write.
  * Return value :  see pcd8544.h about return value
  */
-byte LcdChr ( LcdFontSize size, byte ch )
+byte LcdChr ( LcdFontSize size, char chr )
 {
     byte i, c;
     byte b1, b2;
     int  tmpIdx;
+    byte ch = (byte)chr;
 
     if ( (ch < 0x20) || (ch > 0x7b) )
     {
@@ -360,7 +373,7 @@ byte LcdChr ( LcdFontSize size, byte ch )
  *                              into cache.
  * Return value :  see return value on pcd8544.h
  */
-byte LcdStr ( LcdFontSize size, byte dataArray[] )
+byte LcdStr ( LcdFontSize size, char dataArray[] )
 {
     byte tmpIdx=0;
     byte response;
@@ -667,43 +680,23 @@ void LcdImage ( const byte *imageData )
  */
 void LcdUpdate ( void )
 {
-    /*  Set base address 0,0 */
-    LcdSend( 0x80 , LCD_CMD );
-    LcdSend( 0x40 , LCD_CMD );
+    HwLcdPinCE(0); //Enable display controller (active low).
+    HwLcdPinDC(0); //Send command
 
+    /*  Set base address x=0, y=0 */
+    LcdSend( 0x8040 );
+
+    HwLcdPinDC(1); //Send data
     /*  Serialize the display buffer. */
-    for (int i = 0; i <LCD_CACHE_SIZE; i++ )
-        LcdSend( LcdCache[ i ], LCD_DATA );
+    for (int i = 0; i <LCD_CACHE_SIZE; i+=2 )
+    {
+        uint16_t p = ((uint16_t)LcdCache[i])<<8;
+        p |= LcdCache[i+1];
+        LcdSend( p );
+    }
 
     /* Set update flag to be true */
 	UpdateLcd = false;
-}
-
-/*
- * Name         :  LcdSend
- * Description  :  Sends data to display controller.
- * Argument(s)  :  data -> Data to be sent
- *                 cd   -> Command or data (see enum in pcd8544.h)
- * Return value :  None.
- */
-
-static void LcdSend ( byte data, LcdCmdData cd )
-{
-    /*  Enable display controller (active low). */
-    HwLcdPinCE(0);
-
-    if ( cd == LCD_DATA )
-    {
-        HwLcdPinDC(1);
-    }
-    else
-    {
-        HwLcdPinDC(0);
-    }
-
-    HwLcdSend(data);
-
-    /* Disable display controller. */
-    HwLcdPinCE(1);
+    HwLcdPinCE(1); //Disable display controller. 
 }
 

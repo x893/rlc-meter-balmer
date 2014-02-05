@@ -13,7 +13,6 @@ DEPS += \
 	output/base/src/pressure.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
-	output/base/src/vg_pcd8544.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery_l3gd20.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery_lsm303dlhc.d \
@@ -40,7 +39,6 @@ OBJS += \
 	output/base/src/pressure.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
-	output/base/src/vg_pcd8544.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery_l3gd20.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery_lsm303dlhc.o \
@@ -91,10 +89,6 @@ output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c
 
 output/base/src/system_stm32f30x.o: ./src/system_stm32f30x.c
 	@echo 'Building target: system_stm32f30x.c'
-	@$(CC) $(C_FLAGS) -o "$@" "$<"
-
-output/base/src/vg_pcd8544.o: ./src/vg_pcd8544.c
-	@echo 'Building target: vg_pcd8544.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/STM32F3_Discovery/stm32f3_discovery.o: ./STM32F3_Discovery/stm32f3_discovery.c

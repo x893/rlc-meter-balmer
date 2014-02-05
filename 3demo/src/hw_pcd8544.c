@@ -57,7 +57,7 @@ void HwLcdInit()
 		 */
 		SPI_InitStruct.SPI_Direction = SPI_Direction_1Line_Tx;
 		SPI_InitStruct.SPI_Mode = SPI_Mode_Master;
-		SPI_InitStruct.SPI_DataSize = SPI_DataSize_8b;
+		SPI_InitStruct.SPI_DataSize = SPI_DataSize_16b;
 		SPI_InitStruct.SPI_CPOL = SPI_CPOL_Low;
 		SPI_InitStruct.SPI_CPHA = SPI_CPHA_1Edge;
 		SPI_InitStruct.SPI_NSS = SPI_NSS_Soft | SPI_NSSInternalSoft_Set;
@@ -103,15 +103,15 @@ void HwLcdPinRst(uint8_t on)
 	GPIO_WriteBit(GPIOB, GPIO_Pin_14, on);
 }
 
-void HwLcdSend(uint8_t data)
+void HwLcdSend(uint16_t data)
 {
 #ifdef HARDWARE_SPI
-	SPI_SendData8(SPI2, data);
+	SPI2->DR = data;
 	while( !(SPI2->SR & SPI_I2S_FLAG_TXE) ); // wait until transmit complete
 	while( SPI2->SR & SPI_I2S_FLAG_BSY ); // wait until SPI is not busy anymore
 #else
 	unsigned char i;
-	for(i=0; i<8; i++) {
+	for(i=0; i<16; i++) {
 		GPIO_WriteBit(GPIOB, GPIO_Pin_15, (data & 0x80)? 1:0);
 		data = data<<1;
 		for(volatile int j=0; j<32; j++);

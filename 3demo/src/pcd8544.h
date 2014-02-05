@@ -49,12 +49,6 @@ typedef unsigned char              byte;
 typedef unsigned int               word;
 
 /* Enumeration */
-typedef enum
-{
-    LCD_CMD  = 0,
-    LCD_DATA = 1
-
-} LcdCmdData;
 
 typedef enum
 {
@@ -79,8 +73,8 @@ void LcdUpdate     ( void );
 void LcdImage      ( const byte *imageData );
 void LcdContrast   ( byte contrast);
 byte LcdGotoXYFont ( byte x, byte y );
-byte LcdChr        ( LcdFontSize size, byte ch );
-byte LcdStr        ( LcdFontSize size, byte dataArray[] );
+byte LcdChr        ( LcdFontSize size, char ch );
+byte LcdStr        ( LcdFontSize size, char dataArray[] );
 byte LcdPixel      ( byte x, byte y, LcdPixelMode mode );
 byte LcdLine       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );
 byte LcdRect       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );

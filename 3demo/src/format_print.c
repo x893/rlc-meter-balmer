@@ -58,14 +58,14 @@ void sprintIntFormat(int16_t value, uint8_t aMinDigits, uint8_t aEmptyChar)
 void printIntFormat(int16_t value, uint8_t font, uint8_t aMinDigits, uint8_t aEmptyChar)
 {
 	sprintIntFormat(value, aMinDigits, aEmptyChar);
-	LcdStr(font,(unsigned char*)Buffer);
+	LcdStr(font, Buffer);
 }
 
 void printIntFixed(int16_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint)
 {
 	sprintIntFormat(value, aMinDigits, '0');
 	addCommaToBuffer(aFixedPoint);
-	LcdStr(font,(unsigned char*)Buffer);
+	LcdStr(font, Buffer);
 }
 
 void printInt(int16_t value, uint8_t font)
