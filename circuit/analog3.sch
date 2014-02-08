@@ -43,8 +43,12 @@
 <layer number="47" name="Measures" color="7" fill="1" visible="no" active="no"/>
 <layer number="48" name="Document" color="7" fill="1" visible="no" active="no"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="no"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="no" active="no"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="no" active="no"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="93" name="Pins" color="2" fill="1" visible="no" active="yes"/>
@@ -53,6 +57,51 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="100" name="Muster" color="7" fill="1" visible="no" active="no"/>
+<layer number="101" name="Patch_Top" color="12" fill="4" visible="yes" active="yes"/>
+<layer number="102" name="Vscore" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="103" name="tMap" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="104" name="Name" color="16" fill="1" visible="yes" active="yes"/>
+<layer number="105" name="tPlate" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="106" name="bPlate" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="107" name="Crop" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="108" name="tplace-old" color="10" fill="1" visible="yes" active="yes"/>
+<layer number="109" name="ref-old" color="11" fill="1" visible="yes" active="yes"/>
+<layer number="116" name="Patch_BOT" color="9" fill="4" visible="yes" active="yes"/>
+<layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="144" name="Drill_legend" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="200" name="200bmp" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="201" name="201bmp" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="202" name="202bmp" color="3" fill="10" visible="yes" active="yes"/>
+<layer number="203" name="203bmp" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="204" name="204bmp" color="5" fill="10" visible="yes" active="yes"/>
+<layer number="205" name="205bmp" color="6" fill="10" visible="yes" active="yes"/>
+<layer number="206" name="206bmp" color="7" fill="10" visible="yes" active="yes"/>
+<layer number="207" name="207bmp" color="8" fill="10" visible="yes" active="yes"/>
+<layer number="208" name="208bmp" color="9" fill="10" visible="yes" active="yes"/>
+<layer number="209" name="209bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="210" name="210bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="211" name="211bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="212" name="212bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="213" name="213bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="214" name="214bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="215" name="215bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="216" name="216bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="217" name="217bmp" color="18" fill="1" visible="no" active="no"/>
+<layer number="218" name="218bmp" color="19" fill="1" visible="no" active="no"/>
+<layer number="219" name="219bmp" color="20" fill="1" visible="no" active="no"/>
+<layer number="220" name="220bmp" color="21" fill="1" visible="no" active="no"/>
+<layer number="221" name="221bmp" color="22" fill="1" visible="no" active="no"/>
+<layer number="222" name="222bmp" color="23" fill="1" visible="no" active="no"/>
+<layer number="223" name="223bmp" color="24" fill="1" visible="no" active="no"/>
+<layer number="224" name="224bmp" color="25" fill="1" visible="no" active="no"/>
+<layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
+<layer number="251" name="SMDround" color="12" fill="11" visible="no" active="no"/>
+<layer number="254" name="cooling" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <schematic xreflabel="%F%N/%S.%C%R" xrefpart="/%S.%C%R">
 <libraries>
@@ -7619,6 +7668,29 @@ Source: http://www.analog.com/UploadedFiles/Data_Sheets/703465986AD8611_2_0.pdf<
 <rectangle x1="-0.8801" y1="2" x2="-0.3899" y2="3.1001" layer="51"/>
 <rectangle x1="-2.1501" y1="2" x2="-1.6599" y2="3.1001" layer="51"/>
 </package>
+<package name="SOT23-6">
+<wire x1="1.4224" y1="0.4294" x2="1.4224" y2="-0.4294" width="0.2032" layer="21"/>
+<wire x1="1.4" y1="-0.8" x2="-1.4" y2="-0.8" width="0.1524" layer="51"/>
+<wire x1="-1.4224" y1="-0.4294" x2="-1.4224" y2="0.4294" width="0.2032" layer="21"/>
+<wire x1="-1.4" y1="0.8" x2="1.4" y2="0.8" width="0.1524" layer="51"/>
+<wire x1="1.4" y1="0.8" x2="1.4" y2="-0.8" width="0.1524" layer="51"/>
+<wire x1="-1.4" y1="0.8" x2="-1.4" y2="-0.8" width="0.1524" layer="51"/>
+<smd name="1" x="-0.95" y="-1.3751" dx="0.55" dy="1.35" layer="1"/>
+<smd name="2" x="0" y="-1.3751" dx="0.55" dy="1.35" layer="1"/>
+<smd name="3" x="0.95" y="-1.3751" dx="0.55" dy="1.35" layer="1"/>
+<smd name="4" x="0.95" y="1.3751" dx="0.55" dy="1.35" layer="1"/>
+<smd name="5" x="0" y="1.3751" dx="0.55" dy="1.35" layer="1"/>
+<text x="-0.889" y="2.159" size="0.4064" layer="25">&gt;NAME</text>
+<text x="-1.0525" y="0.0095" size="0.4064" layer="27">&gt;VALUE</text>
+<rectangle x1="-1.2" y1="-1.5" x2="-0.7" y2="-0.85" layer="51"/>
+<rectangle x1="-0.25" y1="-1.5" x2="0.25" y2="-0.85" layer="51"/>
+<rectangle x1="0.7" y1="-1.5" x2="1.2" y2="-0.85" layer="51"/>
+<rectangle x1="0.7" y1="0.85" x2="1.2" y2="1.5" layer="51"/>
+<rectangle x1="-1.2" y1="0.85" x2="-0.7" y2="1.5" layer="51"/>
+<smd name="6" x="-0.95" y="1.3751" dx="0.55" dy="1.35" layer="1"/>
+<rectangle x1="-0.25" y1="0.85" x2="0.25" y2="1.5" layer="51"/>
+<circle x="-0.95" y="-0.3" radius="0.1436" width="0.2032" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="MCP6S21">
@@ -7659,6 +7731,31 @@ Source: http://www.analog.com/UploadedFiles/Data_Sheets/703465986AD8611_2_0.pdf<
 <pin name="RG@1" x="-7.62" y="5.08" visible="pad" length="short" direction="pas"/>
 <pin name="RG@2" x="-7.62" y="-5.08" visible="pad" length="short" direction="pas"/>
 <pin name="REF" x="5.08" y="-10.16" length="middle" direction="pas" rot="R90"/>
+</symbol>
+<symbol name="SN74LVC1G3157">
+<wire x1="-7.62" y1="7.62" x2="-7.62" y2="0" width="0.254" layer="94"/>
+<wire x1="-7.62" y1="0" x2="-7.62" y2="-7.62" width="0.254" layer="94"/>
+<wire x1="-7.62" y1="-7.62" x2="7.62" y2="-7.62" width="0.254" layer="94"/>
+<wire x1="7.62" y1="-7.62" x2="7.62" y2="-4.826" width="0.254" layer="94"/>
+<wire x1="7.62" y1="-4.826" x2="7.62" y2="0" width="0.254" layer="94"/>
+<wire x1="7.62" y1="0" x2="7.62" y2="5.08" width="0.254" layer="94"/>
+<wire x1="7.62" y1="5.08" x2="7.62" y2="7.62" width="0.254" layer="94"/>
+<wire x1="7.62" y1="7.62" x2="-7.62" y2="7.62" width="0.254" layer="94"/>
+<wire x1="-7.62" y1="0" x2="-2.54" y2="0" width="0.254" layer="94" style="shortdash"/>
+<wire x1="-2.54" y1="0" x2="2.54" y2="5.08" width="0.254" layer="94" style="shortdash"/>
+<circle x="2.54" y="5.08" radius="0.71841875" width="0.254" layer="94"/>
+<circle x="2.286" y="0" radius="0.71841875" width="0.254" layer="94"/>
+<wire x1="2.54" y1="5.08" x2="7.62" y2="5.08" width="0.254" layer="94" style="shortdash"/>
+<wire x1="2.54" y1="0" x2="7.62" y2="0" width="0.254" layer="94" style="shortdash"/>
+<wire x1="0" y1="2.286" x2="0" y2="-5.08" width="0.254" layer="94" style="shortdash"/>
+<wire x1="0" y1="-5.08" x2="7.366" y2="-5.08" width="0.254" layer="94" style="shortdash"/>
+<wire x1="7.366" y1="-5.08" x2="7.62" y2="-4.826" width="0.254" layer="94" style="shortdash"/>
+<pin name="A" x="-10.16" y="0" length="short"/>
+<pin name="B1" x="10.16" y="5.08" length="short" rot="R180"/>
+<pin name="B2" x="10.16" y="0" length="short" rot="R180"/>
+<pin name="S" x="10.16" y="-5.08" length="short" rot="R180"/>
+<pin name="VCC" x="-2.54" y="10.16" length="short" direction="pwr" rot="R270"/>
+<pin name="GND" x="-2.54" y="-10.16" length="short" direction="pwr" rot="R90"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -7710,6 +7807,27 @@ Source: http://www.analog.com/UploadedFiles/Data_Sheets/37793330023930AD620_e.pd
 <attribute name="OC_FARNELL" value="1464424" constant="no"/>
 <attribute name="OC_NEWARK" value="05F7109" constant="no"/>
 </technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="SN74LVC1G3157DBVR">
+<description>SINGLE-POLE DOUBLE-THROW ANALOG SWITCH</description>
+<gates>
+<gate name="G$1" symbol="SN74LVC1G3157" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOT23-6">
+<connects>
+<connect gate="G$1" pin="A" pad="4"/>
+<connect gate="G$1" pin="B1" pad="3"/>
+<connect gate="G$1" pin="B2" pad="1"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="S" pad="6"/>
+<connect gate="G$1" pin="VCC" pad="5"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
@@ -8054,7 +8172,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 </classes>
 <parts>
 <part name="R2" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
-<part name="C2" library="rcl" deviceset="C-EU" device="C0805" value="33p"/>
+<part name="C2" library="rcl" deviceset="C-EU" device="C0805" value="68p"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
@@ -8158,6 +8276,11 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
 <part name="C1" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
+<part name="U$1" library="balmer" deviceset="SN74LVC1G3157DBVR" device=""/>
+<part name="GND24" library="supply1" deviceset="GNDA" device=""/>
+<part name="P+10" library="supply1" deviceset="+5V" device=""/>
+<part name="C7" library="rcl" deviceset="C-EU" device="C0805" value="3.3n"/>
+<part name="GND25" library="supply1" deviceset="GNDA" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8283,6 +8406,11 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="P+8" gate="1" x="-20.32" y="17.78"/>
 <instance part="P+9" gate="1" x="86.36" y="76.2"/>
 <instance part="C1" gate="G$1" x="63.5" y="-101.6"/>
+<instance part="U$1" gate="G$1" x="0" y="99.06"/>
+<instance part="GND24" gate="1" x="-2.54" y="86.36"/>
+<instance part="P+10" gate="1" x="-2.54" y="111.76"/>
+<instance part="C7" gate="G$1" x="12.7" y="104.14" rot="R90"/>
+<instance part="GND25" gate="1" x="22.86" y="101.6"/>
 </instances>
 <busses>
 </busses>
@@ -8296,6 +8424,9 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="IC1" gate="G$1" pin="IN+"/>
 <wire x1="-22.86" y1="78.74" x2="-35.56" y2="78.74" width="0.1524" layer="91"/>
 <junction x="-22.86" y="78.74"/>
+<wire x1="-22.86" y1="78.74" x2="-22.86" y2="99.06" width="0.1524" layer="91"/>
+<pinref part="U$1" gate="G$1" pin="A"/>
+<wire x1="-22.86" y1="99.06" x2="-10.16" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -8403,6 +8534,10 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <segment>
 <pinref part="IC6" gate="P" pin="V+"/>
 <pinref part="P+9" gate="1" pin="+5V"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="VCC"/>
+<pinref part="P+10" gate="1" pin="+5V"/>
 </segment>
 </net>
 <net name="GNDA" class="0">
@@ -8554,6 +8689,15 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="GND3" gate="1" pin="GNDA"/>
 <pinref part="IC1" gate="G$1" pin="-VS"/>
 <wire x1="-43.18" y1="68.58" x2="-43.18" y2="71.12" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GND"/>
+<pinref part="GND24" gate="1" pin="GNDA"/>
+</segment>
+<segment>
+<pinref part="C7" gate="G$1" pin="2"/>
+<pinref part="GND25" gate="1" pin="GNDA"/>
+<wire x1="17.78" y1="104.14" x2="22.86" y2="104.14" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="VCC" class="0">
@@ -9165,6 +9309,24 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="X2" gate="-1" pin="1"/>
 <pinref part="L3" gate="G$1" pin="2"/>
 <wire x1="177.8" y1="91.44" x2="172.72" y2="91.44" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="ANALOG_SW" class="0">
+<segment>
+<pinref part="X8" gate="-2" pin="1"/>
+<wire x1="149.86" y1="88.9" x2="139.7" y2="88.9" width="0.1524" layer="91"/>
+<label x="134.366" y="89.408" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="S"/>
+<wire x1="10.16" y1="93.98" x2="22.86" y2="93.98" width="0.1524" layer="91"/>
+<label x="11.43" y="94.742" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$7" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="B1"/>
+<pinref part="C7" gate="G$1" pin="1"/>
 </segment>
 </net>
 </nets>
