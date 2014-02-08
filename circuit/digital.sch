@@ -9866,12 +9866,16 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C13" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="R0603" value="22"/>
 <part name="X5" library="con-phoenix-254" deviceset="MPT2" device=""/>
+<part name="C14" library="rcl" deviceset="C-EU" device="C0805" value="330pF"/>
+<part name="GND14" library="supply1" deviceset="GNDA" device=""/>
+<part name="C15" library="rcl" deviceset="C-EU" device="C0805" value="330pF"/>
+<part name="GND15" library="supply1" deviceset="GNDA" device=""/>
 </parts>
 <sheets>
 <sheet>
 <plain>
 <text x="-10.16" y="-38.1" size="1.778" layer="91">ADC4_IN1</text>
-<text x="99.06" y="0" size="1.778" layer="91">ADC3_IN1</text>
+<text x="97.282" y="0.762" size="1.778" layer="91">ADC3_IN1</text>
 </plain>
 <instances>
 <instance part="L2" gate="G$1" x="60.96" y="99.06" rot="R90"/>
@@ -9963,6 +9967,10 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="R5" gate="G$1" x="149.86" y="-53.34"/>
 <instance part="X5" gate="-1" x="81.28" y="71.12"/>
 <instance part="X5" gate="-2" x="81.28" y="66.04"/>
+<instance part="C14" gate="G$1" x="5.08" y="-40.64"/>
+<instance part="GND14" gate="1" x="5.08" y="-48.26"/>
+<instance part="C15" gate="G$1" x="106.68" y="-2.54"/>
+<instance part="GND15" gate="1" x="106.68" y="-10.16"/>
 </instances>
 <busses>
 </busses>
@@ -10023,12 +10031,22 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="R3" gate="G$1" pin="1"/>
 <wire x1="101.6" y1="91.44" x2="104.14" y2="91.44" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="C14" gate="G$1" pin="2"/>
+<pinref part="GND14" gate="1" pin="GNDA"/>
+</segment>
+<segment>
+<pinref part="C15" gate="G$1" pin="2"/>
+<pinref part="GND15" gate="1" pin="GNDA"/>
+</segment>
 </net>
 <net name="V_ADC" class="0">
 <segment>
 <pinref part="U$1" gate="G$5" pin="PB1"/>
 <wire x1="86.36" y1="0" x2="96.52" y2="0" width="0.1524" layer="91"/>
 <label x="88.9" y="0.508" size="1.778" layer="95"/>
+<pinref part="C15" gate="G$1" pin="1"/>
+<wire x1="96.52" y1="0" x2="106.68" y2="0" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="X11" gate="-5" pin="1"/>
@@ -10077,6 +10095,7 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="U$1" gate="G$12" pin="PE14"/>
 <wire x1="12.7" y1="-38.1" x2="5.08" y2="-38.1" width="0.1524" layer="91"/>
 <label x="3.81" y="-37.592" size="1.778" layer="95"/>
+<pinref part="C14" gate="G$1" pin="1"/>
 </segment>
 <segment>
 <pinref part="X11" gate="-6" pin="1"/>
