@@ -11,6 +11,7 @@ DEPS += \
 	output/base/src/main.d \
 	output/base/src/pcd8544.d \
 	output/base/src/pressure.d \
+	output/base/src/quadrature_encoder.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery.d \
@@ -37,6 +38,7 @@ OBJS += \
 	output/base/src/main.o \
 	output/base/src/pcd8544.o \
 	output/base/src/pressure.o \
+	output/base/src/quadrature_encoder.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery.o \
@@ -81,6 +83,10 @@ output/base/src/pcd8544.o: ./src/pcd8544.c
 
 output/base/src/pressure.o: ./src/pressure.c
 	@echo 'Building target: pressure.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/quadrature_encoder.o: ./src/quadrature_encoder.c
+	@echo 'Building target: quadrature_encoder.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c

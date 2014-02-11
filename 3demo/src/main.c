@@ -30,6 +30,7 @@
 #include "main.h"
 #include "pcd8544.h"
 #include "pressure.h"
+#include "quadrature_encoder.h"
 
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
@@ -77,26 +78,10 @@ int main(void)
   /* SysTick end of count event each 10ms */
   RCC_GetClocksFreq(&RCC_Clocks);
   SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
-
-/*
-  lcd8544_init();
-  lcd8544_clear();
-
-  lcd8544_putstr(1,1, "ABCD", 0);
-
-  lcd8544_refresh();
-
-  lcd8544_putstr(1,1, "FGH", 0);
-  while (1)
-  {
-    lcd8544_putstr(1,1, "ABCD", 0);
-    lcd8544_refresh();
-  }
-*/
   
   STM_EVAL_LEDInit(LED3);
   STM_EVAL_LEDToggle(LED3);
-  PressureInit();
+  QuadEncInit();
   LcdInit();
 
   LcdClear();
@@ -104,11 +89,28 @@ int main(void)
   LcdStr( FONT_1X, "1234" );
   LcdUpdate();
 
-  //uint16_t  pdata = PressureSend(0x8F00);
-  //uint16_t  pdata = PressureSend(0x9000);
-  PressureWrite(0x20, 0b10010000);
+  while (1)
+  {
+    STM_EVAL_LEDToggle(LED3);
+    LcdClear();
+    
+    LcdGotoXYFont ( 1, 3 );
+    LcdStr(FONT_1X, "Q=");
+    printInt(QuadEncValue(), FONT_2X);
+    
+    /*
+    LcdGotoXYFont ( 1, 2 );
+    LcdStr(FONT_1X, "A=");
+    printInt(QuadEncValueA(), FONT_2X);
+    LcdGotoXYFont ( 1, 4 );
+    LcdStr(FONT_1X, "B=");
+    printInt(QuadEncValueB(), FONT_2X);
+    */
+    LcdUpdate();
 
-
+    Delay(20);
+  }
+/*
   while (1)
   {
 
@@ -126,7 +128,7 @@ int main(void)
 
     Delay(200);
   }
-
+*/
   /* Initialize LEDs and User Button available on STM32F3-Discovery board */
   STM_EVAL_LEDInit(LED3);
   STM_EVAL_LEDInit(LED4);
