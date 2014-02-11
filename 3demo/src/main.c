@@ -93,19 +93,17 @@ int main(void)
   {
     STM_EVAL_LEDToggle(LED3);
     LcdClear();
+
+    if(QuadEncButton())
+    {
+      LcdGotoXYFont ( 1, 1 );
+      LcdStr(FONT_1X, "PRESSED!");
+    }
     
     LcdGotoXYFont ( 1, 3 );
     LcdStr(FONT_1X, "Q=");
     printInt(QuadEncValue(), FONT_2X);
     
-    /*
-    LcdGotoXYFont ( 1, 2 );
-    LcdStr(FONT_1X, "A=");
-    printInt(QuadEncValueA(), FONT_2X);
-    LcdGotoXYFont ( 1, 4 );
-    LcdStr(FONT_1X, "B=");
-    printInt(QuadEncValueB(), FONT_2X);
-    */
     LcdUpdate();
 
     Delay(20);
