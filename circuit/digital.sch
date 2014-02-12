@@ -9870,6 +9870,8 @@ Source: 008-0260-0_E.pdf</description>
 <part name="P+3" library="supply1" deviceset="+5V" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
 <part name="X2" library="con-phoenix-254" deviceset="MPT4" device=""/>
+<part name="X7" library="con-phoenix-254" deviceset="MPT4" device=""/>
+<part name="GND2" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9975,6 +9977,11 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="X2" gate="-2" x="205.74" y="-53.34"/>
 <instance part="X2" gate="-3" x="205.74" y="-58.42"/>
 <instance part="X2" gate="-4" x="205.74" y="-63.5"/>
+<instance part="X7" gate="-1" x="180.34" y="58.42"/>
+<instance part="X7" gate="-2" x="180.34" y="53.34"/>
+<instance part="X7" gate="-3" x="180.34" y="48.26"/>
+<instance part="X7" gate="-4" x="180.34" y="43.18"/>
+<instance part="GND2" gate="1" x="175.26" y="40.64"/>
 </instances>
 <busses>
 </busses>
@@ -10264,6 +10271,11 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="GND16" gate="1" pin="GND"/>
 <wire x1="132.08" y1="71.12" x2="142.24" y2="71.12" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="X7" gate="-4" pin="1"/>
+<wire x1="177.8" y1="43.18" x2="175.26" y2="43.18" width="0.1524" layer="91"/>
+<pinref part="GND2" gate="1" pin="GND"/>
+</segment>
 </net>
 <net name="N$3" class="0">
 <segment>
@@ -10518,6 +10530,42 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="U$1" gate="G$4" pin="PB10"/>
 <wire x1="86.36" y1="22.86" x2="93.98" y2="22.86" width="0.1524" layer="91"/>
 <label x="88.9" y="20.32" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="ENC_BUTTON" class="0">
+<segment>
+<pinref part="X7" gate="-1" pin="1"/>
+<wire x1="177.8" y1="58.42" x2="170.18" y2="58.42" width="0.1524" layer="91"/>
+<label x="160.02" y="58.42" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$3" pin="PA5"/>
+<wire x1="50.8" y1="-10.16" x2="45.72" y2="-10.16" width="0.1524" layer="91"/>
+<label x="33.02" y="-10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="ENC_A" class="0">
+<segment>
+<pinref part="X7" gate="-2" pin="1"/>
+<wire x1="177.8" y1="53.34" x2="170.18" y2="53.34" width="0.1524" layer="91"/>
+<label x="167.64" y="53.34" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$3" pin="PA6"/>
+<wire x1="50.8" y1="-12.7" x2="45.72" y2="-12.7" width="0.1524" layer="91"/>
+<label x="40.64" y="-12.7" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="ENC_B" class="0">
+<segment>
+<pinref part="X7" gate="-3" pin="1"/>
+<wire x1="177.8" y1="48.26" x2="170.18" y2="48.26" width="0.1524" layer="91"/>
+<label x="167.64" y="48.26" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$3" pin="PA7"/>
+<wire x1="50.8" y1="-15.24" x2="45.72" y2="-15.24" width="0.1524" layer="91"/>
+<label x="40.64" y="-15.24" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>

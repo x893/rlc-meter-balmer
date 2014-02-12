@@ -2,10 +2,6 @@
 #include "quadrature_encoder.h"
 
 //-------------------------------------------#DEFINE------------------------------------------
-//  |  TIM4_CH1  pin (PB.06) |
-//  |  TIM4_CH2  pin (PB.07) |
-//  --------------------------
-//PINS CODEUR A ET B
 #define Codeur_A           GPIO_Pin_8
 #define Codeur_A_SOURCE    GPIO_PinSource8
 #define Codeur_B           GPIO_Pin_9
@@ -14,7 +10,6 @@
 #define Codeur_RCC         RCC_AHBPeriph_GPIOA
 #define Codeur_AF          GPIO_AF_6
  
-//TIMER UTILISE
 #define Codeur_TIMER       TIM1
 
 #define BUTTON_PIN 			GPIO_Pin_8 
