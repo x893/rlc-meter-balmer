@@ -10184,8 +10184,6 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="-7.62" y="17.78"/>
 <junction x="-7.62" y="25.4"/>
 <junction x="-7.62" y="33.02"/>
-<pinref part="U$1" gate="G$11" pin="VBAT"/>
-<wire x1="12.7" y1="2.54" x2="12.7" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="IC1" gate="G$1" pin="GND"/>
@@ -10310,6 +10308,10 @@ Source: 008-0260-0_E.pdf</description>
 <junction x="0" y="25.4"/>
 <junction x="0" y="33.02"/>
 <junction x="0" y="40.64"/>
+<pinref part="U$1" gate="G$11" pin="VBAT"/>
+<wire x1="12.7" y1="2.54" x2="0" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="0" y1="2.54" x2="0" y2="17.78" width="0.1524" layer="91"/>
+<junction x="0" y="17.78"/>
 </segment>
 <segment>
 <pinref part="X9" gate="-1" pin="1"/>
