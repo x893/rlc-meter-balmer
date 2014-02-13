@@ -7363,12 +7363,6 @@ Source: www.bourns.com .. 6000_series.pdf</description>
 <text x="-2.54" y="-5.08" size="1.778" layer="96" rot="R90">&gt;VALUE</text>
 <pin name="+5V" x="0" y="-2.54" visible="off" length="short" direction="sup" rot="R90"/>
 </symbol>
-<symbol name="GNDA">
-<wire x1="-1.905" y1="0" x2="1.905" y2="0" width="0.254" layer="94"/>
-<wire x1="-1.0922" y1="-0.508" x2="1.0922" y2="-0.508" width="0.254" layer="94"/>
-<text x="-2.54" y="-2.54" size="1.778" layer="96" rot="R90">&gt;VALUE</text>
-<pin name="GNDA" x="0" y="2.54" visible="off" length="short" direction="sup" rot="R270"/>
-</symbol>
 <symbol name="GND">
 <wire x1="-1.905" y1="0" x2="1.905" y2="0" width="0.254" layer="94"/>
 <text x="-2.54" y="-2.54" size="1.778" layer="96">&gt;VALUE</text>
@@ -7386,19 +7380,6 @@ Source: www.bourns.com .. 6000_series.pdf</description>
 <description>&lt;b&gt;SUPPLY SYMBOL&lt;/b&gt;</description>
 <gates>
 <gate name="1" symbol="+5V" x="0" y="0"/>
-</gates>
-<devices>
-<device name="">
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="GNDA" prefix="GND">
-<description>&lt;b&gt;SUPPLY SYMBOL&lt;/b&gt;</description>
-<gates>
-<gate name="1" symbol="GNDA" x="0" y="0"/>
 </gates>
 <devices>
 <device name="">
@@ -9813,7 +9794,6 @@ Source: 008-0260-0_E.pdf</description>
 <part name="L2" library="rcl" deviceset="L-US" device="0204/7" value="100mk"/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="C12" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
-<part name="GND10" library="supply1" deviceset="GNDA" device=""/>
 <part name="X4" library="con-phoenix-254" deviceset="MPT2" device=""/>
 <part name="SUPPLY1" library="supply2" deviceset="V+" device=""/>
 <part name="IC1" library="linear" deviceset="MCP1703" device="CB" value="MCP1701-5V"/>
@@ -9835,7 +9815,6 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0805" value="22p"/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0805" value="22p"/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
-<part name="GND6" library="supply1" deviceset="GNDA" device=""/>
 <part name="SUPPLY2" library="supply2" deviceset="V+" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
@@ -9843,8 +9822,6 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
-<part name="GND9" library="supply1" deviceset="GNDA" device=""/>
-<part name="R3" library="rcl" deviceset="R-EU_" device="R0603" value="0"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="C9" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="C10" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
@@ -9860,9 +9837,7 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C13" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="R0603" value="22"/>
 <part name="C14" library="rcl" deviceset="C-EU" device="C0805" value="330pF"/>
-<part name="GND14" library="supply1" deviceset="GNDA" device=""/>
 <part name="C15" library="rcl" deviceset="C-EU" device="C0805" value="330pF"/>
-<part name="GND15" library="supply1" deviceset="GNDA" device=""/>
 <part name="X6" library="con-phoenix-254" deviceset="MPT4" device=""/>
 <part name="P+3" library="supply1" deviceset="+5V" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
@@ -9871,6 +9846,13 @@ Source: 008-0260-0_E.pdf</description>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="X8" library="con-phoenix-254" deviceset="MPT4" device=""/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
+<part name="GND6" library="supply1" deviceset="GND" device=""/>
+<part name="GND9" library="supply1" deviceset="GND" device=""/>
+<part name="GND10" library="supply1" deviceset="GND" device=""/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="R0603" value="2.2K"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="R0603" value="3.3K"/>
+<part name="GND14" library="supply1" deviceset="GND" device=""/>
+<part name="C16" library="rcl" deviceset="C-EU" device="C0805" value="2.2n"/>
 </parts>
 <sheets>
 <sheet>
@@ -9882,7 +9864,6 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="L2" gate="G$1" x="60.96" y="99.06" rot="R90"/>
 <instance part="C11" gate="G$1" x="50.8" y="96.52"/>
 <instance part="C12" gate="G$1" x="40.64" y="96.52"/>
-<instance part="GND10" gate="1" x="40.64" y="88.9"/>
 <instance part="X4" gate="-1" x="180.34" y="76.2"/>
 <instance part="X4" gate="-2" x="180.34" y="71.12"/>
 <instance part="SUPPLY1" gate="1" x="40.64" y="104.14"/>
@@ -9918,16 +9899,13 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="C4" gate="G$1" x="101.6" y="30.48" rot="R90"/>
 <instance part="C5" gate="G$1" x="101.6" y="22.86" rot="R90"/>
 <instance part="GND5" gate="1" x="99.06" y="17.78"/>
-<instance part="GND6" gate="1" x="10.16" y="-12.7"/>
 <instance part="SUPPLY2" gate="1" x="10.16" y="0"/>
 <instance part="GND7" gate="1" x="10.16" y="5.08"/>
 <instance part="C6" gate="G$1" x="-5.08" y="25.4" rot="R90"/>
 <instance part="C7" gate="G$1" x="-5.08" y="17.78" rot="R90"/>
 <instance part="C8" gate="G$1" x="-5.08" y="40.64" rot="R90"/>
 <instance part="+3V3" gate="G$1" x="7.62" y="45.72"/>
-<instance part="GND8" gate="1" x="116.84" y="88.9"/>
-<instance part="GND9" gate="1" x="101.6" y="88.9"/>
-<instance part="R3" gate="G$1" x="109.22" y="91.44"/>
+<instance part="GND8" gate="1" x="40.64" y="88.9"/>
 <instance part="GND11" gate="1" x="12.7" y="86.36"/>
 <instance part="C9" gate="G$1" x="-2.54" y="93.98"/>
 <instance part="C10" gate="G$1" x="25.4" y="93.98"/>
@@ -9958,9 +9936,7 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="C13" gate="G$1" x="154.94" y="-60.96" rot="R180"/>
 <instance part="R5" gate="G$1" x="149.86" y="-53.34"/>
 <instance part="C14" gate="G$1" x="5.08" y="-40.64"/>
-<instance part="GND14" gate="1" x="5.08" y="-48.26"/>
 <instance part="C15" gate="G$1" x="106.68" y="-2.54"/>
-<instance part="GND15" gate="1" x="106.68" y="-10.16"/>
 <instance part="X6" gate="-1" x="152.4" y="81.28"/>
 <instance part="X6" gate="-2" x="152.4" y="76.2"/>
 <instance part="X6" gate="-3" x="152.4" y="71.12"/>
@@ -9981,6 +9957,13 @@ Source: 008-0260-0_E.pdf</description>
 <instance part="X8" gate="-3" x="-15.24" y="68.58" rot="MR0"/>
 <instance part="X8" gate="-4" x="-15.24" y="63.5" rot="MR0"/>
 <instance part="GND17" gate="1" x="-7.62" y="71.12"/>
+<instance part="GND6" gate="1" x="5.08" y="-48.26"/>
+<instance part="GND9" gate="1" x="106.68" y="-10.16"/>
+<instance part="GND10" gate="1" x="10.16" y="-12.7"/>
+<instance part="R3" gate="G$1" x="-27.94" y="96.52"/>
+<instance part="R6" gate="G$1" x="-17.78" y="96.52"/>
+<instance part="GND14" gate="1" x="-35.56" y="86.36"/>
+<instance part="C16" gate="G$1" x="-27.94" y="91.44" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -10018,35 +10001,6 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="X6" gate="-4" pin="1"/>
 <wire x1="149.86" y1="66.04" x2="142.24" y2="66.04" width="0.1524" layer="91"/>
 <pinref part="P+3" gate="1" pin="+5V"/>
-</segment>
-</net>
-<net name="GNDA" class="0">
-<segment>
-<pinref part="C11" gate="G$1" pin="2"/>
-<wire x1="45.72" y1="91.44" x2="50.8" y2="91.44" width="0.1524" layer="91"/>
-<pinref part="C12" gate="G$1" pin="2"/>
-<wire x1="40.64" y1="91.44" x2="45.72" y2="91.44" width="0.1524" layer="91"/>
-<pinref part="GND10" gate="1" pin="GNDA"/>
-<junction x="40.64" y="91.44"/>
-</segment>
-<segment>
-<pinref part="U$1" gate="G$11" pin="VSSA"/>
-<pinref part="GND6" gate="1" pin="GNDA"/>
-<wire x1="12.7" y1="-7.62" x2="10.16" y2="-7.62" width="0.1524" layer="91"/>
-<wire x1="10.16" y1="-7.62" x2="10.16" y2="-10.16" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="GND9" gate="1" pin="GNDA"/>
-<pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="101.6" y1="91.44" x2="104.14" y2="91.44" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="C14" gate="G$1" pin="2"/>
-<pinref part="GND14" gate="1" pin="GNDA"/>
-</segment>
-<segment>
-<pinref part="C15" gate="G$1" pin="2"/>
-<pinref part="GND15" gate="1" pin="GNDA"/>
 </segment>
 </net>
 <net name="V_ADC" class="0">
@@ -10234,11 +10188,6 @@ Source: 008-0260-0_E.pdf</description>
 <wire x1="12.7" y1="2.54" x2="12.7" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="GND8" gate="1" pin="GND"/>
-<pinref part="R3" gate="G$1" pin="2"/>
-<wire x1="116.84" y1="91.44" x2="114.3" y2="91.44" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="IC1" gate="G$1" pin="GND"/>
 <pinref part="GND11" gate="1" pin="GND"/>
 <wire x1="25.4" y1="88.9" x2="12.7" y2="88.9" width="0.1524" layer="91"/>
@@ -10276,6 +10225,38 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="GND17" gate="1" pin="GND"/>
 <pinref part="X8" gate="-2" pin="1"/>
 <wire x1="-7.62" y1="73.66" x2="-12.7" y2="73.66" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="C11" gate="G$1" pin="2"/>
+<wire x1="45.72" y1="91.44" x2="50.8" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="C12" gate="G$1" pin="2"/>
+<wire x1="40.64" y1="91.44" x2="45.72" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="GND8" gate="1" pin="GND"/>
+<junction x="40.64" y="91.44"/>
+</segment>
+<segment>
+<pinref part="C14" gate="G$1" pin="2"/>
+<pinref part="GND6" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="C15" gate="G$1" pin="2"/>
+<pinref part="GND9" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$11" pin="VSSA"/>
+<wire x1="12.7" y1="-7.62" x2="10.16" y2="-7.62" width="0.1524" layer="91"/>
+<wire x1="10.16" y1="-7.62" x2="10.16" y2="-10.16" width="0.1524" layer="91"/>
+<pinref part="GND10" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="R3" gate="G$1" pin="1"/>
+<pinref part="GND14" gate="1" pin="GND"/>
+<wire x1="-33.02" y1="96.52" x2="-35.56" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="-35.56" y1="96.52" x2="-35.56" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="C16" gate="G$1" pin="2"/>
+<wire x1="-35.56" y1="91.44" x2="-35.56" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="-33.02" y1="91.44" x2="-35.56" y2="91.44" width="0.1524" layer="91"/>
+<junction x="-35.56" y="91.44"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -10430,6 +10411,8 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="X8" gate="-1" pin="1"/>
 <wire x1="-10.16" y1="96.52" x2="-12.7" y2="96.52" width="0.1524" layer="91"/>
 <wire x1="-12.7" y1="96.52" x2="-12.7" y2="78.74" width="0.1524" layer="91"/>
+<pinref part="R6" gate="G$1" pin="2"/>
+<junction x="-12.7" y="96.52"/>
 </segment>
 </net>
 <net name="SWDIO" class="0">
@@ -10579,6 +10562,24 @@ Source: 008-0260-0_E.pdf</description>
 <pinref part="R4" gate="G$1" pin="1"/>
 <wire x1="45.72" y1="43.18" x2="40.64" y2="43.18" width="0.1524" layer="91"/>
 <label x="30.48" y="43.18" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="ADC_BAT" class="0">
+<segment>
+<pinref part="R6" gate="G$1" pin="1"/>
+<pinref part="R3" gate="G$1" pin="2"/>
+<wire x1="-22.86" y1="96.52" x2="-22.86" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="-22.86" y1="104.14" x2="-35.56" y2="104.14" width="0.1524" layer="91"/>
+<label x="-35.56" y="104.14" size="1.778" layer="95"/>
+<junction x="-22.86" y="96.52"/>
+<wire x1="-22.86" y1="96.52" x2="-22.86" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="C16" gate="G$1" pin="1"/>
+<wire x1="-22.86" y1="91.44" x2="-25.4" y2="91.44" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$7" pin="PC5"/>
+<wire x1="50.8" y1="-60.96" x2="45.72" y2="-60.96" width="0.1524" layer="91"/>
+<label x="40.64" y="-60.96" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
