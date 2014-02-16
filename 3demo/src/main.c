@@ -31,6 +31,7 @@
 #include "pcd8544.h"
 #include "pressure.h"
 #include "quadrature_encoder.h"
+#include "hw_pcd8544.h"
 
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
@@ -79,15 +80,41 @@ int main(void)
   RCC_GetClocksFreq(&RCC_Clocks);
   SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
   
-  STM_EVAL_LEDInit(LED3);
-  STM_EVAL_LEDToggle(LED3);
-  QuadEncInit();
+  //STM_EVAL_LEDInit(LED3);
+  //STM_EVAL_LEDToggle(LED3);
+  //QuadEncInit();
+  
   LcdInit();
 
   LcdClear();
   LcdGotoXYFont ( 2, 2 );
   LcdStr( FONT_1X, "1234" );
   LcdUpdate();
+  
+/*
+  HwLcdInit();
+
+  while (1)
+  {
+    HwLcdPinRst(1);
+    HwLcdPinDC(1);
+    HwLcdPinCE(1);
+    HwLcdSend(0xEEEE);
+    Delay(2);
+    HwLcdPinRst(0);
+    HwLcdPinDC(0);
+    HwLcdPinCE(0);
+    Delay(2);
+  }
+*/
+  for(int i=0; 1; i++)
+  {
+    LcdClear();
+    LcdGotoXYFont ( 1, 1 );
+    printInt(i, FONT_1X);
+    LcdUpdate();
+    Delay(100);
+  }
 
   while (1)
   {
