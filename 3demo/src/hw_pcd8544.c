@@ -4,7 +4,7 @@
 #include "stm32f30x.h"
 void Delay(__IO uint32_t nTime);
 
-//#define HARDWARE_SPI
+#define HARDWARE_SPI
 
 /* SPI2
 //	PB13 = SCK
@@ -110,7 +110,7 @@ void HwLcdSend(uint16_t data)
 #else
 	unsigned char i;
 	for(i=0; i<16; i++) {
-		GPIO_WriteBit(GPIOB, GPIO_Pin_15, (data & 0x80)? 1:0);
+		GPIO_WriteBit(GPIOB, GPIO_Pin_15, (data & 0x8000)? 1:0);
 		data = data<<1;
 		for(volatile int j=0; j<32; j++);
 		GPIO_WriteBit(GPIOB, GPIO_Pin_13, 0);
@@ -159,11 +159,9 @@ void HwLcdInit()
 		// connect SPI1 pins to SPI alternate function
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_5);
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_5);
-				
-		// enable peripheral clock
-		RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
-		SPI_I2S_DeInit(SPI1);
 
+		// enable peripheral clock
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 		
 		// configure SPI1 in Mode 0 
 		// CPOL = 0 --> clock is low when idle
@@ -179,6 +177,7 @@ void HwLcdInit()
 		SPI_Init(SPI1, &SPI_InitStruct); 
 		
 		SPI_Cmd(SPI1, ENABLE);
+
 	}
 #else
 	{ //software SPI
@@ -234,17 +233,4 @@ void HwLcdSend(uint16_t data)
 		GPIO_WriteBit(GPIOB, GPIO_Pin_3, 1);
 	}
 #endif
-}
-
-void HwLcdSend8(uint8_t data)
-{
-	unsigned char i;
-	for(i=0; i<8; i++) {
-		GPIO_WriteBit(GPIOB, GPIO_Pin_5, (data & 0x80)? 1:0);
-		data = data<<1;
-		for(volatile int j=0; j<32; j++);
-		GPIO_WriteBit(GPIOB, GPIO_Pin_3, 0);
-		for(volatile int j=0; j<32; j++);
-		GPIO_WriteBit(GPIOB, GPIO_Pin_3, 1);
-	}
 }

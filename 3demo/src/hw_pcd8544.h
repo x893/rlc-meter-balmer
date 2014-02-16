@@ -16,6 +16,4 @@ void HwLcdPinDC(uint8_t on);
 void HwLcdPinRst(uint8_t on);
 void HwLcdSend(uint16_t data); //send spi data
 
-void HwLcdSend8(uint8_t data);
-
 #endif//_HW_PCD8544_H_
