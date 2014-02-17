@@ -8398,7 +8398,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="GND20" gate="1" x="96.52" y="-17.78"/>
 <instance part="X4" gate="-1" x="149.86" y="93.98"/>
 <instance part="X4" gate="-2" x="149.86" y="88.9"/>
-<instance part="P+7" gate="1" x="165.1" y="76.2"/>
+<instance part="P+7" gate="1" x="165.1" y="71.12"/>
 <instance part="GND1" gate="1" x="15.24" y="63.5"/>
 <instance part="GND2" gate="1" x="-22.86" y="63.5"/>
 <instance part="GND3" gate="1" x="-43.18" y="66.04"/>
@@ -8441,7 +8441,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="C27" gate="G$1" x="-7.62" y="17.78"/>
 <instance part="GND23" gate="1" x="-7.62" y="10.16"/>
 <instance part="IC1" gate="G$1" x="-40.64" y="76.2" rot="MR0"/>
-<instance part="L3" gate="G$1" x="172.72" y="73.66" rot="R90"/>
+<instance part="L3" gate="G$1" x="172.72" y="68.58" rot="R90"/>
 <instance part="C3" gate="G$1" x="48.26" y="86.36"/>
 <instance part="P+2" gate="1" x="93.98" y="40.64"/>
 <instance part="P+4" gate="1" x="96.52" y="-5.08"/>
@@ -8470,7 +8470,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <instance part="X5" gate="-2" x="185.42" y="78.74"/>
 <instance part="X5" gate="-3" x="185.42" y="73.66"/>
 <instance part="X5" gate="-4" x="185.42" y="68.58"/>
-<instance part="GND26" gate="1" x="180.34" y="63.5"/>
+<instance part="GND26" gate="1" x="182.88" y="71.12"/>
 </instances>
 <busses>
 </busses>
@@ -8755,10 +8755,8 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="GND16" gate="1" pin="GNDA"/>
 </segment>
 <segment>
+<pinref part="X5" gate="-3" pin="1"/>
 <pinref part="GND26" gate="1" pin="GNDA"/>
-<wire x1="180.34" y1="66.04" x2="180.34" y2="68.58" width="0.1524" layer="91"/>
-<pinref part="X5" gate="-4" pin="1"/>
-<wire x1="180.34" y1="68.58" x2="182.88" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="VCC" class="0">
@@ -9399,9 +9397,9 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 </net>
 <net name="N$6" class="0">
 <segment>
+<pinref part="X5" gate="-4" pin="1"/>
 <pinref part="L3" gate="G$1" pin="2"/>
-<pinref part="X5" gate="-3" pin="1"/>
-<wire x1="180.34" y1="73.66" x2="182.88" y2="73.66" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="68.58" x2="180.34" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
