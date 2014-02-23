@@ -28,5 +28,10 @@ void Get_SerialNum(void);
 */
 void SetResistor(uint8_t idx);
 
+/*
+Add 3.3 nF capacitor to filter after DAC.
+*/
+void SetLowPassFilter(bool on);
+
 #endif  /*__HW_CONFIG_H*/
 

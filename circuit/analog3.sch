@@ -8300,7 +8300,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="C25" library="rcl" deviceset="C-EU" device="C0805" value="47n"/>
 <part name="R29" library="rcl" deviceset="R-EU_" device="R0805" value="5"/>
 <part name="GND7" library="supply1" deviceset="GNDA" device=""/>
-<part name="IC3" library="analog-devices" deviceset="AD8603" device="UJ"/>
+<part name="IC3" library="analog-devices" deviceset="AD8603" device="UJ" value="AD8605"/>
 <part name="R19" library="rcl" deviceset="R-EU_" device="R0603" value="3k"/>
 <part name="R22" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
 <part name="IC7" library="linear" deviceset="LM358" device="D" value="LM258"/>
@@ -8316,7 +8316,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="GND18" library="supply1" deviceset="GNDA" device=""/>
 <part name="C27" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="GND23" library="supply1" deviceset="GNDA" device=""/>
-<part name="IC1" library="analog-devices" deviceset="AD8603" device="UJ"/>
+<part name="IC1" library="analog-devices" deviceset="AD8603" device="UJ" value="AD8605"/>
 <part name="L3" library="rcl" deviceset="L-US" device="0204/7"/>
 <part name="C3" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>

@@ -548,7 +548,7 @@ def main():
 		plotFreq(fileName)
 	else:
 		#plot(fileName)
-		plotRaw(fileName, "I", average=False)
+		plotRaw(fileName, "V", average=False)
 		#plotIV(fileName, average=True)
 		#plotIV_2()
 

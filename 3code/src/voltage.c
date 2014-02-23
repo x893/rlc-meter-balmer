@@ -75,6 +75,9 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 	case 10://COMMAND_DATA_COMPLETE
 		USBAdd8(AdcUsbBufferComplete()?1:0);
 		break;
+	case 11://COMMAND_SET_LOW_PASS
+		SetLowPassFilter(commandBuffer[1]?true:false);
+		break;
 	}
 
 	USBSend();

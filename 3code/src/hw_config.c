@@ -48,18 +48,17 @@ void Set_System(void)
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_14);
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_14);
   
-#if defined(USB_USE_EXTERNAL_PULLUP)
+  //PC6 used as USB pull-up
   /* Enable the USB disconnect GPIO clock */
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIO_DISCONNECT, ENABLE);
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 
   /* USB_DISCONNECT used as USB pull-up */
-  GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);  
-#endif /* USB_USE_EXTERNAL_PULLUP */
+  GPIO_Init(GPIOC, &GPIO_InitStructure);  
    
   /* Configure the EXTI line 18 connected internally to the USB IP */
   EXTI_ClearITPendingBit(EXTI_Line18);
@@ -78,8 +77,17 @@ void Set_System(void)
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOD, &GPIO_InitStructure);
-
   SetResistor(0);
+
+  //Set Analog Switch pin
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  SetLowPassFilter(false);
 }
 
 /**
@@ -225,11 +233,11 @@ void USB_Cable_Config (FunctionalState NewState)
 {
   if (NewState != DISABLE)
   {
-    //balmer GPIO_ResetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+    GPIO_SetBits(GPIOC, GPIO_Pin_6);
   }
   else
   {
-    //balmer GPIO_SetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+    GPIO_ResetBits(GPIOC, GPIO_Pin_6);
   }
 }
 
@@ -289,4 +297,9 @@ void SetResistor(uint8_t idx)
 {
   GPIO_WriteBit(GPIOD, GPIO_Pin_1, idx&1);
   GPIO_WriteBit(GPIOD, GPIO_Pin_0, (idx>>1)&1);
+}
+
+void SetLowPassFilter(bool on)
+{
+  GPIO_WriteBit(GPIOB, GPIO_Pin_10, on?false:true);
 }

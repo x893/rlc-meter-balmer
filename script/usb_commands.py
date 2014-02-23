@@ -28,6 +28,7 @@ COMMAND_SET_RESISTOR = 7
 COMMAND_LAST_COMPUTE = 8
 COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
+COMMAND_SET_LOW_PASS = 11
 
 def findDevice():
     global dev
@@ -127,6 +128,8 @@ def readCommand():
             print "r=100 KOm"
     elif cmd==COMMAND_LAST_COMPUTE:
         pass
+    elif cmd==COMMAND_SET_LOW_PASS:
+        pass
     else:
         print "Unknown command="+str(data[0])
     pass
@@ -153,6 +156,15 @@ def setResistor(r):
     #readCommand()
     data = dread()
     assert(data[0]==COMMAND_SET_RESISTOR)
+
+def setLowPass(on):
+    if on:
+        r = 1
+    else:
+        r = 0
+    dwrite([COMMAND_SET_LOW_PASS, r])
+    data = dread()
+    assert(data[0]==COMMAND_SET_LOW_PASS)
 
 def adcElapsedTime():
     dwrite([COMMAND_ADC_ELAPSED_TIME])
@@ -572,8 +584,9 @@ def main():
     #calibrate1_Om()
     #return
 
-    if False:
-        period = periodByFreq(100)
+    if True:
+        setLowPass(False)
+        period = periodByFreq(30000)
         #period = periodByFreq(1000)
         #period = periodByFreq(50000)
         #period = 384
