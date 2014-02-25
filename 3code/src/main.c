@@ -5,6 +5,7 @@
 #include "adc.h"
 #include "systick.h"
 #include "mcp6s21.h"
+#include "pcd8544.h"
 
 
 void USB_Config(void)
@@ -22,6 +23,13 @@ void USB_Config(void)
 int main(void)
 {
   delay_init();
+  LcdInit();
+
+  LcdClear();
+  LcdGotoXYFont(1,1);
+  LcdStr(FONT_1X, "Hello!");
+  LcdUpdate();
+
   USB_Config();
 
   USB_SIL_Write(EP1_IN, (uint8_t *)"Hello", 5);

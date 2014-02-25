@@ -584,7 +584,7 @@ def main():
     #calibrate1_Om()
     #return
 
-    if True:
+    if False:
         setLowPass(False)
         period = periodByFreq(30000)
         #period = periodByFreq(1000)

@@ -8,9 +8,13 @@ DEPS += \
 	output/base/src/adc.d \
 	output/base/src/calc.d \
 	output/base/src/dac.d \
+	output/base/src/format_print.d \
 	output/base/src/hw_config.d \
+	output/base/src/hw_pcd8544.d \
+	output/base/src/lcd_interface.d \
 	output/base/src/main.d \
 	output/base/src/mcp6s21.d \
+	output/base/src/pcd8544.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
 	output/base/src/systick.d \
@@ -43,9 +47,13 @@ OBJS += \
 	output/base/src/adc.o \
 	output/base/src/calc.o \
 	output/base/src/dac.o \
+	output/base/src/format_print.o \
 	output/base/src/hw_config.o \
+	output/base/src/hw_pcd8544.o \
+	output/base/src/lcd_interface.o \
 	output/base/src/main.o \
 	output/base/src/mcp6s21.o \
+	output/base/src/pcd8544.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
 	output/base/src/systick.o \
@@ -89,8 +97,20 @@ output/base/src/dac.o: ./src/dac.c
 	@echo 'Building target: dac.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
+output/base/src/format_print.o: ./src/format_print.c
+	@echo 'Building target: format_print.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
 output/base/src/hw_config.o: ./src/hw_config.c
 	@echo 'Building target: hw_config.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/hw_pcd8544.o: ./src/hw_pcd8544.c
+	@echo 'Building target: hw_pcd8544.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/lcd_interface.o: ./src/lcd_interface.c
+	@echo 'Building target: lcd_interface.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/main.o: ./src/main.c
@@ -99,6 +119,10 @@ output/base/src/main.o: ./src/main.c
 
 output/base/src/mcp6s21.o: ./src/mcp6s21.c
 	@echo 'Building target: mcp6s21.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/pcd8544.o: ./src/pcd8544.c
+	@echo 'Building target: pcd8544.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c

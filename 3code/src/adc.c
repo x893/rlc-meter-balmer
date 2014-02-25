@@ -7,6 +7,9 @@
 #include "usb_desc.h"
 #include "systick.h"
 
+#include "lcd_interface.h"//test code
+
+
 /*
 	g_resultBuffer организован не очень удобно.
 	В нем хранятся uint16_t данные.
@@ -276,6 +279,9 @@ void AdcDacStartSynchro(uint32_t period)
 	//	g_resultBuffer[i]=0x00080008;
 
 	g_cur_cycle = 0;
+
+	LcdFrequency(SystemCoreClock/period);
+	LcdRepaint();
 
 	DacSetPeriod(period);
 	AdcRoundSize(DacSamplesPerPeriod());

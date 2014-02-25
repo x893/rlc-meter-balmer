@@ -45,10 +45,13 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		USBAdd8(commandBuffer[1]);
 		break;
 	case 2://COMMAND_SET_FREQUENCY
-		DacSetFrequency(*(uint32_t*)(commandBuffer+1));
-		DacStart();
-		USBAdd32(DacPeriod());
-		USBAdd32(SystemCoreClock);
+		{
+			uint32_t f = *(uint32_t*)(commandBuffer+1);
+			DacSetFrequency(f);
+			DacStart();
+			USBAdd32(DacPeriod());
+			USBAdd32(SystemCoreClock);
+		}
 		break;
 	case 3://COMMAND_SET_GAIN
 		MCPSetGain(commandBuffer[1]?true:false, commandBuffer[2]);
