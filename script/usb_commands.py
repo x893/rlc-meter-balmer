@@ -30,16 +30,21 @@ COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 
+def inited():
+    return not (dev is None)
+
 def findDevice():
     global dev
     dev = usb.core.find(idVendor=0x16C0, idProduct=0x05DC)
 
     if dev is None:
-    	raise ValueError('Device not found')
+    	print 'Device not found'
+        return False
     else:
-        print "Device found"
+        print 'Device found'
 
     dev.set_configuration()
+    return True
 
 def dwrite(data):
     return dev.write(1, data, interface=0)
@@ -524,17 +529,22 @@ def allFreq():
     #PERIOD_ROUND = period100Hz_300Hz()
     #PERIOD_ROUND = period50Hz_150Hz()
     #PERIOD_ROUND = period100Hz_1KHz() + period1KHz_10KHz()
-    PERIOD_ROUND = period100Hz_1KHz()
+    #PERIOD_ROUND = period100Hz_1KHz()
     #PERIOD_ROUND = period1KHz_10KHz()
     #PERIOD_ROUND = period10Khz_max()
-    #PERIOD_ROUND = periodAll()
-    print PERIOD_ROUND
+    PERIOD_ROUND = periodAll()
+    #print PERIOD_ROUND
     adcSynchro(PERIOD_ROUND[0])
     time.sleep(0.2)
 
 
     for period in PERIOD_ROUND:
         adcSynchro(period)
+
+        if period>=24000: #3 KHz
+            setLowPass(True)
+        else:
+            setLowPass(False)
         if True:
             setGainAuto()
         if False:
@@ -551,6 +561,54 @@ def allFreq():
     f.write(json.dumps(jout))
     f.close()
 
+class ScanFreq:
+    def init(self):
+        self.jout = {}
+        self.jfreq = []
+
+        self.jout['freq'] = self.jfreq
+        #PERIOD_ROUND = period100Hz_300Hz()
+        #PERIOD_ROUND = period50Hz_150Hz()
+        #PERIOD_ROUND = period100Hz_1KHz() + period1KHz_10KHz()
+        #PERIOD_ROUND = period100Hz_1KHz()
+        #PERIOD_ROUND = period1KHz_10KHz()
+        #PERIOD_ROUND = period10Khz_max()
+        self.PERIOD_ROUND = periodAll()
+        #print PERIOD_ROUND
+        adcSynchro(self.PERIOD_ROUND[0])
+        self.current_value = 0
+        time.sleep(0.2)
+        pass
+    def count(self):
+        return len(self.PERIOD_ROUND)
+    def current(self):
+        return self.current_value        
+    def next(self):
+        period = self.PERIOD_ROUND[self.current_value]
+        adcSynchro(period)
+
+        if period>=24000: #3 KHz
+            setLowPass(True)
+        else:
+            setLowPass(False)
+        if True:
+            setGainAuto()
+        if False:
+            setResistor(3)
+            setSetGain(1, 0) #V
+            setSetGain(0, 4) #I
+
+        time.sleep(0.01)
+        jresult = adcRequestLastComputeX()
+        self.jfreq.append(jresult)
+
+        self.current_value += 1
+        return self.current_value<self.count()
+    def save(self):
+        f = open('freq.json', 'w')
+        f.write(json.dumps(self.jout))
+        f.close()
+
 def periodByFreq(freq):
     return 72000000/freq
 
@@ -566,9 +624,12 @@ def printEndpoint(e):
     print "bSynchAddress=", e.bSynchAddress
     pass
 
-def main():
-    findDevice()
-    dev.set_configuration()
+def initDevice():
+    if not (dev is None):
+        return True
+
+    if not findDevice():
+        return False
     for cfg in dev:
         for i in cfg:
             print "interface=", i.bInterfaceNumber
@@ -580,14 +641,18 @@ def main():
     for x in xrange(4):
         print "write=",dwrite([1])
         readOne()
+    return True    
+
+def main():
+    initDevice()
 
     #calibrate1_Om()
     #return
 
-    if False:
-        setLowPass(False)
-        period = periodByFreq(30000)
-        #period = periodByFreq(1000)
+    if True:
+        setLowPass(True)
+        #period = periodByFreq(2300)
+        period = periodByFreq(1000)
         #period = periodByFreq(50000)
         #period = 384
 
@@ -608,5 +673,6 @@ def main():
     pass
 
 
-main()
+if __name__ == "__main__":
+    main()
 

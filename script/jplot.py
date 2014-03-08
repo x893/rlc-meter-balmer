@@ -460,9 +460,9 @@ def plotFreq(fileName):
 		#dfi_data.append(res['dfi']*1e6/F)
 		dfi_data.append(res['dfi'])
 
-		if False:
-			#Zx = complex(res['Rre'], res['Rim'])
-			Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+		if True:
+			Zx = complex(res['Rre'], res['Rim'])
+			#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 			re_corr.append(Zx.real)
 			im_corr.append(math.fabs(Zx.imag))
 			
@@ -478,7 +478,7 @@ def plotFreq(fileName):
 				C = 0
 			arr_L.append(L*1e6)
 			arr_C.append(C*1e12)
-		if True:
+		if False:
 			#Zx = complex(res['Rre'], res['Rim'])
 			Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 			Yx = 1/Zx
@@ -511,13 +511,13 @@ def plotFreq(fileName):
 
 
 	fig, ax = plt.subplots()
-	ax.set_title("1 uF 160 V")
-	#ax.set_xscale('log')
+	#ax.set_title("1 uF 160 V")
+	ax.set_xscale('log')
 	#ax.set_yscale('log')
 	ax.set_xlabel("Hz")
 
 	ax.set_ylabel("Om")
-	ax.plot (f_data, re_data, '-', color="red")
+	#ax.plot (f_data, re_data, '-', color="red")
 	#ax.plot (f_data, im_data, '-', color="blue")
 	#ax.plot (f_data, dfi_data, '-', color="green")
 
@@ -530,11 +530,11 @@ def plotFreq(fileName):
 	#ax.plot (f_data, re_corr, '.-', color="#00FF00")
 	#ax.plot (f_data, im_corr, '.-', color="#555555")
 
-	#ax.set_ylabel("uH")
-	#ax.plot (f_data, arr_L, '-', color="red")
+	ax.set_ylabel("uH")
+	ax.plot (f_data, arr_L, '-', color="red")
 
 	#ax.set_ylabel("pF")
-	ax.plot (f_data, arr_C, '-', color="red")
+	#ax.plot (f_data, arr_C, '-', color="red")
 
 	plt.show()
 	pass
@@ -548,8 +548,8 @@ def main():
 		plotFreq(fileName)
 	else:
 		#plot(fileName)
-		plotRaw(fileName, "V", average=False)
-		#plotIV(fileName, average=True)
+		#plotRaw(fileName, "V", average=False)
+		plotIV(fileName, average=False)
 		#plotIV_2()
 
 if __name__ == "__main__":
