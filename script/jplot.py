@@ -11,6 +11,28 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+def formatR(R):
+	RA = math.fabs(R)
+	if RA<1e-2:
+		return '{:3.2f} mOm'.format(R*1e3)
+	if RA<1:
+		return '{:3.1f} mOm'.format(R*1e3)
+	if RA<1e3:
+		return '{:3.1f} Om'.format(R)
+	if RA<1e6:
+		return '{:3.1f} KOm'.format(R*1e-3)
+	return '{:3.1f} MOm'.format(R*1e-6)
+
+def printC(C):
+	if C>=1:
+		print "C=", C, "F"
+	elif C>=1e-6:
+		print "C=", C*1e6, "mkF"
+	elif C>=1e-9:
+		print "C=", C*1e9, "nF"
+	else:
+		print "C=", C*1e12, "pF"
+
 
 def readJson(filename):
 	with open(filename, "rb") as file:
@@ -117,10 +139,14 @@ def calculateJson(jout):
 		resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
 	ampV = resultV['amplitude']
 	ampI = resultI['amplitude']
-	dfi = resultV['fi']-resultI['fi']
+	fiV = resultV['fi']
+	fiI = resultI['fi']
+	if fiV<0:
+		fiV+=math.pi*2
+	if fiI<0 and F<1e4:
+		fiI+=math.pi*2
 
-	#dfi -= 0.07e-6*F # correct phase coeffitient 1 KOm
-	#dfi -= 3.25e-6*F # correct phase coeffitient 100 KOm
+	dfi = resultV['fi']-resultI['fi']
 
 	if dfi>math.pi:
 		dfi -= math.pi*2
@@ -150,18 +176,10 @@ def calculateJson(jout):
 		"dfi": dfi,
 		"current": current,
 		"resistance": resistanceComplex,
-		"period": period
+		"period": period,
+		"fiV": fiV,
+		"fiI": fiI
 	}
-
-def printC(C):
-	if C>=1:
-		print "C=", C, "F"
-	elif C>=1e-6:
-		print "C=", C*1e6, "mkF"
-	elif C>=1e-9:
-		print "C=", C*1e9, "nF"
-	else:
-		print "C=", C*1e12, "pF"
 
 class Corrector:	
 	def __init__(self):

@@ -8,6 +8,9 @@ import time
 import datetime
 import usb_commands
 import threading
+from jplot import calculateJson
+from jplot import formatR
+import plot
 
 TITLE = 'RLC Meter "Balmer 303" (R) 2014'
 
@@ -31,9 +34,13 @@ class FormMain(QtGui.QMainWindow):
 
         vbox.addWidget(header_label)
 
-        scan_button = QtGui.QPushButton(u'Просканировать диапазон')
+        scan_button = QtGui.QPushButton(u'Просканировать диапазон.')
         scan_button.clicked.connect(self.OnScan)
         vbox.addWidget(scan_button)
+
+        graph_button = QtGui.QPushButton(u'Просмотреть график.')
+        graph_button.clicked.connect(self.OnGraph)
+        vbox.addWidget(graph_button)
 
         self.main_frame.setLayout(vbox)
         self.setCentralWidget(self.main_frame)
@@ -44,6 +51,13 @@ class FormMain(QtGui.QMainWindow):
         if not usb_commands.inited():
             return
 
+        form.show()
+        pass
+
+    def OnGraph(self):
+        #fileName = QtGui.QFileDialog.getOpenFileName(filter='freq json (*.json)', caption=TITLE+' - Open freq.json')
+        form = plot.FormDrawData(TITLE, self)
+        form.setData([])
         form.show()
         pass
 
@@ -85,6 +99,10 @@ class FormScan(QtGui.QMainWindow):
 
         vbox.addWidget(self.progress_bar)
 
+        self.info_label = QtGui.QLabel(u'info');
+        vbox.addWidget(self.info_label);
+
+
         self.main_frame.setLayout(vbox)
         self.setCentralWidget(self.main_frame)
         pass
@@ -102,11 +120,28 @@ class FormScan(QtGui.QMainWindow):
         while s.scan_freq.next():
             if FormScan.endThread:
                 return
-            s.progress_bar.setValue(s.scan_freq.current())
+            FormScan.SetInfo()
             pass
-            
+
         s.progress_bar.setValue(s.scan_freq.current())
         s.scan_freq.save()
+        pass
+
+    @staticmethod
+    def SetInfo():
+        s = FormScan.self_ptr
+        s.progress_bar.setValue(s.scan_freq.current())
+        jout = s.scan_freq.jfreq[-1]
+        data = calculateJson(jout)
+        info = ''
+        info += 'F=' + str(int(data['F']))
+        info += '\n' + 'R='+usb_commands.getResistorValueStr(usb_commands.resistorIdx)
+        info += '\n' + 'KU='+str(usb_commands.getGainValueV(usb_commands.gainVoltageIdx))+'x'
+        info += ' KI='+str(usb_commands.getGainValueI(usb_commands.gainCurrentIdx))+'x'
+        info += '\n' + 'Rre='+str(formatR(data['Rre']))
+        info += '\n' + 'Rim='+str(formatR(data['Rim']))
+
+        s.info_label.setText(info)
         pass
 
 

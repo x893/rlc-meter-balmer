@@ -240,6 +240,10 @@ def getResistorValue(idx):
     r = getResistorValues()
     return r[idx]
 
+def getResistorValueStr(idx):
+    r = ['100 Om', '1 KOm', '10 KOm', '100 KOm']
+    return r[idx]
+
 def adcSynchro(inPeriod):
     global ncycle, period, clock
     dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
