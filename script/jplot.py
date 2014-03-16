@@ -117,7 +117,7 @@ def correctResistance(resistor_index):
 	return K[resistor_index]
 
 
-def calculateJson(jout):
+def calculateJson(jout, correctR=True, setPhase=None):
 	jattr = jout["attr"]
 	period = jattr["period"]
 	clock = jattr["clock"]
@@ -125,7 +125,8 @@ def calculateJson(jout):
 
 	gain_V = jattr["gain_V"]
 	gain_I = jattr["gain_I"]
-	gain_V *= correctResistance(jattr["resistor_index"])
+	if correctR:
+		gain_V *= correctResistance(jattr["resistor_index"])
 	resistor = jattr["resistor"]
 	toVolts = 3.3/4095.0
 
@@ -146,7 +147,13 @@ def calculateJson(jout):
 	if fiI<0 and F<1e4:
 		fiI+=math.pi*2
 
-	dfi = resultV['fi']-resultI['fi']
+	if setPhase:
+		p = setPhase[period]
+		fiV -= p['fiV']
+		fiI -= p['fiI']
+
+	#dfi = resultV['fi']-resultI['fi']
+	dfi = fiV-fiI
 
 	if dfi>math.pi:
 		dfi -= math.pi*2

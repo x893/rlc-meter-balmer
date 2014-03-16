@@ -6,10 +6,13 @@ from PyQt4 import QtCore, QtGui
 import matplotlib
 import time
 import datetime
-import usb_commands
 import threading
+import json
+
+import usb_commands
 from jplot import calculateJson
 from jplot import formatR
+from jplot import readJson
 import plot
 
 TITLE = 'RLC Meter "Balmer 303" (R) 2014'
@@ -28,38 +31,64 @@ class FormMain(QtGui.QMainWindow):
         self.main_frame = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
 
-        header_label = QtGui.QLabel(
-            u'Измеритель комплексного сопротивления'
-            )
+        header_label = QtGui.QLabel(u'Измеритель комплексного сопротивления')
 
         vbox.addWidget(header_label)
 
-        scan_button = QtGui.QPushButton(u'Просканировать диапазон.')
+        scan_button = QtGui.QPushButton(u'Просканировать диапазон')
         scan_button.clicked.connect(self.OnScan)
         vbox.addWidget(scan_button)
 
-        graph_button = QtGui.QPushButton(u'Просмотреть график.')
+        graph_button = QtGui.QPushButton(u'Просмотреть последний график')
         graph_button.clicked.connect(self.OnGraph)
         vbox.addWidget(graph_button)
+
+        graph_button = QtGui.QPushButton(u'Просмотреть график...')
+        graph_button.clicked.connect(self.OnGraphOpen)
+        vbox.addWidget(graph_button)
+
+        cal_button = QtGui.QPushButton(u'Калибровка')
+        cal_button.clicked.connect(self.OnCalibration)
+        vbox.addWidget(cal_button)
 
         self.main_frame.setLayout(vbox)
         self.setCentralWidget(self.main_frame)
         pass
 
-    def OnScan(self):
-        form = FormScan(self)
-        if not usb_commands.inited():
-            return
+    def initDevice(self):
+        if not usb_commands.initDevice():
+            QtGui.QMessageBox.about(self, TITLE, u"Устройство не найдено.")
+            return False
+        return True
 
+    def OnScan(self):
+        if not self.initDevice():
+            return
+        form = FormScan(self)
         form.show()
         pass
 
     def OnGraph(self):
-        #fileName = QtGui.QFileDialog.getOpenFileName(filter='freq json (*.json)', caption=TITLE+' - Open freq.json')
         form = plot.FormDrawData(TITLE, self)
-        form.setData([])
+        form.setData('freq.json')
         form.show()
         pass
+
+    def OnGraphOpen(self):
+        fileName = QtGui.QFileDialog.getOpenFileName(filter='freq json (*.json)', caption=TITLE+' - Open freq.json')
+        form = plot.FormDrawData(TITLE, self)
+        form.setData(fileName)
+        form.show()
+        pass
+
+    def OnCalibration(self):
+        if not self.initDevice():
+            return
+        form = FormCalibrationResistor(self)
+        form.show()
+        pass
+
+
 
 class FormScan(QtGui.QMainWindow):
     self_ptr = None
@@ -70,9 +99,6 @@ class FormScan(QtGui.QMainWindow):
         super(FormScan, self).__init__(parent)
         self.setWindowTitle(TITLE)
 
-        if not usb_commands.initDevice():
-            QtGui.QMessageBox.about(self, TITLE, u"Устройство не найдено.")
-            return
         self.CreateMainFrame()
 
         FormScan.self_ptr = self
@@ -144,8 +170,135 @@ class FormScan(QtGui.QMainWindow):
         s.info_label.setText(info)
         pass
 
+class FormCalibrationResistor(QtGui.QMainWindow):
+
+    def __init__(self, parent=None):
+        super(FormCalibrationResistor, self).__init__(parent)
+
+        self.diapazon = []
+        self.diapazon.append({'diapazon':0, 'value':1e2})
+        self.diapazon.append({'diapazon':1, 'value':1e3})
+        self.diapazon.append({'diapazon':2, 'value':1e4})
+        self.diapazon.append({'diapazon':3, 'value':1e5})
+        self.labels  = [None]*4
+
+        self.setWindowTitle(TITLE)
+        self.CreateMainFrame()
+        pass
+
+    def CreateMainFrame(self):
+        self.main_frame = QtGui.QWidget()
+        vbox = QtGui.QVBoxLayout()
+
+        header_label = QtGui.QLabel(u'Калибровка')
+
+        vbox.addWidget(header_label)
+        self.AddLine(vbox, u'100 Ом', self.On100_Om, 0)
+        self.AddLine(vbox, u'1 KОм', self.On1_KOm, 1)
+        self.AddLine(vbox, u'10 KОм', self.On10_KOm, 2)
+        self.AddLine(vbox, u'100 KОм', self.On100_KOm, 3)
+
+        button_save = QtGui.QPushButton(u'Записать')
+        button_save.clicked.connect(self.OnSave)
+        vbox.addWidget(button_save)
+
+        self.main_frame.setLayout(vbox)
+        self.setCentralWidget(self.main_frame)
+        pass
+
+    def AddLine(self, vbox, name, func, interval):
+        hbox = QtGui.QHBoxLayout()
+
+        label1 = QtGui.QLabel(u'Точное значение сопротивления ' + name + '=')
+        hbox.addWidget(label1)
+        edit = QtGui.QLineEdit()
+        validator = QtGui.QDoubleValidator()
+        validator.setRange(90, 250)
+        edit.setValidator(validator)
+        text = self.diapazon[interval]['value']
+        edit.setText(str(text))
+        hbox.addWidget(edit)
+
+        button = QtGui.QPushButton(name)
+        button.clicked.connect(func)
+        hbox.addWidget(button)
+
+        label = QtGui.QLabel(u'Не пройден')
+        self.labels[interval] = label
+        label.setStyleSheet("QLabel { color : red; }");
+        hbox.addWidget(label)
+
+        vbox.addLayout(hbox)
+        pass
+
+    def On100_Om(self):
+        self.OnProcess(0)
+        pass
+
+    def On1_KOm(self):
+        self.OnProcess(1)
+        pass
+
+    def On10_KOm(self):
+        self.OnProcess(2)
+        pass
+
+    def On100_KOm(self):
+        self.OnProcess(3)
+        pass
+
+    def OnProcess(self, interval):
+        print "OnProcess=", interval
+        #self.process(interval, lowPass = False)
+        self.process(interval, lowPass = True)
+        pass 
+    def process(self, interval, lowPass):
+        print "lowPass = ", lowPass
+        if lowPass:
+            freq = 1000
+        else:
+            freq = 300
+        period = usb_commands.periodByFreq(freq)
+        jout = usb_commands.oneFreq(period, lowPass=lowPass)
+        result = calculateJson(jout, correctR=False)
+        print 'Rre=', result['Rre']
+        print 'Rim=', result['Rim']
+        print 'result=', result
+        pass
+
+    def OnSave(self):
+        print "OnSave"
+        pass
+
+def makePhase():
+    '''
+    Вычисляем коэффициэнты для коррекции фазы по open/short файлам.
+    '''
+    freq_open = readJson('cor/freq_open.json')
+    freq_short = readJson('cor/freq_short.json')
+    jfreq_open = freq_open['freq']
+    jfreq_short = freq_short['freq']
+    jout = []
+
+    for idx in xrange(len(jfreq_open)):
+        res_open = calculateJson(jfreq_open[idx], correctR=False)
+        res_short = calculateJson(jfreq_short[idx], correctR=False)
+        assert res_open['F']==res_short['F']
+        d = {
+            'period' : jfreq_open[idx]['attr']['period'],
+            'fiV' : res_open['fiV'],
+            'fiI' : res_short['fiI']
+            }
+        jout.append(d)
+
+    f = open('cor/phase.json', 'w')
+    f.write(json.dumps(jout))
+    f.close()
+    pass
 
 def main():
+    #makePhase()
+    #return
     app = QtGui.QApplication(sys.argv)
     form = FormMain()
     form.show()

@@ -518,7 +518,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 96, -96):
+    for period in xrange(75*96, 3*96, -96):
         arr.append(period)
     return arr
 
@@ -564,6 +564,13 @@ def allFreq():
     f = open('freq.json', 'w')
     f.write(json.dumps(jout))
     f.close()
+
+def oneFreq(period, lowPass=False):
+    adcSynchro(period)
+    setLowPass(lowPass)
+    setGainAuto()
+    time.sleep(0.01)
+    return adcRequestLastComputeX()
 
 class ScanFreq:
     def init(self):

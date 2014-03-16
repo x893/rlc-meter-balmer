@@ -49,11 +49,10 @@ class FormDrawData(QtGui.QMainWindow):
 
 		self.setCentralWidget(self.main_frame)
 
-	def setData(self, data):
-		self.data = data
-		self.updateFigure()
+	def setData(self, filename):
+		self.updateFigure(filename)
 
-	def updateFigure(self):
+	def updateFigure(self, filename):
 		self.axes.clear()
 		self.axes.grid(True)
 
@@ -63,14 +62,22 @@ class FormDrawData(QtGui.QMainWindow):
 
 		#ax1 = self.axes
 		#ax1.plot(xlist, ylist, 'r')
-		self.plotFreq('freq_1uH.json')
+		self.plotFreq(filename)
 
 		self.fig.autofmt_xdate()
 		pass
 
+	def readPhase(self):
+		jphase = jplot.readJson('cor/phase.json')
+		set_phase = {}
+		for p in jphase:
+			set_phase[p['period']] = p
+		return set_phase
+
 	def plotFreq(self, fileName):
 		ax = self.axes
 		jout = jplot.readJson(fileName)
+		set_phase = self.readPhase()
 		jfreq = jout['freq']
 
 		f_data = []
@@ -92,15 +99,15 @@ class FormDrawData(QtGui.QMainWindow):
 		corr = jplot.Corrector()
 
 		for jf in jfreq:
-			res = jplot.calculateJson(jf)
+			res = jplot.calculateJson(jf, setPhase=set_phase)
 			F = res['F']
 			f_data.append(F)
 
 			re_data.append(math.fabs(res['Rre']))
 			#im_data.append(math.sqrt(res['Rre']**2+res['Rim']**2))
 			#re_data.append(res['Rre'])
-			im_data.append(math.fabs(res['Rim']))
-			#im_data.append(res['Rim'])
+			#im_data.append(math.fabs(res['Rim']))
+			im_data.append(res['Rim'])
 			re_error.append(jf['summary']['V']['square_error'])
 			im_error.append(jf['summary']['I']['square_error'])
 
@@ -173,11 +180,11 @@ class FormDrawData(QtGui.QMainWindow):
 		ax.set_xlabel("Hz")
 
 		ax.set_ylabel("Om")
-		#ax.plot (f_data, re_data, '-', color="red")
-		#ax.plot (f_data, im_data, '-', color="blue")
-		ax.plot (f_data, dfi_data, '-', color="green")
-		ax.plot (f_data, fiV_data, '-', color="red")
-		ax.plot (f_data, fiI_data, '-', color="blue")
+		ax.plot (f_data, re_data, '-', color="red")
+		ax.plot (f_data, im_data, '-', color="blue")
+		#ax.plot (f_data, dfi_data, '-', color="green")
+		#ax.plot (f_data, fiV_data, '-', color="red")
+		#ax.plot (f_data, fiI_data, '-', color="blue")
 
 		#ax.plot (f_data, re_error, '.', color="red")
 		#ax.plot (f_data, im_error, '.-', color="blue")
