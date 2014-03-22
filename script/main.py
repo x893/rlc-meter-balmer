@@ -181,6 +181,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.diapazon.append({'diapazon':2, 'value':1e4})
         self.diapazon.append({'diapazon':3, 'value':1e5})
         self.labels  = [None]*4
+        self.edits  = [None]*4
 
         self.setWindowTitle(TITLE)
         self.CreateMainFrame()
@@ -218,6 +219,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         text = self.diapazon[interval]['value']
         edit.setText(str(text))
         hbox.addWidget(edit)
+        self.edits[interval] = edit
 
         button = QtGui.QPushButton(name)
         button.clicked.connect(func)
@@ -249,7 +251,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
 
     def OnProcess(self, interval):
         print "OnProcess=", interval
-        #self.process(interval, lowPass = False)
+        self.diapazon[interval]['Rreal'] = float(self.edits[interval].text())
+        self.process(interval, lowPass = False)
         self.process(interval, lowPass = True)
         pass 
     def process(self, interval, lowPass):
@@ -257,17 +260,32 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         if lowPass:
             freq = 1000
         else:
-            freq = 300
+            freq = 3000
         period = usb_commands.periodByFreq(freq)
         jout = usb_commands.oneFreq(period, lowPass=lowPass)
         result = calculateJson(jout, correctR=False)
-        print 'Rre=', result['Rre']
-        print 'Rim=', result['Rim']
+        Rre = result['Rre']
+        Rim = result['Rim']
+        print 'Rre=', Rre
+        print 'Rim=', Rim
         print 'result=', result
+
+        if lowPass:
+            label = self.labels[interval]
+            label.setText(formatR(Rre))
+            label.setStyleSheet("QLabel { color : green; }");
+
+        if lowPass:
+            self.diapazon[interval]['Rlow'] = Rre
+        else:
+            self.diapazon[interval]['Rhigh'] = Rre
         pass
 
     def OnSave(self):
         print "OnSave"
+        f = open('cor/res.json', 'w')
+        f.write(json.dumps(self.diapazon))
+        f.close()
         pass
 
 def makePhase():

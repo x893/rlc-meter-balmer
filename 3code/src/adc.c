@@ -271,7 +271,7 @@ void AdcUsbReadBuffer()
 }
 
 
-void AdcDacStartSynchro(uint32_t period)
+void AdcDacStartSynchro(uint32_t period, uint16_t amplitude)
 {
 	if(g_adcStatus==1)
 		AdcStop();//Потенциально здесь может все зависнуть, если цикл внутри AdcQuant не завершился
@@ -283,7 +283,7 @@ void AdcDacStartSynchro(uint32_t period)
 	LcdFrequency(SystemCoreClock/period);
 	LcdRepaint();
 
-	DacSetPeriod(period);
+	DacSetPeriod(period, amplitude);
 	AdcRoundSize(DacSamplesPerPeriod());
 	AdcStartPre();
 

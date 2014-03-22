@@ -95,17 +95,24 @@ class FormDrawData(QtGui.QMainWindow):
 		im_cos = []
 		fiV_data = []
 		fiI_data = []
+		ampV = []
+		ampI = []
 
 		corr = jplot.Corrector()
+		corr_res = jplot.CorrectResistance()
+		corr_res.load()
 
 		for jf in jfreq:
-			res = jplot.calculateJson(jf, setPhase=set_phase)
+			#res = jplot.calculateJson(jf, correctR=corr_res, setPhase=set_phase)
+			res = jplot.calculateJson(jf)
 			F = res['F']
 			f_data.append(F)
 
-			re_data.append(math.fabs(res['Rre']))
+			ampV.append(res['ampV'])
+			ampI.append(res['ampI'])
+			#re_data.append(math.fabs(res['Rre']))
 			#im_data.append(math.sqrt(res['Rre']**2+res['Rim']**2))
-			#re_data.append(res['Rre'])
+			re_data.append(res['Rre'])
 			#im_data.append(math.fabs(res['Rim']))
 			im_data.append(res['Rim'])
 			re_error.append(jf['summary']['V']['square_error'])
@@ -125,9 +132,10 @@ class FormDrawData(QtGui.QMainWindow):
 			fiI_data.append(res['fiI'])
 
 			if True:
-				Zx = complex(res['Rre'], res['Rim'])
-				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
-				re_corr.append(Zx.real)
+				#Zx = complex(res['Rre'], res['Rim'])
+				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+				#re_corr.append(Zx.real)
+				re_corr.append(res['ampV']/res['ampI'])
 				im_corr.append(math.fabs(Zx.imag))
 				
 				if Zx.imag>0:
@@ -142,7 +150,8 @@ class FormDrawData(QtGui.QMainWindow):
 					C = 0
 				arr_L.append(L*1e6)
 				arr_C.append(C*1e12)
-			if False:
+
+			if False: #parrallel
 				#Zx = complex(res['Rre'], res['Rim'])
 				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 				Yx = 1/Zx
@@ -162,6 +171,7 @@ class FormDrawData(QtGui.QMainWindow):
 						im_corr.append(-im_max)
 
 				C = Yx.imag/(2*math.pi*F)
+				#C = 1.0/(2*math.pi*F*res["resistance"])
 				C = min(C, 1e-6)
 				C = max(C, -1e-6)
 				arr_C.append(C*1e12)
@@ -180,6 +190,9 @@ class FormDrawData(QtGui.QMainWindow):
 		ax.set_xlabel("Hz")
 
 		ax.set_ylabel("Om")
+		#ax.plot (f_data, ampV, '-', color="red")
+		#ax.plot (f_data, ampI, '-', color="blue")
+
 		ax.plot (f_data, re_data, '-', color="red")
 		ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, dfi_data, '-', color="green")
@@ -192,8 +205,8 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, im_sin, '.', color="red")
 		#ax.plot (f_data, im_cos, '.-', color="blue")
 
-		#ax.plot (f_data, re_corr, '.-', color="#00FF00")
-		#ax.plot (f_data, im_corr, '.-', color="#555555")
+		#ax.plot (f_data, re_corr, '-', color="#00FF00")
+		#ax.plot (f_data, im_corr, '-', color="#555555")
 
 		#ax.set_ylabel("uH")
 		#ax.plot (f_data, arr_L, '-', color="red")

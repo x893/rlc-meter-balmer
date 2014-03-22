@@ -24,7 +24,7 @@ void AdcInit();
 
 
 
-void AdcDacStartSynchro(uint32_t period);
+void AdcDacStartSynchro(uint32_t period, uint16_t amplitude);
 
 void AdcQuant();
 

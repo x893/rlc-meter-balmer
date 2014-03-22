@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import array
 import math
+import cmath
 import datetime
 import struct
 import sys
@@ -104,20 +105,30 @@ def plotRaw(fileName, IV, average = False):
 
 def calcFast(period, clock, ncycle, sdata):
 	(amplitude, fi) = smath.calcFi(sdata["sin"], sdata["cos"])
+	#cp = complex(sdata["sin"], sdata["cos"])
+	#print "fi=", fi, "f=", cmath.phase(cp)
 	return {"amplitude": amplitude, "fi": fi}
 
-def correctResistance(resistor_index):
-	"""
-		Корректируем отличия в сопротивлениях на разных диапазонах
-	"""
-	K = [197.9/200, 
-		 992.2/1e3,
-		 9957.6/10e3,
-		 99719/100e3]
-	return K[resistor_index]
+
+class CorrectResistance:
+	def load(self):
+		self.data = readJson('cor/res.json')
+		print self.data
+		pass
+
+	def correctResistance(self, resistor_index, low_pass):
+		"""
+			Корректируем отличия в сопротивлениях на разных диапазонах
+		"""
+		K = self.data[resistor_index]
+		if low_pass:
+			R = K['Rlow']
+		else:
+			R = K['Rhigh']
+		return R/K['Rreal']
 
 
-def calculateJson(jout, correctR=True, setPhase=None):
+def calculateJson(jout, correctR=None, setPhase=None):
 	jattr = jout["attr"]
 	period = jattr["period"]
 	clock = jattr["clock"]
@@ -126,7 +137,7 @@ def calculateJson(jout, correctR=True, setPhase=None):
 	gain_V = jattr["gain_V"]
 	gain_I = jattr["gain_I"]
 	if correctR:
-		gain_V *= correctResistance(jattr["resistor_index"])
+		gain_V *= correctR.correctResistance(jattr["resistor_index"], jattr["low_pass"])
 	resistor = jattr["resistor"]
 	toVolts = 3.3/4095.0
 
@@ -144,7 +155,7 @@ def calculateJson(jout, correctR=True, setPhase=None):
 	fiI = resultI['fi']
 	if fiV<0:
 		fiV+=math.pi*2
-	if fiI<0 and F<1e4:
+	if fiI<0:
 		fiI+=math.pi*2
 
 	if setPhase:
@@ -195,15 +206,17 @@ class Corrector:
 
 	def load(self):		
 		#self.load0()
-		self.load1()
+		#self.load1()
+		self.load2x()
 		#self.load3()
 		pass
 
 	def correct(self, Rre, Rim, period, F):
 		#return self.correct0(Rre, Rim, period, F)
 		#return self.correct1(Rre, Rim, period, F)
+		return self.correct2x(Rre, Rim, period, F)
 		#return self.correct3(Rre, Rim, period, F)
-		return self.correctParallelCapacitor(Rre, Rim, period, F)
+		#return self.correctParallelCapacitor(Rre, Rim, period, F)
 
 	def load0(self):
 		json_short = readJson("cor/0_short.json")
@@ -227,8 +240,8 @@ class Corrector:
 		pass
 
 	def load3(self):
-		json_open = readJson("cor/3_open.json")
-		json_load = readJson("cor/3_load.json")
+		json_open = readJson("cor/freq_open.json")
+		json_load = readJson("cor/freq_100KOm.json")
 
 		data = {}
 
@@ -244,16 +257,17 @@ class Corrector:
 
 		self.data = data
 		self.R = json_load['R']
+		self.C = 1.2e-12
 
 		pass
 
 	def load1(self):
-		#json_Z0 = readJson("cor/freq_1KOm.json")
-		#json_Z1 = readJson("cor/freq_2200Om.json")
-		#json_Z2 = readJson("cor/freq_10KOm.json")
-		json_Z0 = readJson("cor/freq_1MOm.json")
-		json_Z1 = readJson("cor/freq_2700KOm.json")
-		json_Z2 = readJson("cor/freq_10MOm.json")
+		json_Z0 = readJson("cor/1_1KOm.json")
+		json_Z1 = readJson("cor/1_2200Om.json")
+		json_Z2 = readJson("cor/1_10KOm.json")
+		#json_Z0 = readJson("cor/freq_1MOm.json")
+		#json_Z1 = readJson("cor/freq_2700KOm.json")
+		#json_Z2 = readJson("cor/freq_10MOm.json")
 
 		Z0dut = complex(json_Z0['R'], 0)
 		Z1dut = complex(json_Z1['R'], 0)
@@ -280,6 +294,40 @@ class Corrector:
 
 		pass
 
+	def load2x(self):
+		json_min = readJson("cor/1_1KOm.json")
+		json_max = readJson("cor/1_10KOm.json")
+
+		data = {}
+
+		jfreq_min = json_min['freq']
+		for jf in jfreq_min:
+			res = calculateJson(jf)
+			data[res['period']] = { 'min': res }
+
+		jfreq_max = json_max['freq']
+		for jf in jfreq_max:
+			res = calculateJson(jf)
+			data[res['period']]['max'] = res
+
+		self.data = data
+		self.Rmin = json_min['R']
+		self.Rmax = json_max['R']
+		self.C = 1.2e-12
+
+		pass
+	def correct2x(self, Rre, Rim, period, F):
+		d = self.data[period]
+		Z1 = complex(self.Rmin, 0)
+		Z2 = complex(self.Rmax, 0)
+		Zm1 = complex(d['min']['Rre'] , d['min']['Rim'])
+		Zm2 = complex(d['max']['Rre'] , d['max']['Rim'])
+		A = (Z2-Z1)/(Zm2-Zm1)
+		B = (Z1*Zm2-Z2*Zm1)/(Zm2-Zm1)
+		Zxm = complex(Rre , Rim)
+		Zx = A*Zxm+B
+		return Zx
+
 	def correct0(self, Rre, Rim, period, F):
 		d = self.data[period]
 		Zsm = complex(d['short']['Rre'] , d['short']['Rim'])
@@ -299,7 +347,9 @@ class Corrector:
 		d = self.data[period]
 		Zom = complex(d['open']['Rre'] , d['open']['Rim'])
 		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
-		Zstd = complex(self.R, 0)
+		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
+		Zstd = 1/Ystd
+		#Zstd = complex(self.R, 0)
 		Zxm = complex(Rre , Rim)
 		Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
 		if period==96:
@@ -564,17 +614,51 @@ def plotFreq(fileName):
 	plt.show()
 	pass
 
+def plotDelta(fileName1, fileName2, K):
+	jfreq1 = readJson(fileName1)['freq']
+	jfreq2 = readJson(fileName2)['freq']
+	f_data = []
+	ampV = []
+	ampI = []
+	dfi_data = []
+	for i in xrange(0, len(jfreq1)):
+		jf1 = jfreq1[i]
+		jf2 = jfreq2[i]		
+		res1 = calculateJson(jf1)
+		res2 = calculateJson(jf2)
+		F = res1['F']
+		f_data.append(F)
+		ampV.append(res2['ampV']*K/res1['ampV']-1.0)
+		ampI.append(res2['ampI']*K/res1['ampI']-1.0)
+		dfi_data.append(res2['dfi']-res1['dfi'])
+		pass
+
+	fig, ax = plt.subplots()
+	ax.set_xscale('log')
+	ax.set_xlabel("Hz")
+	ax.set_ylabel("V")
+
+	ax.plot (f_data, ampV, '-', color="red")
+	ax.plot (f_data, ampI, '-', color="blue")
+	ax.plot (f_data, dfi_data, '-', color="green")
+
+	plt.show()
+	pass
 
 def main():
 	if len(sys.argv)>=2:
 		fileName = sys.argv[1]
 
+	#plotDelta("0_1200.json", "4_150.json", 8)
+	#plotDelta("0_1200.json", "1_600.json", 2)
+	#return
+
 	if fileName[0]=='f':
 		plotFreq(fileName)
 	else:
 		#plot(fileName)
-		#plotRaw(fileName, "V", average=False)
-		plotIV(fileName, average=False)
+		#plotRaw(fileName, "I", average=False)
+		plotIV(fileName, average=True)
 		#plotIV_2()
 
 if __name__ == "__main__":

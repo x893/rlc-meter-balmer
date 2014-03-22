@@ -7,13 +7,11 @@
 
 #define DAC_ZERO 2047
 #define DAC_AMPLITUDE 1200
-//#define DAC_AMPLITUDE 800
-//#define DAC_AMPLITUDE 0
 
 //max 375 khz
 #define MIN_SINUS_PERIOD 192
 
-
+static uint16_t g_dac_amplitude = DAC_AMPLITUDE;
 static uint16_t g_sinusBuffer[SINUS_BUFFER_SIZE];
 static uint32_t SinusBufferSize = SINUS_BUFFER_SIZE;
 static uint32_t g_dac_period = 0; // * 1/SystemCoreClock sec SystemCoreClock==72000000
@@ -41,7 +39,7 @@ void DacSinusCalculate()
 	{
 		float s = sin(i*mul);
 		g_sinusBufferFloat[i] = s;
-		g_sinusBuffer[i] = (uint16_t) lround(s*DAC_AMPLITUDE)+DAC_ZERO;
+		g_sinusBuffer[i] = (uint16_t) lround(s*g_dac_amplitude)+DAC_ZERO;
 	}
 }
 
@@ -79,14 +77,15 @@ If frequency<=1 khz
 */
 void DacSetFrequency(uint32_t frequency)
 {
-	DacSetPeriod(SystemCoreClock/frequency);
+	DacSetPeriod(SystemCoreClock/frequency, DAC_AMPLITUDE);
 }
 
 /*
 	sinusPeriod in SystemCoreClock quants
 */
-void DacSetPeriod(uint32_t sinusPeriod)
+void DacSetPeriod(uint32_t sinusPeriod, uint16_t amplitude)
 {
+	g_dac_amplitude = amplitude;
 	if(sinusPeriod<MIN_SINUS_PERIOD)
 		sinusPeriod = MIN_SINUS_PERIOD;
 	//assert_param(frequency>=100 && frequency<=200000);

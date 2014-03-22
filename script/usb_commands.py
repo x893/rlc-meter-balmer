@@ -10,14 +10,7 @@ import smath
 from jplot import calculateJson
 import json
 
-dev = None
-gainVoltageIdx = 0
-gainCurrentIdx = 0
-resistorIdx = 0
-ncycle = 0
-period = 0
-clock = 0
-
+DEFAULT_DAC_AMPLITUDE = 1200
 COMMAND_SET_LED = 1
 COMMAND_SET_FREQUENCY = 2
 COMMAND_SET_GAIN = 3
@@ -29,6 +22,18 @@ COMMAND_LAST_COMPUTE = 8
 COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
+
+
+dev = None
+gainVoltageIdx = 0
+gainCurrentIdx = 0
+resistorIdx = 0
+currentLowPass = 0
+ncycle = 0
+period = 0
+clock = 0
+amplitude = DEFAULT_DAC_AMPLITUDE
+
 
 def inited():
     return not (dev is None)
@@ -167,6 +172,7 @@ def setLowPass(on):
         r = 1
     else:
         r = 0
+    currentLowPass = r
     dwrite([COMMAND_SET_LOW_PASS, r])
     data = dread()
     assert(data[0]==COMMAND_SET_LOW_PASS)
@@ -244,9 +250,11 @@ def getResistorValueStr(idx):
     r = ['100 Om', '1 KOm', '10 KOm', '100 KOm']
     return r[idx]
 
-def adcSynchro(inPeriod):
-    global ncycle, period, clock
-    dwrite(struct.pack("=BI", COMMAND_START_SYNCHRO, inPeriod))
+def adcSynchro(inPeriod, inAmplitude = None):
+    global ncycle, period, clock, amplitude
+    if inAmplitude:
+        amplitude = inAmplitude
+    dwrite(struct.pack("=BIH", COMMAND_START_SYNCHRO, inPeriod, amplitude))
     data = dread()
     #print data
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
@@ -451,6 +459,7 @@ def getAttr():
     jattr["gain_I"] = getGainValueI(gainCurrentIdx)
     jattr["resistor_index"] = resistorIdx
     jattr["resistor"] = getResistorValue(resistorIdx)
+    jattr["low_pass"] = currentLowPass
     return jattr
 
 def adcSynchroJson():
@@ -586,7 +595,7 @@ class ScanFreq:
         #PERIOD_ROUND = period10Khz_max()
         self.PERIOD_ROUND = periodAll()
         #print PERIOD_ROUND
-        adcSynchro(self.PERIOD_ROUND[0])
+        adcSynchro(self.PERIOD_ROUND[0], 150)
         self.current_value = 0
         time.sleep(0.2)
         pass
@@ -602,11 +611,12 @@ class ScanFreq:
             setLowPass(True)
         else:
             setLowPass(False)
-        if True:
-            setGainAuto()
         if False:
-            setResistor(3)
-            setSetGain(1, 0) #V
+            #setGainAuto()
+            setGainAuto(1) #test
+        if True:
+            setResistor(1)
+            setSetGain(1, 4) #V
             setSetGain(0, 4) #I
 
         time.sleep(0.01)
@@ -661,22 +671,20 @@ def main():
     #return
 
     if True:
-        setLowPass(True)
-        #period = periodByFreq(2300)
-        period = periodByFreq(1000)
-        #period = periodByFreq(50000)
+        period = periodByFreq(10000)
         #period = 384
 
-        adcSynchro(period)
+        adcSynchro(period, 1200)
+        setLowPass(False)
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
         if True:
             setGainAuto()
             #setGainAuto(predefinedRes=2)
         else:
-            setResistor(3)
+            setResistor(1)
             setSetGain(1, 0) #V
-            setSetGain(0, 0) #I
+            setSetGain(0, 1) #I
         time.sleep(0.1)
         adcSynchroJson()
     else:
