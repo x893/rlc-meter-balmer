@@ -12,6 +12,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+toVolts = 3.3/4095.0
+
 def formatR(R):
 	RA = math.fabs(R)
 	if RA<1e-2:
@@ -110,58 +112,39 @@ def calcFast(period, clock, ncycle, sdata):
 	return {"amplitude": amplitude, "fi": fi}
 
 
-class CorrectResistance:
-	def load(self):
-		self.data = readJson('cor/res.json')
-		print self.data
-		pass
 
-	def correctResistance(self, resistor_index, low_pass):
-		"""
-			Корректируем отличия в сопротивлениях на разных диапазонах
-		"""
-		K = self.data[resistor_index]
-		if low_pass:
-			R = K['Rlow']
-		else:
-			R = K['Rhigh']
-		return R/K['Rreal']
-
-
-def calculateJson(jout, correctR=None, setPhase=None):
+def calculateJson(jout, gain_corrector = None):
 	jattr = jout["attr"]
 	period = jattr["period"]
 	clock = jattr["clock"]
 	ncycle = jattr["ncycle"]
 
-	gain_V = jattr["gain_V"]
-	gain_I = jattr["gain_I"]
-	if correctR:
-		gain_V *= correctR.correctResistance(jattr["resistor_index"], jattr["low_pass"])
 	resistor = jattr["resistor"]
-	toVolts = 3.3/4095.0
 
 	F = clock/period #frequency, herz
 
-	if 'summary' in jout:
-		resultV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
-		resultI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+	if gain_corrector:
+		(ampV, fiV, ampI, fiI)=gain_corrector.calc(period=period, clock=clock, ncycle=ncycle, jout=jout)
 	else:
-		resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
-		resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
-	ampV = resultV['amplitude']
-	ampI = resultI['amplitude']
-	fiV = resultV['fi']
-	fiI = resultI['fi']
+		if 'summary' in jout:
+			resultV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
+			resultI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+		else:
+			resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
+			resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
+		gain_V = jattr["gain_V"]
+		gain_I = jattr["gain_I"]
+		ampV = resultV['amplitude']
+		ampI = resultI['amplitude']
+		fiV = resultV['fi']
+		fiI = resultI['fi']
+		ampV *= toVolts/gain_V
+		ampI *= toVolts/gain_I
+
 	if fiV<0:
 		fiV+=math.pi*2
 	if fiI<0:
 		fiI+=math.pi*2
-
-	if setPhase:
-		p = setPhase[period]
-		fiV -= p['fiV']
-		fiI -= p['fiI']
 
 	#dfi = resultV['fi']-resultI['fi']
 	dfi = fiV-fiI
@@ -171,8 +154,6 @@ def calculateJson(jout, correctR=None, setPhase=None):
 	if dfi<-math.pi:
 		dfi += math.pi*2
 
-	ampV *= toVolts/gain_V
-	ampI *= toVolts/gain_I
 
 	current = ampI/resistor # current in Ampers
 
@@ -199,8 +180,55 @@ def calculateJson(jout, correctR=None, setPhase=None):
 		"fiI": fiI
 	}
 
-class Corrector:	
+class GainCorrector:
+	'''
+	Корректирует неточность усиления из-за переключения диапазонов усиления
+	'''
 	def __init__(self):
+		self.load()
+		pass
+	def load(self):
+		self.jsons = []
+		self.append(readJson("cor/0_1200.json"))
+		self.append(readJson("cor/1_600.json"))
+		self.append(readJson("cor/2_300.json"))
+		self.append(readJson("cor/3_240.json"))
+		self.append(readJson("cor/4_150.json"))
+		pass
+
+	def append(self, json_data):
+		data = {}
+		jfreq = json_data['freq']
+		for jout in jfreq:
+			period = jout['attr']['period']
+			data[period] = jout
+		self.jsons.append(data)
+
+	def calc(self, period, clock, ncycle, jout):
+		zV = self.calcX('V', jout, index=jout['attr']['gain_index_V'], period=period)
+		zI = self.calcX('I', jout, index=jout['attr']['gain_index_I'], period=period)
+		(ampV, fiV) = cmath.polar(zV)
+		(ampI, fiI) = cmath.polar(zI)
+		return (ampV, fiV, ampI, fiI)
+
+	def calcX(self, IV, jout, index, period):
+		gi = 'gain_'+IV
+		zMeasure = self.calcZ(jout['summary'][IV])/jout['attr'][gi]
+		jout0 = self.jsons[0][period]
+		joutX = self.jsons[index][period]
+		z0 = self.calcZ(jout0['summary'][IV]) #/jout0['attr'][gi]
+		zX = self.calcZ(joutX['summary'][IV]) #/joutX['attr'][gi]
+		if index!=0:
+			print "i"+IV+'=', index, "z=", z0/zX
+		return zMeasure*z0/zX
+
+	def calcZ(self, sdata):
+		return complex(sdata["sin"], sdata["cos"])
+
+
+class Corrector:	
+	def __init__(self, gain_corrector = None):
+		self.gain_corrector = gain_corrector
 		self.load()
 		pass
 
@@ -279,9 +307,9 @@ class Corrector:
 		jfreq_Z1 = json_Z1['freq']
 		jfreq_Z2 = json_Z2['freq']
 		for i in xrange(0, len(jfreq_Z0)):
-			res0 = calculateJson(jfreq_Z0[i])
-			res1 = calculateJson(jfreq_Z1[i])
-			res2 = calculateJson(jfreq_Z2[i])
+			res0 = calculateJson(jfreq_Z0[i], self.gain_corrector)
+			res1 = calculateJson(jfreq_Z1[i], self.gain_corrector)
+			res2 = calculateJson(jfreq_Z2[i], self.gain_corrector)
 			Z0m = complex(res0['Rre'], res0['Rim'])
 			Z1m = complex(res1['Rre'], res1['Rim'])
 			Z2m = complex(res2['Rre'], res2['Rim'])
@@ -302,12 +330,12 @@ class Corrector:
 
 		jfreq_min = json_min['freq']
 		for jf in jfreq_min:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']] = { 'min': res }
 
 		jfreq_max = json_max['freq']
 		for jf in jfreq_max:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']]['max'] = res
 
 		self.data = data

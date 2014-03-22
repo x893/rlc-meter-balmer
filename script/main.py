@@ -149,7 +149,8 @@ class FormScan(QtGui.QMainWindow):
             FormScan.SetInfo()
             pass
 
-        s.progress_bar.setValue(s.scan_freq.current())
+        #s.progress_bar.setValue(s.scan_freq.current())
+        FormScan.SetInfo()
         s.scan_freq.save()
         pass
 

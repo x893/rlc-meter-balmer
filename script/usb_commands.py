@@ -254,6 +254,8 @@ def adcSynchro(inPeriod, inAmplitude = None):
     global ncycle, period, clock, amplitude
     if inAmplitude:
         amplitude = inAmplitude
+    else:
+        amplitude = DEFAULT_DAC_AMPLITUDE
     dwrite(struct.pack("=BIH", COMMAND_START_SYNCHRO, inPeriod, amplitude))
     data = dread()
     #print data
@@ -595,7 +597,8 @@ class ScanFreq:
         #PERIOD_ROUND = period10Khz_max()
         self.PERIOD_ROUND = periodAll()
         #print PERIOD_ROUND
-        adcSynchro(self.PERIOD_ROUND[0], 150)
+        adcSynchro(self.PERIOD_ROUND[0])
+        #adcSynchro(self.PERIOD_ROUND[0], 150)
         self.current_value = 0
         time.sleep(0.2)
         pass
@@ -611,10 +614,10 @@ class ScanFreq:
             setLowPass(True)
         else:
             setLowPass(False)
-        if False:
+        if True:
             #setGainAuto()
             setGainAuto(1) #test
-        if True:
+        else:
             setResistor(1)
             setSetGain(1, 4) #V
             setSetGain(0, 4) #I
@@ -678,9 +681,9 @@ def main():
         setLowPass(False)
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        if True:
-            setGainAuto()
-            #setGainAuto(predefinedRes=2)
+        if False:
+            #setGainAuto()
+            setGainAuto(predefinedRes=1)
         else:
             setResistor(1)
             setSetGain(1, 0) #V

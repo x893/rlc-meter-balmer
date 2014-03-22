@@ -98,13 +98,12 @@ class FormDrawData(QtGui.QMainWindow):
 		ampV = []
 		ampI = []
 
-		corr = jplot.Corrector()
-		corr_res = jplot.CorrectResistance()
-		corr_res.load()
+		corr_gain = jplot.GainCorrector()
+		corr = jplot.Corrector(corr_gain)
 
 		for jf in jfreq:
-			#res = jplot.calculateJson(jf, correctR=corr_res, setPhase=set_phase)
-			res = jplot.calculateJson(jf)
+			res = jplot.calculateJson(jf, gain_corrector=corr_gain)
+			#res = jplot.calculateJson(jf)
 			F = res['F']
 			f_data.append(F)
 
@@ -131,11 +130,11 @@ class FormDrawData(QtGui.QMainWindow):
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
 
-			if True:
+			if False:
 				#Zx = complex(res['Rre'], res['Rim'])
 				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
-				#re_corr.append(Zx.real)
-				re_corr.append(res['ampV']/res['ampI'])
+				re_corr.append(Zx.real)
+				#re_corr.append(res['ampV']/res['ampI'])
 				im_corr.append(math.fabs(Zx.imag))
 				
 				if Zx.imag>0:
@@ -151,7 +150,7 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_L.append(L*1e6)
 				arr_C.append(C*1e12)
 
-			if False: #parrallel
+			if True: #parrallel
 				#Zx = complex(res['Rre'], res['Rim'])
 				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 				Yx = 1/Zx
@@ -193,8 +192,8 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, ampV, '-', color="red")
 		#ax.plot (f_data, ampI, '-', color="blue")
 
-		ax.plot (f_data, re_data, '-', color="red")
-		ax.plot (f_data, im_data, '-', color="blue")
+		#ax.plot (f_data, re_data, '-', color="red")
+		#ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, dfi_data, '-', color="green")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
@@ -211,7 +210,7 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_ylabel("uH")
 		#ax.plot (f_data, arr_L, '-', color="red")
 
-		#ax.set_ylabel("pF")
-		#ax.plot (f_data, arr_C, '-', color="red")
+		ax.set_ylabel("pF")
+		ax.plot (f_data, arr_C, '-', color="red")
 
 		pass
