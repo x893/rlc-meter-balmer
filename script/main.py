@@ -65,6 +65,7 @@ class FormMain(QtGui.QMainWindow):
         if not self.initDevice():
             return
         form = FormScan(self)
+        form.startDefault()
         form.show()
         pass
 
@@ -98,18 +99,27 @@ class FormScan(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(FormScan, self).__init__(parent)
         self.setWindowTitle(TITLE)
-
         self.CreateMainFrame()
+        pass
 
+    def startDefault(self):
         FormScan.self_ptr = self
-        FormScan.scan_freq = usb_commands.ScanFreq()
-        FormScan.scan_freq.init()
+        self.scan_freq = usb_commands.ScanFreq()
+        self.scan_freq.init()
 
-        FormScan.progress_bar.setRange(0, FormScan.scan_freq.count())
-        FormScan.progress_bar.setValue(0)
+        self.progress_bar.setRange(0, self.scan_freq.count())
+        self.progress_bar.setValue(0)
 
         FormScan.endThread = False
         self.th = threading.Thread(target=FormScan.UsbThread, args=[])
+        self.th.start()
+        pass
+
+    def startCalibrate(self):
+        FormScan.self_ptr = self
+
+        FormScan.endThread = False
+        self.th = threading.Thread(target=FormScan.CalibrateThreadV, args=[])
         self.th.start()
         pass
 
@@ -117,11 +127,10 @@ class FormScan(QtGui.QMainWindow):
         self.main_frame = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
 
-        header_label = QtGui.QLabel(u'Сканирование диапазона.')
+        self.header_label = QtGui.QLabel(u'Сканирование диапазона.')
+        vbox.addWidget(self.header_label)
 
-        vbox.addWidget(header_label)
-
-        FormScan.progress_bar = QtGui.QProgressBar()
+        self.progress_bar = QtGui.QProgressBar()
 
         vbox.addWidget(self.progress_bar)
 
@@ -134,10 +143,8 @@ class FormScan(QtGui.QMainWindow):
         pass
 
     def closeEvent(self, event):
-        print("FormScan: close event")
         FormScan.endThread = True
         event.accept()
-
         pass
 
     @staticmethod
@@ -149,9 +156,66 @@ class FormScan(QtGui.QMainWindow):
             FormScan.SetInfo()
             pass
 
-        #s.progress_bar.setValue(s.scan_freq.current())
         FormScan.SetInfo()
         s.scan_freq.save()
+        pass
+
+    @staticmethod
+    def CalibrateThreadI():
+        '''
+        Калибровка коэффициэнтов усиления тока сопротивлением 1 КОм
+        '''
+        s = FormScan.self_ptr
+
+        resistorIndex = 0
+        prefix = 'cor/KI'+str(resistorIndex)
+
+        for index in xrange(7):
+            fileName = prefix+'_'+str(index)+'.json'
+            s.header_label.setText(fileName)
+            s.scan_freq = usb_commands.ScanFreq()
+            s.scan_freq.init(resistorIndex=resistorIndex, VIndex=0, IIndex=index, fileName=fileName)
+
+            s.progress_bar.setRange(0, s.scan_freq.count())
+            s.progress_bar.setValue(0)
+
+            while s.scan_freq.next():
+                if FormScan.endThread:
+                    return
+                FormScan.SetInfo()
+                pass
+
+            FormScan.SetInfo()
+            s.scan_freq.save()
+        pass
+
+    @staticmethod
+    def CalibrateThreadV():
+        '''
+        Калибровка коэффициэнтов усиления напряжения сопротивлением 10 Ом
+        '''
+        s = FormScan.self_ptr
+
+        resistorIndex = 0
+        prefix = 'cor/KV'+str(resistorIndex)
+
+        for index in xrange(7):
+            fileName = prefix+'_'+str(index)+'.json'
+            s.header_label.setText(fileName)
+            s.scan_freq = usb_commands.ScanFreq()
+            s.scan_freq.init(resistorIndex=resistorIndex, VIndex=index, IIndex=0, fileName=fileName)
+
+            s.progress_bar.setRange(0, s.scan_freq.count())
+            s.progress_bar.setValue(0)
+
+            while s.scan_freq.next():
+                if FormScan.endThread:
+                    return
+                FormScan.SetInfo()
+                pass
+
+            FormScan.SetInfo()
+            s.scan_freq.save()
         pass
 
     @staticmethod
@@ -202,6 +266,10 @@ class FormCalibrationResistor(QtGui.QMainWindow):
 
         button_save = QtGui.QPushButton(u'Записать')
         button_save.clicked.connect(self.OnSave)
+        vbox.addWidget(button_save)
+
+        button_save = QtGui.QPushButton(u'Калиб!')
+        button_save.clicked.connect(self.OnCalibrateK)
         vbox.addWidget(button_save)
 
         self.main_frame.setLayout(vbox)
@@ -287,6 +355,11 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         f = open('cor/res.json', 'w')
         f.write(json.dumps(self.diapazon))
         f.close()
+        pass
+    def OnCalibrateK(self):
+        form = FormScan(self)
+        form.startCalibrate()
+        form.show()
         pass
 
 def makePhase():

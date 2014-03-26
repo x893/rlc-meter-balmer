@@ -107,8 +107,9 @@ def plotRaw(fileName, IV, average = False):
 
 def calcFast(period, clock, ncycle, sdata):
 	(amplitude, fi) = smath.calcFi(sdata["sin"], sdata["cos"])
-	#cp = complex(sdata["sin"], sdata["cos"])
-	#print "fi=", fi, "f=", cmath.phase(cp)
+	#(a,f) = cmath.polar(complex(sdata["sin"], sdata["cos"]))
+	#print "fi=", fi, "f=", f
+	#print "am=", amplitude, "a=", a
 	return {"amplitude": amplitude, "fi": fi}
 
 
@@ -140,6 +141,7 @@ def calculateJson(jout, gain_corrector = None):
 		fiI = resultI['fi']
 		ampV *= toVolts/gain_V
 		ampI *= toVolts/gain_I
+		print "F=", F, "gain_V=", gain_V, "gain_I=", gain_I
 
 	if fiV<0:
 		fiV+=math.pi*2
@@ -188,42 +190,52 @@ class GainCorrector:
 		self.load()
 		pass
 	def load(self):
-		self.jsons = []
-		self.append(readJson("cor/0_1200.json"))
-		self.append(readJson("cor/1_600.json"))
-		self.append(readJson("cor/2_300.json"))
-		self.append(readJson("cor/3_240.json"))
-		self.append(readJson("cor/4_150.json"))
+		self.jsonsI = []
+		self.jsonsV = []
+		pr = "cor/K0_";
+		for i in xrange(7):
+			self.append(self.jsonsI, readJson("cor/KI0_"+str(i)+".json"))
+			self.append(self.jsonsV, readJson("cor/KV0_"+str(i)+".json"))
+
 		pass
 
-	def append(self, json_data):
+	def append(self, jsons, json_data):
 		data = {}
 		jfreq = json_data['freq']
 		for jout in jfreq:
 			period = jout['attr']['period']
 			data[period] = jout
-		self.jsons.append(data)
+		jsons.append(data)
+		pass
 
 	def calc(self, period, clock, ncycle, jout):
-		zV = self.calcX('V', jout, index=jout['attr']['gain_index_V'], period=period)
-		zI = self.calcX('I', jout, index=jout['attr']['gain_index_I'], period=period)
+		zV = self.calcX('V', self.jsonsV, jout, index=jout['attr']['gain_index_V'], period=period)
+		zI = self.calcX('I', self.jsonsI, jout, index=jout['attr']['gain_index_I'], period=period)
 		(ampV, fiV) = cmath.polar(zV)
 		(ampI, fiI) = cmath.polar(zI)
 		return (ampV, fiV, ampI, fiI)
 
-	def calcX(self, IV, jout, index, period):
+	def calcX(self, IV, jsons, jout, index, period):
 		gi = 'gain_'+IV
-		zMeasure = self.calcZ(jout['summary'][IV])/jout['attr'][gi]
-		jout0 = self.jsons[0][period]
-		joutX = self.jsons[index][period]
-		z0 = self.calcZ(jout0['summary'][IV]) #/jout0['attr'][gi]
-		zX = self.calcZ(joutX['summary'][IV]) #/joutX['attr'][gi]
+		zMeasure = self.calcZ(jout['summary'][IV])
+		if index>=len(jsons):
+			index = len(jsons)-1
+
+		jout0 = jsons[0][period]
+		joutX = jsons[index][period]
+		z0 = self.calcZ(jout0['summary'][IV]) 
+		zX = self.calcZ(joutX['summary'][IV])
+		z0 *= toVolts/jout0['attr'][gi]
+		zX *= toVolts/joutX['attr'][gi]
+		zMeasure *= toVolts/jout['attr'][gi]
 		if index!=0:
-			print "i"+IV+'=', index, "z=", z0/zX
+			print "i"+IV+'=', index, "z0=", z0, "zX=", zX
 		return zMeasure*z0/zX
+		#return zX
 
 	def calcZ(self, sdata):
 		return complex(sdata["sin"], sdata["cos"])
+		#return math.sqrt(sdata["sin"]*sdata["sin"]+sdata["cos"]*sdata["cos"])
 
 
 class Corrector:	
@@ -247,8 +259,8 @@ class Corrector:
 		#return self.correctParallelCapacitor(Rre, Rim, period, F)
 
 	def load0(self):
-		json_short = readJson("cor/0_short.json")
-		json_load = readJson("cor/0_load_1.json")
+		json_short = readJson("cor/freq_short.json")
+		json_load = readJson("cor/freq_1Om.json")
 
 		data = {}
 
@@ -325,6 +337,8 @@ class Corrector:
 	def load2x(self):
 		json_min = readJson("cor/1_1KOm.json")
 		json_max = readJson("cor/1_10KOm.json")
+		#json_min = readJson("cor/0_100Om.json")
+		#json_max = readJson("cor/0_1KOm.json")
 
 		data = {}
 
@@ -685,7 +699,7 @@ def main():
 		plotFreq(fileName)
 	else:
 		#plot(fileName)
-		#plotRaw(fileName, "I", average=False)
+		#plotRaw(fileName, "V", average=False)
 		plotIV(fileName, average=True)
 		#plotIV_2()
 

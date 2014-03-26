@@ -130,12 +130,13 @@ class FormDrawData(QtGui.QMainWindow):
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
 
-			if False:
-				#Zx = complex(res['Rre'], res['Rim'])
-				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+			if True:
+				Zx = complex(res['Rre'], res['Rim'])
+				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 				re_corr.append(Zx.real)
 				#re_corr.append(res['ampV']/res['ampI'])
-				im_corr.append(math.fabs(Zx.imag))
+				#im_corr.append(math.fabs(Zx.imag))
+				im_corr.append(Zx.imag)
 				
 				if Zx.imag>0:
 					L = Zx.imag/(2*math.pi*F)
@@ -150,17 +151,17 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_L.append(L*1e6)
 				arr_C.append(C*1e12)
 
-			if True: #parrallel
-				#Zx = complex(res['Rre'], res['Rim'])
-				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+			if False: #parrallel
+				Zx = complex(res['Rre'], res['Rim'])
+				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
 				Yx = 1/Zx
 
-				if Yx.real < 1e-8:
-					re_corr.append(1e8)
+				im_max = 1e10
+				if Yx.real < 1/im_max:
+					re_corr.append(im_max)
 				else:
 					re_corr.append(1/Yx.real)
 
-				im_max = 1e8
 				if math.fabs(Yx.imag)*im_max>1:
 					im_corr.append(1/Yx.imag)
 				else:
@@ -192,8 +193,8 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, ampV, '-', color="red")
 		#ax.plot (f_data, ampI, '-', color="blue")
 
-		#ax.plot (f_data, re_data, '-', color="red")
-		#ax.plot (f_data, im_data, '-', color="blue")
+		ax.plot (f_data, re_data, '-', color="red")
+		ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, dfi_data, '-', color="green")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
@@ -210,7 +211,7 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_ylabel("uH")
 		#ax.plot (f_data, arr_L, '-', color="red")
 
-		ax.set_ylabel("pF")
-		ax.plot (f_data, arr_C, '-', color="red")
+		#ax.set_ylabel("pF")
+		#ax.plot (f_data, arr_C, '-', color="red")
 
 		pass

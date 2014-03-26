@@ -168,10 +168,11 @@ def setResistor(r):
     assert(data[0]==COMMAND_SET_RESISTOR)
 
 def setLowPass(on):
+    global currentLowPass
     if on:
         r = 1
     else:
-        r = 0
+        r = 0        
     currentLowPass = r
     dwrite([COMMAND_SET_LOW_PASS, r])
     data = dread()
@@ -344,9 +345,6 @@ def setGainAuto(predefinedRes=-1):
     #goodMax = 3300
 
     goodDelta = goodMax-goodMin
-    #goodDeltaIdx = [goodDelta, goodDelta, goodDelta, goodDelta, goodDelta, 600, 600, 600]
-    #goodDeltaIdx = [goodDelta]*8
-    goodDeltaIdx = [600]*8
 
     setSetGain(1, 0)
     setSetGain(0, 0)
@@ -395,14 +393,13 @@ def setGainAuto(predefinedRes=-1):
         #print " vmax="+str(vmax)
         #print " imin="+str(imin)
         #print " imax="+str(imax)
-        delta = goodDeltaIdx[i]
 
-        if not stopV and vmax-vmin<delta:
+        if not stopV and vmax<goodMax and vmin>goodMin:
             idxV = i
         else:
             stopV = True
 
-        if not stopI and imax-imin<delta:
+        if not stopI and imax<goodMax and imin>goodMin:
             idxI = i
         else:
             stopI = True
@@ -584,7 +581,17 @@ def oneFreq(period, lowPass=False):
     return adcRequestLastComputeX()
 
 class ScanFreq:
-    def init(self):
+    def init(self, amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, IIndex=None, fileName='freq.json'):
+
+        #resistorIndex = 1
+        #VIndex = 0
+        #IIndex = 1
+
+        self.resistorIndex = resistorIndex
+        self.VIndex = VIndex
+        self.IIndex = IIndex
+        self.fileName = fileName
+
         self.jout = {}
         self.jfreq = []
 
@@ -596,9 +603,7 @@ class ScanFreq:
         #PERIOD_ROUND = period1KHz_10KHz()
         #PERIOD_ROUND = period10Khz_max()
         self.PERIOD_ROUND = periodAll()
-        #print PERIOD_ROUND
-        adcSynchro(self.PERIOD_ROUND[0])
-        #adcSynchro(self.PERIOD_ROUND[0], 150)
+        adcSynchro(self.PERIOD_ROUND[0], amplitude)
         self.current_value = 0
         time.sleep(0.2)
         pass
@@ -607,20 +612,31 @@ class ScanFreq:
     def current(self):
         return self.current_value        
     def next(self):
+        global currentLowPass
+
         period = self.PERIOD_ROUND[self.current_value]
         adcSynchro(period)
 
+        oldLowPass = currentLowPass
         if period>=24000: #3 KHz
             setLowPass(True)
         else:
             setLowPass(False)
-        if True:
-            #setGainAuto()
-            setGainAuto(1) #test
+
+        #print period, oldLowPass, currentLowPass
+        if oldLowPass!=currentLowPass:
+            #print "time.sleep(1)"
+            time.sleep(1)
+
+        if self.VIndex is None:
+            if self.resistorIndex is None:
+                setGainAuto()
+            else:
+                setGainAuto(self.resistorIndex)
         else:
-            setResistor(1)
-            setSetGain(1, 4) #V
-            setSetGain(0, 4) #I
+            setResistor(self.resistorIndex)
+            setSetGain(1, self.VIndex) #V
+            setSetGain(0, self.IIndex) #I
 
         time.sleep(0.01)
         jresult = adcRequestLastComputeX()
@@ -629,7 +645,7 @@ class ScanFreq:
         self.current_value += 1
         return self.current_value<self.count()
     def save(self):
-        f = open('freq.json', 'w')
+        f = open(self.fileName, 'w')
         f.write(json.dumps(self.jout))
         f.close()
 
@@ -674,16 +690,16 @@ def main():
     #return
 
     if True:
-        period = periodByFreq(10000)
+        period = periodByFreq(1000)
         #period = 384
 
-        adcSynchro(period, 1200)
-        setLowPass(False)
+        adcSynchro(period)
+        setLowPass(True)
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        if False:
+        if True:
             #setGainAuto()
-            setGainAuto(predefinedRes=1)
+            setGainAuto(predefinedRes=0)
         else:
             setResistor(1)
             setSetGain(1, 0) #V
