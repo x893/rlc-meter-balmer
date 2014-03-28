@@ -193,8 +193,8 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, ampV, '-', color="red")
 		#ax.plot (f_data, ampI, '-', color="blue")
 
-		ax.plot (f_data, re_data, '-', color="red")
-		ax.plot (f_data, im_data, '-', color="blue")
+		#ax.plot (f_data, re_data, '-', color="red")
+		#ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, dfi_data, '-', color="green")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
@@ -211,7 +211,7 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_ylabel("uH")
 		#ax.plot (f_data, arr_L, '-', color="red")
 
-		#ax.set_ylabel("pF")
-		#ax.plot (f_data, arr_C, '-', color="red")
+		ax.set_ylabel("pF")
+		ax.plot (f_data, arr_C, '-', color="red")
 
 		pass
