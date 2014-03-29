@@ -90,9 +90,8 @@ class FormMain(QtGui.QMainWindow):
         form.show()
         pass
 
-def getCorrName(resistorIndex, Rindex):
-    Rnames=["100Om", "1KOm", "10KOm", "100KOm"]
-    return 'cor/D'+str(resistorIndex)+'_'+Rnames[Rindex]+'.json'
+def getCorrName(resistorIndex, Rname):
+    return 'cor/D'+str(resistorIndex)+'_'+Rname+'.json'
 
 
 
@@ -126,12 +125,12 @@ class FormScan(QtGui.QMainWindow):
         self.th.start()
         pass
 
-    def startCalibrateR(self, parent_self, R, resistorIndexes, Rindex):
+    def startCalibrateR(self, parent_self, R, resistorIndexes, Rname):
         '''
         resistorIndexes - диапазон на котором производится измерение
         Rindex - индекс резистора для getCorrName
         '''
-        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, parent_self, R, resistorIndexes, Rindex])
+        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, parent_self, R, resistorIndexes, Rname])
         self.th.start()
         pass
 
@@ -236,11 +235,11 @@ class FormScan(QtGui.QMainWindow):
         pass
 
     @staticmethod
-    def CalibrateThreadR(self_ptr, parent_self, R, resistorIndexes, Rindex):
+    def CalibrateThreadR(self_ptr, parent_self, R, resistorIndexes, Rname):
         s = self_ptr
 
         for resistorIndex in resistorIndexes:
-            fileName = getCorrName(resistorIndex, Rindex)
+            fileName = getCorrName(resistorIndex, Rname)
             s.header_label.setText(fileName)
             s.scan_freq = usb_commands.ScanFreq()
             s.scan_freq.init(resistorIndex=resistorIndex, fileName=fileName)
@@ -310,13 +309,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.AddLine(vbox, u'10 KОм', self.On10_KOm, 2)
         self.AddLine(vbox, u'100 KОм', self.On100_KOm, 3)
 
-        button_save = QtGui.QPushButton(u'Записать')
-        button_save.clicked.connect(self.OnSave)
-        vbox.addWidget(button_save)
-
-        button_save = QtGui.QPushButton(u'Калиб!')
-        button_save.clicked.connect(self.OnCalibrateK)
-        vbox.addWidget(button_save)
+        self.AddLineV(vbox)
+        self.AddLineI(vbox)
 
         button_close = QtGui.QPushButton(u'Закрыть')
         button_close.clicked.connect(self.close)
@@ -352,24 +346,58 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         vbox.addLayout(hbox)
         pass
 
+    def AddLineV(self, vbox):
+        hbox = QtGui.QHBoxLayout()
+
+        label1 = QtGui.QLabel(u'Подключите сопротивление примерно 10 Ом')
+        hbox.addWidget(label1)
+
+        button = QtGui.QPushButton(u'Пуск.')
+        button.clicked.connect(self.OnCalibrateV)
+        hbox.addWidget(button)
+
+        label = QtGui.QLabel(u'XXX')
+        self.labelV = label
+        hbox.addWidget(label)
+
+        vbox.addLayout(hbox)
+        pass
+
+    def AddLineI(self, vbox):
+        hbox = QtGui.QHBoxLayout()
+
+        label1 = QtGui.QLabel(u'Подключите сопротивление примерно 1 КОм')
+        hbox.addWidget(label1)
+
+        button = QtGui.QPushButton(u'Пуск.')
+        button.clicked.connect(self.OnCalibrateI)
+        hbox.addWidget(button)
+
+        label = QtGui.QLabel(u'XXX')
+        self.labelI = label
+        hbox.addWidget(label)
+
+        vbox.addLayout(hbox)
+        pass
+
     def On100_Om(self):
         R = float(self.edits[0].text())
-        self.process(R, [0], 0)
+        self.process(R, [0], "100Om")
         pass
 
     def On1_KOm(self):
         R = float(self.edits[1].text())
-        self.process(R, [0, 1], 1)
+        self.process(R, [0, 1], "1KOm")
         pass
 
     def On10_KOm(self):
         R = float(self.edits[2].text())
-        self.process(R, [1, 2], 2)
+        self.process(R, [1, 2], "10KOm")
         pass
 
     def On100_KOm(self):
         R = float(self.edits[3].text())
-        self.process(R, [2, 3], 3)
+        self.process(R, [2, 3], "100KOm")
         pass
 
     def process(self, R, diapason, name):
@@ -382,20 +410,19 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.checkComplete()
         pass
 
-    def OnSave(self):
-        print "OnSave"
-        f = open('cor/res.json', 'w')
-        f.write(json.dumps(self.diapazon))
-        f.close()
-        pass
-    def OnCalibrateK(self):
+    def OnCalibrateV(self):
         form = FormScan(self)
-        form.startCalibrate()
+        form.startCalibrateIV(calibrateV=True)
         form.show()
         pass
 
-    def setComplete(self, labelIndex, ok):
-        label = self.labels[labelIndex]
+    def OnCalibrateI(self):
+        form = FormScan(self)
+        form.startCalibrateIV(calibrateV=False)
+        form.show()
+        pass
+
+    def setComplete(self, label, ok):
         if ok:
             label.setText(u"Пройден.")
             label.setStyleSheet("QLabel { color : green; }");
@@ -404,22 +431,42 @@ class FormCalibrationResistor(QtGui.QMainWindow):
             label.setStyleSheet("QLabel { color : red; }");
         pass
 
-    def checkCompleteOne(self, diapasons, Rindex):
+    def checkCompleteOne(self, diapasons, Rname):
         ok = True
         for diapason in diapasons:
-            filename = getCorrName(diapason, Rindex)
+            filename = getCorrName(diapason, Rname)
             if not os.path.isfile(filename):
                 ok = False
                 break
 
-        self.setComplete(diapasons[-1], ok)
+        label = self.labels[diapasons[-1]]
+        self.setComplete(label, ok)
+        pass
+
+    def checkCompleteIV(self, IV):
+        kmul = [0,1,2,3,4,5,6]
+        if IV=='I':
+            label = self.labelI
+        else:
+            label = self.labelV
+
+        ok = True
+        for kindex in kmul:
+            filename = 'cor/K'+IV+'0_'+str(kindex)+'.json'
+            if not os.path.isfile(filename):
+                ok = False
+                break
+
+        self.setComplete(label, ok)
         pass
 
     def checkComplete(self):
-        self.checkCompleteOne([0], 0)
-        self.checkCompleteOne([0, 1], 1)
-        self.checkCompleteOne([1, 2], 2)
-        self.checkCompleteOne([2, 3], 3)
+        self.checkCompleteOne([0], "100Om")
+        self.checkCompleteOne([0, 1], "1KOm")
+        self.checkCompleteOne([1, 2], "10KOm")
+        self.checkCompleteOne([2, 3], "100KOm")
+        self.checkCompleteIV('I')
+        self.checkCompleteIV('V')
         pass
 
 def makePhase():
