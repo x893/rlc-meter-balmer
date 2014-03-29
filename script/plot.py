@@ -131,8 +131,8 @@ class FormDrawData(QtGui.QMainWindow):
 			fiI_data.append(res['fiI'])
 
 			if True:
-				Zx = complex(res['Rre'], res['Rim'])
-				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+				#Zx = complex(res['Rre'], res['Rim'])
+				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				re_corr.append(Zx.real)
 				#re_corr.append(res['ampV']/res['ampI'])
 				#im_corr.append(math.fabs(Zx.imag))
@@ -152,8 +152,8 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_C.append(C*1e12)
 
 			if False: #parrallel
-				Zx = complex(res['Rre'], res['Rim'])
-				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
+				#Zx = complex(res['Rre'], res['Rim'])
+				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				Yx = 1/Zx
 
 				im_max = 1e10
@@ -208,10 +208,10 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, re_corr, '-', color="#00FF00")
 		#ax.plot (f_data, im_corr, '-', color="#555555")
 
-		#ax.set_ylabel("uH")
-		#ax.plot (f_data, arr_L, '-', color="red")
+		ax.set_ylabel("uH")
+		ax.plot (f_data, arr_L, '-', color="red")
 
-		ax.set_ylabel("pF")
-		ax.plot (f_data, arr_C, '-', color="red")
+		#ax.set_ylabel("pF")
+		#ax.plot (f_data, arr_C, '-', color="red")
 
 		pass

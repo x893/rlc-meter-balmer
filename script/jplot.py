@@ -237,7 +237,158 @@ class GainCorrector:
 		return complex(sdata["sin"], sdata["cos"])
 		#return math.sqrt(sdata["sin"]*sdata["sin"]+sdata["cos"]*sdata["cos"])
 
+class Corrector2x:
+	def __init__(self, diapazon, gain_corrector = None):
+		self.gain_corrector = gain_corrector
+		self.load(diapazon)
+		pass
+	def load(self, diapazon):
+		if diapazon==0:
+			fname0 = 'cor/D0_100Om.json'
+			fname1 = 'cor/D0_1KOm.json'
+		elif diapazon==1:
+			fname0 = 'cor/D1_1KOm.json'
+			fname1 = 'cor/D1_10KOm.json'
+		elif diapazon==2:
+			fname0 = 'cor/D2_10KOm.json'
+			fname1 = 'cor/D2_100KOm.json'
 
+		json_min = readJson(fname0)
+		json_max = readJson(fname1)
+
+		data = {}
+
+		jfreq_min = json_min['freq']
+		for jf in jfreq_min:
+			res = calculateJson(jf, self.gain_corrector)
+			data[res['period']] = { 'min': res }
+
+		jfreq_max = json_max['freq']
+		for jf in jfreq_max:
+			res = calculateJson(jf, self.gain_corrector)
+			data[res['period']]['max'] = res
+
+		self.data = data
+		self.Rmin = json_min['R']
+		self.Rmax = json_max['R']
+		self.C = 1.2e-12
+		pass
+
+	def correct(self, Rre, Rim, period, F):
+		d = self.data[period]
+		Z1 = complex(self.Rmin, 0)
+		Z2 = complex(self.Rmax, 0)
+		Zm1 = complex(d['min']['Rre'] , d['min']['Rim'])
+		Zm2 = complex(d['max']['Rre'] , d['max']['Rim'])
+		A = (Z2-Z1)/(Zm2-Zm1)
+		B = (Z1*Zm2-Z2*Zm1)/(Zm2-Zm1)
+		Zxm = complex(Rre , Rim)
+		Zx = A*Zxm+B
+		return Zx
+
+class CorrectorOpen:
+	def __init__(self, gain_corrector = None):
+		self.gain_corrector = gain_corrector
+		self.load()
+		pass
+	def load(self):
+		json_open = readJson("cor/K_open.json")
+		json_load = readJson("cor/D3_100KOm.json")
+
+		data = {}
+
+		jfreq_open = json_open['freq']
+		for jf in jfreq_open:
+			res = calculateJson(jf)
+			data[res['period']] = { 'open': res }
+
+		jfreq_load = json_load['freq']
+		for jf in jfreq_load:
+			res = calculateJson(jf)
+			data[res['period']]['load'] = res
+
+		self.data = data
+		self.R = json_load['R']
+		self.C = 1.2e-12
+		pass
+
+	def correct(self, Rre, Rim, period, F):
+		d = self.data[period]
+		Zom = complex(d['open']['Rre'] , d['open']['Rim'])
+		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
+		Zstd = 1/Ystd
+		#Zstd = complex(self.R, 0)
+		Zxm = complex(Rre , Rim)
+		Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
+		if period==96:
+			print "Zsm=", Zsm
+			print "Zstdm=", Zstdm
+			print "Zstd=", Zstd
+			print "Zxm=", Zxm
+			print "Zx=", Zx
+		return Zx
+
+class CorrectorShort:
+	def __init__(self, gain_corrector = None):
+		self.gain_corrector = gain_corrector
+		self.load()
+		pass
+	def load(self):
+		json_short = readJson("cor/K_short.json")
+		json_load = readJson("cor/D0_100Om.json")
+
+		data = {}
+
+		jfreq_short = json_short['freq']
+		for jf in jfreq_short:
+			res = calculateJson(jf)
+			data[res['period']] = { 'short': res }
+
+		jfreq_load = json_load['freq']
+		for jf in jfreq_load:
+			res = calculateJson(jf)
+			data[res['period']]['load'] = res
+
+		self.data = data
+		self.R = json_load['R']
+		pass
+
+	def correct(self, Rre, Rim, period, F):
+		d = self.data[period]
+		Zsm = complex(d['short']['Rre'] , d['short']['Rim'])
+		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Zstd = complex(self.R, 0)
+		Zxm = complex(Rre , Rim)
+		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
+		if period==720000:
+			print "Zsm=", Zsm
+			print "Zstdm=", Zstdm
+			print "Zstd=", Zstd
+			print "Zxm=", Zxm
+			print "Zx=", Zx
+		return Zx
+
+class Corrector:
+	def __init__(self, gain_corrector = None):
+		self.gain_corrector = gain_corrector
+		self.load()
+		pass
+	def load(self):
+		self.corr_short = CorrectorShort(self.gain_corrector)
+		self.corr = []
+		self.corr.append(Corrector2x(0, self.gain_corrector))
+		self.corr.append(Corrector2x(1, self.gain_corrector))
+		self.corr.append(Corrector2x(2, self.gain_corrector))
+		self.corr.append(CorrectorOpen(self.gain_corrector))
+		pass
+	def correct(self, Rre, Rim, period, F, resistor_index):
+		if abs(complex(Rre, Rim))<100:
+			return self.corr_short.correct(Rre, Rim, period, F)
+		return self.corr[resistor_index].correct(Rre, Rim, period, F)
+
+
+'''
 class Corrector:	
 	def __init__(self, gain_corrector = None):
 		self.gain_corrector = gain_corrector
@@ -458,7 +609,7 @@ class Corrector:
 		Zs = complex(Rshort, 2*math.pi*F*L)
 		Zx = (Zxm-Zs)/(1-(Zxm-Zs)*Yc)
 		return Zx
-
+'''
 
 def calculate(fileName):
 	jout = readJson(fileName)
