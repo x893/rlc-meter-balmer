@@ -697,13 +697,13 @@ def main():
         setLowPass(True)
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        if True:
+        if False:
             #setGainAuto()
             setGainAuto(predefinedRes=0)
         else:
-            setResistor(1)
-            setSetGain(1, 0) #V
-            setSetGain(0, 1) #I
+            setResistor(0)
+            setSetGain(1, 6) #V
+            setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson()
     else:
