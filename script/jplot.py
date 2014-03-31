@@ -228,10 +228,9 @@ class GainCorrector:
 		z0 *= toVolts/jout0['attr'][gi]
 		zX *= toVolts/joutX['attr'][gi]
 		zMeasure *= toVolts/jout['attr'][gi]
-		if index!=0:
-			print "i"+IV+'=', index, "z0=", z0, "zX=", zX
+		#if index!=0:
+		#	print "i"+IV+'=', index, "z0=", z0, "zX=", zX
 		return zMeasure*z0/zX
-		#return zX
 
 	def calcZ(self, sdata):
 		return complex(sdata["sin"], sdata["cos"])
@@ -336,7 +335,8 @@ class CorrectorShort:
 		pass
 	def load(self):
 		json_short = readJson("cor/K_short.json")
-		json_load = readJson("cor/D0_100Om.json")
+		#json_load = readJson("cor/D0_100Om.json")
+		json_load = readJson("cor/D0_1Om.json")
 
 		data = {}
 
@@ -375,6 +375,7 @@ class Corrector:
 		self.load()
 		pass
 	def load(self):
+		#self.corr_short = CorrectorShort(self.gain_corrector)
 		self.corr_short = CorrectorShort(self.gain_corrector)
 		self.corr = []
 		self.corr.append(Corrector2x(0, self.gain_corrector))
