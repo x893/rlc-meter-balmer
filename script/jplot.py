@@ -298,12 +298,12 @@ class CorrectorOpen:
 
 		jfreq_open = json_open['freq']
 		for jf in jfreq_open:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']] = { 'open': res }
 
 		jfreq_load = json_load['freq']
 		for jf in jfreq_load:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']]['load'] = res
 
 		self.data = data
@@ -329,25 +329,26 @@ class CorrectorOpen:
 		return Zx
 
 class CorrectorShort:
-	def __init__(self, gain_corrector = None):
+	def __init__(self, gain_corrector, load_filename):
 		self.gain_corrector = gain_corrector
-		self.load()
+		self.load(load_filename)
 		pass
-	def load(self):
+	def load(self, load_filename):
 		json_short = readJson("cor/K_short.json")
 		#json_load = readJson("cor/D0_100Om.json")
-		json_load = readJson("cor/D0_1Om.json")
+		#json_load = readJson("cor/D0_1Om.json")
+		json_load = readJson(load_filename)
 
 		data = {}
 
 		jfreq_short = json_short['freq']
 		for jf in jfreq_short:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']] = { 'short': res }
 
 		jfreq_load = json_load['freq']
 		for jf in jfreq_load:
-			res = calculateJson(jf)
+			res = calculateJson(jf, self.gain_corrector)
 			data[res['period']]['load'] = res
 
 		self.data = data
@@ -375,8 +376,8 @@ class Corrector:
 		self.load()
 		pass
 	def load(self):
-		#self.corr_short = CorrectorShort(self.gain_corrector)
-		self.corr_short = CorrectorShort(self.gain_corrector)
+		self.corr_short1Om = CorrectorShort(gain_corrector=None, load_filename="cor/D0_1Om.json")
+		self.corr_short = CorrectorShort(gain_corrector=self.gain_corrector, load_filename="cor/D0_100Om.json")
 		self.corr = []
 		self.corr.append(Corrector2x(0, self.gain_corrector))
 		self.corr.append(Corrector2x(1, self.gain_corrector))
@@ -387,6 +388,19 @@ class Corrector:
 		if abs(complex(Rre, Rim))<100:
 			return self.corr_short.correct(Rre, Rim, period, F)
 		return self.corr[resistor_index].correct(Rre, Rim, period, F)
+
+	def calculateJson(self, jf):
+		if jf['attr']['gain_index_V']==7:
+			#сопротивление меньше 1 Ом
+			#не используем gain_corrector
+			#по хорошему надо бы использовать его для тока, но не будем, вроде на всем диапазоне gain_index_I=0
+			res = calculateJson(jf)
+			Zx = self.corr_short1Om.correct(res['Rre'], res['Rim'], res['period'], res['F'])
+			return (res, Zx)
+			
+		res = calculateJson(jf, gain_corrector=self.gain_corrector)
+		Zx = self.correct(res['Rre'], res['Rim'], res['period'], res['F'], jf['attr']['resistor_index'])
+		return (res, Zx)
 
 
 '''

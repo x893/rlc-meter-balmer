@@ -102,8 +102,8 @@ class FormDrawData(QtGui.QMainWindow):
 		corr = jplot.Corrector(corr_gain)
 
 		for jf in jfreq:
-			res = jplot.calculateJson(jf, gain_corrector=corr_gain)
-			#res = jplot.calculateJson(jf)
+			#res = jplot.calculateJson(jf, gain_corrector=corr_gain)
+			(res, Zx) = corr.calculateJson(jf)
 			F = res['F']
 			f_data.append(F)
 
@@ -130,9 +130,9 @@ class FormDrawData(QtGui.QMainWindow):
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
 
-			if False:
+			if True:
 				#Zx = complex(res['Rre'], res['Rim'])
-				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
+				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				re_corr.append(Zx.real)
 				#re_corr.append(res['ampV']/res['ampI'])
 				#im_corr.append(math.fabs(Zx.imag))
@@ -151,9 +151,9 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_L.append(L*1e6)
 				arr_C.append(C*1e12)
 
-			if True: #parrallel
+			if False: #parrallel
 				#Zx = complex(res['Rre'], res['Rim'])
-				Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
+				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				Yx = 1/Zx
 
 				im_max = 1e10
@@ -194,7 +194,7 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, ampI, '-', color="blue")
 
 		#ax.plot (f_data, re_data, '-', color="red")
-		#ax.plot (f_data, im_data, '-', color="blue")
+		ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, dfi_data, '-', color="green")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
@@ -206,12 +206,12 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.plot (f_data, im_cos, '.-', color="blue")
 
 		#ax.plot (f_data, re_corr, '-', color="#00FF00")
-		#ax.plot (f_data, im_corr, '-', color="#555555")
+		ax.plot (f_data, im_corr, '-', color="#555555")
 
 		#ax.set_ylabel("uH")
 		#ax.plot (f_data, arr_L, '-', color="red")
 
-		ax.set_ylabel("pF")
-		ax.plot (f_data, arr_C, '-', color="red")
+		#ax.set_ylabel("pF")
+		#ax.plot (f_data, arr_C, '-', color="red")
 
 		pass
