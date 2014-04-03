@@ -141,7 +141,7 @@ def calculateJson(jout, gain_corrector = None):
 		fiI = resultI['fi']
 		ampV *= toVolts/gain_V
 		ampI *= toVolts/gain_I
-		print "F=", F, "gain_V=", gain_V, "gain_I=", gain_I
+		#print "F=", F, "gain_V=", gain_V, "gain_I=", gain_I
 
 	if fiV<0:
 		fiV+=math.pi*2
@@ -394,10 +394,10 @@ class Corrector:
 			#сопротивление меньше 1 Ом
 			#не используем gain_corrector
 			#по хорошему надо бы использовать его для тока, но не будем, вроде на всем диапазоне gain_index_I=0
-			res = calculateJson(jf)
+			res = calculateJson(jf, gain_corrector=None)
 			Zx = self.corr_short1Om.correct(res['Rre'], res['Rim'], res['period'], res['F'])
 			return (res, Zx)
-			
+
 		res = calculateJson(jf, gain_corrector=self.gain_corrector)
 		Zx = self.correct(res['Rre'], res['Rim'], res['period'], res['F'], jf['attr']['resistor_index'])
 		return (res, Zx)

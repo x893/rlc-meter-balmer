@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui
 import matplotlib
 import time
 import math
+import cmath
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
@@ -16,6 +17,10 @@ class FormDrawData(QtGui.QMainWindow):
 	def __init__(self, title, parent=None):
 		super(FormDrawData, self).__init__(parent)
 		self.setWindowTitle(title)
+
+		self.gtype = 'ReImCorrect'
+		self.serial = True
+
 		self.createMainFrame()
 		pass
 
@@ -37,9 +42,23 @@ class FormDrawData(QtGui.QMainWindow):
 		left_vbox.addWidget(self.mpl_toolbar)
 
 		right_vbox = QtGui.QVBoxLayout()
-		graph_button = QtGui.QPushButton(u'Просмотреть график.')
-		#graph_button.clicked.connect(self.OnGraph)
-		right_vbox.addWidget(graph_button)
+
+		self.gtype_combo_box = QtGui.QComboBox()
+		self.gtype_combo_box.addItem(u'Re+Im', QtCore.QVariant('ReImCorrect'))
+		self.gtype_combo_box.addItem(u'C', QtCore.QVariant('C'))
+		self.gtype_combo_box.addItem(u'L', QtCore.QVariant('L'))
+		self.gtype_combo_box.addItem(u'Error', QtCore.QVariant('error'))
+		self.gtype_combo_box.addItem(u'Q (corrected)', QtCore.QVariant('dfic'))
+		self.gtype_combo_box.addItem(u'Q (uncorrected)', QtCore.QVariant('dfi'))
+		self.gtype_combo_box.currentIndexChanged.connect(self.OnSelectGraph)
+		right_vbox.addWidget(self.gtype_combo_box)
+
+		self.serial_combo_box = QtGui.QComboBox()
+		self.serial_combo_box.addItem(u'Serial')
+		self.serial_combo_box.addItem(u'Parralel')
+		self.serial_combo_box.currentIndexChanged.connect(self.OnSerial)
+		right_vbox.addWidget(self.serial_combo_box)
+
 		right_vbox.addStretch(1)
 
 		hbox = QtGui.QHBoxLayout()
@@ -50,21 +69,21 @@ class FormDrawData(QtGui.QMainWindow):
 		self.setCentralWidget(self.main_frame)
 
 	def setData(self, filename):
+		self.filename = filename
 		self.updateFigure(filename)
 
 	def updateFigure(self, filename):
 		self.axes.clear()
 		self.axes.grid(True)
 
-		xlist = [1,2,3,4,5]
-		ylist = [5,3,7,9,12]
-
-
+		#xlist = [1,2,3,4,5]
+		#ylist = [5,3,7,9,12]
 		#ax1 = self.axes
 		#ax1.plot(xlist, ylist, 'r')
 		self.plotFreq(filename)
 
 		self.fig.autofmt_xdate()
+		self.fig.canvas.draw()
 		pass
 
 	def readPhase(self):
@@ -74,7 +93,21 @@ class FormDrawData(QtGui.QMainWindow):
 			set_phase[p['period']] = p
 		return set_phase
 
+	def OnSelectGraph(self, index):
+		self.gtype = self.gtype_combo_box.itemData(index).toString()
+		self.updateFigure(self.filename)
+		pass
+
+	def OnSerial(self, index):
+		if index==0:
+			self.serial = True
+		else:
+			self.serial = False
+		self.updateFigure(self.filename)
+		pass
+
 	def plotFreq(self, fileName):
+		gtype = self.gtype
 		ax = self.axes
 		jout = jplot.readJson(fileName)
 		set_phase = self.readPhase()
@@ -126,11 +159,15 @@ class FormDrawData(QtGui.QMainWindow):
 			im_cos.append(jf['summary']['I']['cos']/gain_I)
 
 			#dfi_data.append(res['dfi']*1e6/F)
-			dfi_data.append(res['dfi'])
+			if gtype=='dfic':
+				dfi_data.append(cmath.phase(Zx)*180/math.pi)
+			if gtype=='dfi':
+				dfi_data.append(res['dfi']*180/math.pi)
+			
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
 
-			if True:
+			if self.serial:
 				#Zx = complex(res['Rre'], res['Rim'])
 				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				re_corr.append(Zx.real)
@@ -151,7 +188,7 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_L.append(L*1e6)
 				arr_C.append(C*1e12)
 
-			if False: #parrallel
+			if not self.serial: #parrallel
 				#Zx = complex(res['Rre'], res['Rim'])
 				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				Yx = 1/Zx
@@ -189,29 +226,36 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_yscale('log')
 		ax.set_xlabel("Hz")
 
-		ax.set_ylabel("Om")
+		#ax.set_ylabel("Om")
 		#ax.plot (f_data, ampV, '-', color="red")
 		#ax.plot (f_data, ampI, '-', color="blue")
 
 		#ax.plot (f_data, re_data, '-', color="red")
-		ax.plot (f_data, im_data, '-', color="blue")
-		#ax.plot (f_data, dfi_data, '-', color="green")
+		#ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
+		if gtype=="dfi" or gtype=="dfic":
+			ax.plot (f_data, dfi_data, '-', color="green")
 
-		#ax.plot (f_data, re_error, '.', color="red")
-		#ax.plot (f_data, im_error, '.-', color="blue")
+		if gtype=="error":
+			ax.plot (f_data, re_error, '.', color="red")
+			ax.plot (f_data, im_error, '.-', color="blue")
 
 		#ax.plot (f_data, im_sin, '.', color="red")
 		#ax.plot (f_data, im_cos, '.-', color="blue")
 
-		#ax.plot (f_data, re_corr, '-', color="#00FF00")
-		ax.plot (f_data, im_corr, '-', color="#555555")
+		if gtype=="ReImCorrect":
+			ax.set_ylabel("Om")
+			ax.plot (f_data, re_corr, '-', color="#00FF00")
+			ax.plot (f_data, im_corr, '-', color="#555555")
 
-		#ax.set_ylabel("uH")
-		#ax.plot (f_data, arr_L, '-', color="red")
+		if gtype=="C":
+			ax.set_ylabel("pF")
+			ax.plot (f_data, arr_C, '-', color="red")
 
-		#ax.set_ylabel("pF")
-		#ax.plot (f_data, arr_C, '-', color="red")
+		if gtype=="L":
+			ax.set_ylabel("uH")
+			ax.plot (f_data, arr_L, '-', color="red")
+
 
 		pass
