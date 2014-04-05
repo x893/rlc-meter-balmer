@@ -352,11 +352,23 @@ class FormMeasure(QtGui.QMainWindow):
 
 	def SetInfo(self, res):
 		(L, C, isC) = jplot.calculateLC(res, self.serial)
-		txt = "Rre=" + jplot.formatR(res['Rre'])
-		txt += "\nRim=" + jplot.formatR(res['Rim'])
-		if isC:
-			txt += "\nC=" + str(C) + " F"
+		Zx = res['Zx']
+		#uncorrected
+		#txt = "Rre=" + jplot.formatR(res['Rre'])
+		#txt += "\nRim=" + jplot.formatR(res['Rim'])
+		if self.serial:
+			txt = "Rre=" + jplot.formatR(Zx.real)
+			txt += "\nRim=" + jplot.formatR(Zx.imag)
 		else:
-			txt += "\nL=" + str(L) + " H"
+			#parallel
+			Yx = 1/Zx
+			txt = "Rre=" + jplot.formatR(1/Yx.real)
+			txt += "\nRim=" + jplot.formatR(-1/Yx.imag)
+
+
+		if isC:
+			txt += "\nC=" + jplot.formatC(C)
+		else:
+			txt += "\nL=" + jplot.formatL(L)
 		self.info_label.setText(txt)
 		pass

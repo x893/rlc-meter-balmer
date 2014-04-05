@@ -26,16 +26,42 @@ def formatR(R):
 		return '{:3.1f} KOm'.format(R*1e-3)
 	return '{:3.1f} MOm'.format(R*1e-6)
 
-def printC(C):
-	if C>=1:
-		print "C=", C, "F"
-	elif C>=1e-6:
-		print "C=", C*1e6, "mkF"
-	elif C>=1e-9:
-		print "C=", C*1e9, "nF"
-	else:
-		print "C=", C*1e12, "pF"
+def formatC(C):
+	CA = math.fabs(C)
+	if CA<1e-11:
+		return '{:3.2f} pF'.format(C*1e12)
+	if CA<1e-9:
+		return '{:3.1f} pF'.format(C*1e12)
+	if CA<1e-8:
+		return '{:3.2f} nF'.format(C*1e9)
+	if CA<1e-6:
+		return '{:3.1f} nF'.format(C*1e9)
+	if CA<1e-5:
+		return '{:3.2f} mkF'.format(C*1e6)
+	if CA<1e-3:
+		return '{:3.1f} mkF'.format(C*1e6)
+	return '{:3.0f} mkF'.format(C*1e6)
 
+def formatL(L):
+	LA = math.fabs(L)
+	if LA<1e-8:
+		return '{:3.2f} nH'.format(L*1e9)
+	if LA<1e-6:
+		return '{:3.1f} nH'.format(L*1e9)
+	if LA<1e-5:
+		return '{:3.2f} mkH'.format(L*1e6)
+	if LA<1e-3:
+		return '{:3.1f} mkH'.format(L*1e6)
+	if LA<1e-2:
+		return '{:3.2f} mH'.format(L*1e3)
+	if LA<1:
+		return '{:3.1f} mH'.format(L*1e3)
+	if LA<1e1:
+		return '{:3.2f} H'.format(L)
+	return '{:3.1f} H'.format(L)
+
+def printC(C):
+	print "C=", formatC(C)
 
 def readJson(filename):
 	with open(filename, "rb") as file:
