@@ -40,6 +40,10 @@ class FormMain(QtGui.QMainWindow):
         scan_button.clicked.connect(self.OnScan)
         vbox.addWidget(scan_button)
 
+        scan_button = QtGui.QPushButton(u'Измерить')
+        scan_button.clicked.connect(self.OnMeasure)
+        vbox.addWidget(scan_button)
+
         graph_button = QtGui.QPushButton(u'Просмотреть последний график')
         graph_button.clicked.connect(self.OnGraph)
         vbox.addWidget(graph_button)
@@ -61,6 +65,13 @@ class FormMain(QtGui.QMainWindow):
             QtGui.QMessageBox.about(self, TITLE, u"Устройство не найдено.")
             return False
         return True
+
+    def OnMeasure(self):
+        if not self.initDevice():
+            return
+        form = plot.FormMeasure(TITLE, self)
+        form.show()
+        pass
 
     def OnScan(self):
         if not self.initDevice():

@@ -396,235 +396,47 @@ class Corrector:
 			#по хорошему надо бы использовать его для тока, но не будем, вроде на всем диапазоне gain_index_I=0
 			res = calculateJson(jf, gain_corrector=None)
 			Zx = self.corr_short1Om.correct(res['Rre'], res['Rim'], res['period'], res['F'])
-			return (res, Zx)
+			res['Zx'] = Zx
+			return res
 
 		res = calculateJson(jf, gain_corrector=self.gain_corrector)
 		Zx = self.correct(res['Rre'], res['Rim'], res['period'], res['F'], jf['attr']['resistor_index'])
-		return (res, Zx)
+		res['Zx'] = Zx
+		return res
 
+def calculateLC(res, serial=True):
+	F = res['F']
+	Zx = res['Zx']
+	Cmax = 1e-2
 
-'''
-class Corrector:	
-	def __init__(self, gain_corrector = None):
-		self.gain_corrector = gain_corrector
-		self.load()
-		pass
+	if serial:
+		isC = False
+		if Zx.imag>0:
+			L = Zx.imag/(2*math.pi*F)
+		else:
+			L = 0
 
-	def load(self):		
-		#self.load0()
-		#self.load1()
-		self.load2x()
-		#self.load3()
-		pass
+		if Zx.imag<-1e-10:
+			isC = True
+			C = -1/(2*math.pi*F*Zx.imag)
+		else:
+			C = 0
 
-	def correct(self, Rre, Rim, period, F):
-		#return self.correct0(Rre, Rim, period, F)
-		#return self.correct1(Rre, Rim, period, F)
-		return self.correct2x(Rre, Rim, period, F)
-		#return self.correct3(Rre, Rim, period, F)
-		#return self.correctParallelCapacitor(Rre, Rim, period, F)
+	if not serial: #parrallel
+		isC = True
+		Yx = 1/Zx
+		C = Yx.imag/(2*math.pi*F)
+		C = min(C, Cmax)
+		C = max(C, -Cmax)
 
-	def load0(self):
-		json_short = readJson("cor/freq_short.json")
-		json_load = readJson("cor/freq_1Om.json")
+		if Yx.imag<-1e-10:
+			isC = False
+			L = -1/(2*math.pi*F*Yx.imag)
+		else:
+			L = 0
 
-		data = {}
+	return (L, C, isC)
 
-		jfreq_short = json_short['freq']
-		for jf in jfreq_short:
-			res = calculateJson(jf)
-			data[res['period']] = { 'short': res }
-
-		jfreq_load = json_load['freq']
-		for jf in jfreq_load:
-			res = calculateJson(jf)
-			data[res['period']]['load'] = res
-
-		self.data = data
-		self.R = json_load['R']
-
-		pass
-
-	def load3(self):
-		json_open = readJson("cor/freq_open.json")
-		json_load = readJson("cor/freq_100KOm.json")
-
-		data = {}
-
-		jfreq_open = json_open['freq']
-		for jf in jfreq_open:
-			res = calculateJson(jf)
-			data[res['period']] = { 'open': res }
-
-		jfreq_load = json_load['freq']
-		for jf in jfreq_load:
-			res = calculateJson(jf)
-			data[res['period']]['load'] = res
-
-		self.data = data
-		self.R = json_load['R']
-		self.C = 1.2e-12
-
-		pass
-
-	def load1(self):
-		json_Z0 = readJson("cor/1_1KOm.json")
-		json_Z1 = readJson("cor/1_2200Om.json")
-		json_Z2 = readJson("cor/1_10KOm.json")
-		#json_Z0 = readJson("cor/freq_1MOm.json")
-		#json_Z1 = readJson("cor/freq_2700KOm.json")
-		#json_Z2 = readJson("cor/freq_10MOm.json")
-
-		Z0dut = complex(json_Z0['R'], 0)
-		Z1dut = complex(json_Z1['R'], 0)
-		Z2dut = complex(json_Z2['R'], 0)
-
-		data = {}
-
-		jfreq_Z0 = json_Z0['freq']
-		jfreq_Z1 = json_Z1['freq']
-		jfreq_Z2 = json_Z2['freq']
-		for i in xrange(0, len(jfreq_Z0)):
-			res0 = calculateJson(jfreq_Z0[i], self.gain_corrector)
-			res1 = calculateJson(jfreq_Z1[i], self.gain_corrector)
-			res2 = calculateJson(jfreq_Z2[i], self.gain_corrector)
-			Z0m = complex(res0['Rre'], res0['Rim'])
-			Z1m = complex(res1['Rre'], res1['Rim'])
-			Z2m = complex(res2['Rre'], res2['Rim'])
-
-			ABCD = self.calcABCD(Z0dut, Z0m, Z1dut, Z1m, Z2dut, Z2m)
-
-			data[res0['period']] = ABCD
-
-		self.data = data
-
-		pass
-
-	def load2x(self):
-		json_min = readJson("cor/1_1KOm.json")
-		json_max = readJson("cor/1_10KOm.json")
-		#json_min = readJson("cor/0_100Om.json")
-		#json_max = readJson("cor/0_1KOm.json")
-
-		data = {}
-
-		jfreq_min = json_min['freq']
-		for jf in jfreq_min:
-			res = calculateJson(jf, self.gain_corrector)
-			data[res['period']] = { 'min': res }
-
-		jfreq_max = json_max['freq']
-		for jf in jfreq_max:
-			res = calculateJson(jf, self.gain_corrector)
-			data[res['period']]['max'] = res
-
-		self.data = data
-		self.Rmin = json_min['R']
-		self.Rmax = json_max['R']
-		self.C = 1.2e-12
-
-		pass
-	def correct2x(self, Rre, Rim, period, F):
-		d = self.data[period]
-		Z1 = complex(self.Rmin, 0)
-		Z2 = complex(self.Rmax, 0)
-		Zm1 = complex(d['min']['Rre'] , d['min']['Rim'])
-		Zm2 = complex(d['max']['Rre'] , d['max']['Rim'])
-		A = (Z2-Z1)/(Zm2-Zm1)
-		B = (Z1*Zm2-Z2*Zm1)/(Zm2-Zm1)
-		Zxm = complex(Rre , Rim)
-		Zx = A*Zxm+B
-		return Zx
-
-	def correct0(self, Rre, Rim, period, F):
-		d = self.data[period]
-		Zsm = complex(d['short']['Rre'] , d['short']['Rim'])
-		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
-		Zstd = complex(self.R, 0)
-		Zxm = complex(Rre , Rim)
-		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
-		if period==720000:
-			print "Zsm=", Zsm
-			print "Zstdm=", Zstdm
-			print "Zstd=", Zstd
-			print "Zxm=", Zxm
-			print "Zx=", Zx
-		return Zx
-
-	def correct3(self, Rre, Rim, period, F):
-		d = self.data[period]
-		Zom = complex(d['open']['Rre'] , d['open']['Rim'])
-		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
-		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
-		Zstd = 1/Ystd
-		#Zstd = complex(self.R, 0)
-		Zxm = complex(Rre , Rim)
-		Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
-		if period==96:
-			print "Zsm=", Zsm
-			print "Zstdm=", Zstdm
-			print "Zstd=", Zstd
-			print "Zxm=", Zxm
-			print "Zx=", Zx
-		return Zx
-
-	# Калибровка по трем элементам 
-	# Z2 == Zdut
-	# Z1 == ZDut measured
-	# Z1 = (A*Z2+B)/(C*Z2+D)
-	# A = 1
-	def calcLine(self, Zm, Zdut):
-		Z1 = Zdut
-		Z2 = Zm
-		#        Bre, Bim,           Cre,                           Cim,                       Dre,      Dim
-		return ([ -1,  0, Z1.real*Z2.real-Z1.imag*Z2.imag, -Z1.imag*Z2.real-Z1.real*Z2.imag, Z1.real, -Z1.imag],
-		        [  0, -1, Z1.real*Z2.imag+Z1.imag*Z2.real, -Z1.imag*Z2.imag+Z1.real*Z2.real, Z1.imag,  Z1.real],
-		        Z2.real,
-		        Z2.imag)
-
-	def calcABCD(self, Z0dut, Z0m, Z1dut, Z1m, Z2dut, Z2m):
-		# M * (A,B,C) = H
-		# M - matrix
-		# H - complex vector
-		# A - complex number
-
-		(M0, M1, H0, H1) = self.calcLine(Z0m, Z0dut)
-		(M2, M3, H2, H3) = self.calcLine(Z1m, Z1dut)
-		(M4, M5, H4, H5) = self.calcLine(Z2m, Z2dut)
-
-		#solve
-		a = np.array([M0, M1, M2, M3, M4, M5])
-		b = np.array([H0, H1, H2, H3, H4, H5])
-		x = np.linalg.solve(a, b)
-		A = complex(1,0)
-		B = complex(x[0], x[1])
-		C = complex(x[2], x[3])
-		D = complex(x[4], x[5])
-
-		#print np.allclose(np.dot(a, x), b)
-		return (A,B,C,D)
-
-	def correct1(self, Rre, Rim, period, F):
-		(A, B, C, D) = self.data[period]
-		Zxm = complex(Rre , Rim)
-		Zx = (A*Zxm+B)/(C*Zxm+D)
-		if period==72000:
-			print "Zxm=", Zxm
-			print "Zx=", Zx
-		return Zx
-
-	def correctParallelCapacitor(self, Rre, Rim, period, F):
-		C = 1.59e-12
-		#C = 0e-12
-		#C = -6e-12
-		L = 100e-9
-		Rshort = 0.007
-		Yc = complex(0, 2*math.pi*F*C)
-		Zxm = complex(Rre , Rim)
-		Zs = complex(Rshort, 2*math.pi*F*L)
-		Zx = (Zxm-Zs)/(1-(Zxm-Zs)*Yc)
-		return Zx
-'''
 
 def calculate(fileName):
 	jout = readJson(fileName)

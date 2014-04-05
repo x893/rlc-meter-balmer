@@ -23,6 +23,8 @@ COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 
+LOW_PASS_PERIOD = 24000 #3 KHz
+
 
 dev = None
 gainVoltageIdx = 0
@@ -34,6 +36,9 @@ period = 0
 clock = 0
 amplitude = DEFAULT_DAC_AMPLITUDE
 
+def periodToFreqency(period):
+    clock = 72000000
+    return clock/period
 
 def inited():
     return not (dev is None)
@@ -362,9 +367,9 @@ def setGainAuto(predefinedRes=-1):
             imin = jI['min']
             imax = jI['max']
             di = imax - imin
-            print "gainR=", i
-            print " imin="+str(imin)
-            print " imax="+str(imax)
+            #print "gainR=", i
+            #print " imin="+str(imin)
+            #print " imax="+str(imax)
 
             #прикидываем, что следующий диапазон уже плох
             if di*10>goodDelta:
@@ -406,7 +411,7 @@ def setGainAuto(predefinedRes=-1):
 
     setSetGain(1, idxV)
     setSetGain(0, idxI)
-    print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
+    #print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
     pass
 
 def adcLastCompute():
@@ -553,7 +558,7 @@ def allFreq():
     for period in PERIOD_ROUND:
         adcSynchro(period)
 
-        if period>=24000: #3 KHz
+        if period>=LOW_PASS_PERIOD:
             setLowPass(True)
         else:
             setLowPass(False)
@@ -573,7 +578,10 @@ def allFreq():
     f.write(json.dumps(jout))
     f.close()
 
-def oneFreq(period, lowPass=False):
+def oneFreq(period, lowPass='auto'):
+    if lowPass=='auto':
+        lowPass = (period>=LOW_PASS_PERIOD)
+
     adcSynchro(period)
     setLowPass(lowPass)
     setGainAuto()
@@ -618,7 +626,7 @@ class ScanFreq:
         adcSynchro(period)
 
         oldLowPass = currentLowPass
-        if period>=24000: #3 KHz
+        if period>=LOW_PASS_PERIOD: #3 KHz
             setLowPass(True)
         else:
             setLowPass(False)

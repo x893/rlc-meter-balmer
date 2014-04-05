@@ -2,6 +2,7 @@
 # balmer@inbox.ru 2014 RLC Meter
 import sys, os, csv
 from PyQt4 import QtCore, QtGui
+import threading
 
 import matplotlib
 import time
@@ -11,6 +12,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import jplot
+import usb_commands
 
 
 class FormDrawData(QtGui.QMainWindow):
@@ -135,9 +137,9 @@ class FormDrawData(QtGui.QMainWindow):
 		corr = jplot.Corrector(corr_gain)
 
 		for jf in jfreq:
-			#res = jplot.calculateJson(jf, gain_corrector=corr_gain)
-			(res, Zx) = corr.calculateJson(jf)
+			res = corr.calculateJson(jf)
 			F = res['F']
+			Zx = res['Zx']
 			f_data.append(F)
 
 			ampV.append(res['ampV'])
@@ -229,11 +231,13 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_ylabel("Om")
 		#ax.plot (f_data, ampV, '-', color="red")
 		#ax.plot (f_data, ampI, '-', color="blue")
-
 		#ax.plot (f_data, re_data, '-', color="red")
 		#ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
+		#ax.plot (f_data, im_sin, '.', color="red")
+		#ax.plot (f_data, im_cos, '.-', color="blue")
+
 		if gtype=="dfi" or gtype=="dfic":
 			ax.plot (f_data, dfi_data, '-', color="green")
 
@@ -241,13 +245,10 @@ class FormDrawData(QtGui.QMainWindow):
 			ax.plot (f_data, re_error, '.', color="red")
 			ax.plot (f_data, im_error, '.-', color="blue")
 
-		#ax.plot (f_data, im_sin, '.', color="red")
-		#ax.plot (f_data, im_cos, '.-', color="blue")
-
 		if gtype=="ReImCorrect":
 			ax.set_ylabel("Om")
-			ax.plot (f_data, re_corr, '-', color="#00FF00")
-			ax.plot (f_data, im_corr, '-', color="#555555")
+			ax.plot (f_data, re_corr, '-', color="red") # color="#00FF00"
+			ax.plot (f_data, im_corr, '-', color="blue")
 
 		if gtype=="C":
 			ax.set_ylabel("pF")
@@ -258,4 +259,104 @@ class FormDrawData(QtGui.QMainWindow):
 			ax.plot (f_data, arr_L, '-', color="red")
 
 
+		pass
+
+class FormMeasure(QtGui.QMainWindow):
+	def __init__(self, title, parent=None):
+		super(FormMeasure, self).__init__(parent)
+		self.setWindowTitle(title)
+		self.serial = True
+		self.end_thread = False
+		self.createMainFrame()
+
+		self.th = threading.Thread(target=self.UsbThread)
+		self.th.start()
+		self.corr_gain = jplot.GainCorrector()
+		self.corr = jplot.Corrector(self.corr_gain)
+		pass
+
+	def createMainFrame(self):
+		self.main_frame = QtGui.QWidget()
+		vbox = QtGui.QVBoxLayout()
+
+		self.periods = usb_commands.periodAll()
+		self.period = self.periods[0]
+
+		self.freq_slider = QtGui.QSlider(QtCore.Qt.Horizontal)
+		self.freq_slider.setMinimumWidth(256)
+		self.freq_slider.valueChanged.connect(self.OnSliderValueChanged)
+		self.freq_slider.sliderReleased.connect(self.OnSliderReleased)
+		self.freq_slider.setRange (0, len(self.periods)-1)
+		vbox.addWidget(self.freq_slider)
+
+		self.freq_label = QtGui.QLabel(u'info');
+		vbox.addWidget(self.freq_label);
+		self.OnSliderValueChanged(self.freq_slider.value())
+
+
+		self.serial_combo_box = QtGui.QComboBox()
+		self.serial_combo_box.addItem(u'Serial')
+		self.serial_combo_box.addItem(u'Parralel')
+		self.serial_combo_box.currentIndexChanged.connect(self.OnSerial)
+		vbox.addWidget(self.serial_combo_box)
+
+		self.info_label = QtGui.QLabel(u'info');
+		vbox.addWidget(self.info_label);
+
+		button_close = QtGui.QPushButton(u'Закончить.')
+		button_close.clicked.connect(self.close)
+		vbox.addWidget(button_close)
+
+		self.main_frame.setLayout(vbox)
+		self.setCentralWidget(self.main_frame)
+		pass
+
+	def OnSerial(self, index):
+		if index==0:
+			self.serial = True
+		else:
+			self.serial = False
+		pass
+
+	def OnFrequency(self, index):
+		self.period = self.freq_combo_box.itemData(index).toString()
+		pass
+
+	def OnSliderValueChanged (self, index):
+		self.freq_slider.setValue(index)
+		period = self.periods[index]
+		F = usb_commands.periodToFreqency(period)
+		self.freq_label.setText(str(int(F))+' Hz');
+		pass
+
+	def OnSliderReleased(self):
+		index = self.freq_slider.value()
+		self.period = self.periods[index]
+		pass
+
+	def closeEvent(self, event):
+		print "closeEvent"
+		self.end_thread = True
+		event.accept()
+		pass
+
+	def UsbThread(self):
+		i = 0
+		while not self.end_thread:
+			jf = usb_commands.oneFreq(self.period)
+			res = self.corr.calculateJson(jf)
+			if self.end_thread:
+				return
+			self.SetInfo(res)
+		pass
+
+	def SetInfo(self, res):
+		(L, C, isC) = jplot.calculateLC(res, self.serial)
+		txt = "Rre=" + jplot.formatR(res['Rre'])
+		txt += "\nRim=" + jplot.formatR(res['Rim'])
+		if isC:
+			txt += "\nC=" + str(C) + " F"
+		else:
+			txt += "\nL=" + str(L) + " H"
+		self.info_label.setText(txt)
 		pass
