@@ -437,16 +437,16 @@ def calculateLC(res, serial=True):
 
 	if serial:
 		isC = False
-		if Zx.imag>0:
-			L = Zx.imag/(2*math.pi*F)
-		else:
-			L = 0
+		L = Zx.imag/(2*math.pi*F)
 
 		if Zx.imag<-1e-10:
 			isC = True
 			C = -1/(2*math.pi*F*Zx.imag)
 		else:
 			C = 0
+		#если сопротивление маленькое и индуктивность немного отрицательная, то таки считаем что это ошибка калибрации
+		if abs(Zx)<1 and L<0 and L>-20e-9:
+			isC = False
 
 	if not serial: #parrallel
 		isC = True
@@ -460,6 +460,11 @@ def calculateLC(res, serial=True):
 			L = -1/(2*math.pi*F*Yx.imag)
 		else:
 			L = 0
+
+		#если сопротивление большое и емкость немного отрицательная, то таки считаем что это ошибка калибрации
+		if abs(Zx)>1e5 and C<0 and C>-5e-12:
+			isC = True
+
 
 	return (L, C, isC)
 
