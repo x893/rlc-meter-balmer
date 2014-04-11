@@ -47,11 +47,16 @@ class FormDrawData(QtGui.QMainWindow):
 
 		self.gtype_combo_box = QtGui.QComboBox()
 		self.gtype_combo_box.addItem(u'Re+Im', QtCore.QVariant('ReImCorrect'))
+		self.gtype_combo_box.addItem(u'Re', QtCore.QVariant('ReCorrect'))
+		self.gtype_combo_box.addItem(u'Im', QtCore.QVariant('ImCorrect'))
 		self.gtype_combo_box.addItem(u'C', QtCore.QVariant('C'))
 		self.gtype_combo_box.addItem(u'L', QtCore.QVariant('L'))
 		self.gtype_combo_box.addItem(u'Error', QtCore.QVariant('error'))
 		self.gtype_combo_box.addItem(u'Q (corrected)', QtCore.QVariant('dfic'))
 		self.gtype_combo_box.addItem(u'Q (uncorrected)', QtCore.QVariant('dfi'))
+		self.gtype_combo_box.addItem(u'Re+Im (Raw)', QtCore.QVariant('ReImRaw'))
+		self.gtype_combo_box.addItem(u'Re+Im (OnlyGainCorrector)', QtCore.QVariant('ReImRawG'))
+		
 		self.gtype_combo_box.currentIndexChanged.connect(self.OnSelectGraph)
 		right_vbox.addWidget(self.gtype_combo_box)
 
@@ -133,7 +138,10 @@ class FormDrawData(QtGui.QMainWindow):
 		ampV = []
 		ampI = []
 
-		corr_gain = jplot.GainCorrector()
+		if gtype=="ReImRaw":
+			corr_gain = None
+		else:
+			corr_gain = jplot.GainCorrector()
 		corr = jplot.Corrector(corr_gain)
 
 		for jf in jfreq:
@@ -245,10 +253,17 @@ class FormDrawData(QtGui.QMainWindow):
 			ax.plot (f_data, re_error, '.', color="red")
 			ax.plot (f_data, im_error, '.-', color="blue")
 
-		if gtype=="ReImCorrect":
+		if gtype=="ReImCorrect" or gtype=="ReCorrect" or gtype=="ImCorrect":
 			ax.set_ylabel("Om")
-			ax.plot (f_data, re_corr, '-', color="red") # color="#00FF00"
-			ax.plot (f_data, im_corr, '-', color="blue")
+			if gtype=="ReImCorrect" or gtype=="ReCorrect":
+				ax.plot (f_data, re_corr, '-', color="red")
+			if gtype=="ReImCorrect" or gtype=="ImCorrect":
+				ax.plot (f_data, im_corr, '-', color="blue")
+
+		if gtype=="ReImRaw" or gtype=="ReImRawG":
+			ax.set_ylabel("Om")
+			ax.plot (f_data, re_data, '-', color="red")
+			#ax.plot (f_data, im_data, '-', color="blue")
 
 		if gtype=="C":
 			ax.set_ylabel("pF")

@@ -230,7 +230,9 @@ class GainCorrector:
 		jfreq = json_data['freq']
 		for jout in jfreq:
 			period = jout['attr']['period']
-			data[period] = jout
+			#data[period] = jout
+			data[period] = {'I': self.calcZ(jout['summary']['I'])*toVolts/jout['attr']['gain_I'],
+							'V': self.calcZ(jout['summary']['V'])*toVolts/jout['attr']['gain_V']}
 		jsons.append(data)
 		pass
 
@@ -249,10 +251,9 @@ class GainCorrector:
 
 		jout0 = jsons[0][period]
 		joutX = jsons[index][period]
-		z0 = self.calcZ(jout0['summary'][IV]) 
-		zX = self.calcZ(joutX['summary'][IV])
-		z0 *= toVolts/jout0['attr'][gi]
-		zX *= toVolts/joutX['attr'][gi]
+		z0 = jout0[IV]
+		zX = joutX[IV]
+
 		zMeasure *= toVolts/jout['attr'][gi]
 		#if index!=0:
 		#	print "i"+IV+'=', index, "z0=", z0, "zX=", zX
