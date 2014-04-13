@@ -185,20 +185,13 @@ def calculateJson(jout, gain_corrector = None):
 
 	current = ampI/resistor # current in Ampers
 
-	cRe = math.cos(dfi)
-	cIm = math.sin(dfi)
-
 	resistanceComplex = ampV/current
-	Rre = resistanceComplex*cRe
-	Rim = resistanceComplex*cIm
+	R = resistanceComplex*complex(math.cos(dfi), math.sin(dfi))
 
 	return {
 		"ampV": ampV,
 		"ampI": ampI,
-		"cRe": cRe,
-		"cIm": cIm,
-		"Rre": Rre,
-		"Rim": Rim,
+		"R": R,
 		"F": F,
 		"dfi": dfi,
 		"current": current,
@@ -300,15 +293,15 @@ class Corrector2x:
 		self.C = 1.2e-12
 		pass
 
-	def correct(self, Rre, Rim, period, F):
+	def correct(self, R, period, F):
 		d = self.data[period]
 		Z1 = complex(self.Rmin, 0)
 		Z2 = complex(self.Rmax, 0)
-		Zm1 = complex(d['min']['Rre'] , d['min']['Rim'])
-		Zm2 = complex(d['max']['Rre'] , d['max']['Rim'])
+		Zm1 = d['min']['R']
+		Zm2 = d['max']['R']
 		A = (Z2-Z1)/(Zm2-Zm1)
 		B = (Z1*Zm2-Z2*Zm1)/(Zm2-Zm1)
-		Zxm = complex(Rre , Rim)
+		Zxm = R
 		Zx = A*Zxm+B
 		return Zx
 
@@ -338,14 +331,14 @@ class CorrectorOpen:
 		self.C = 1.2e-12
 		pass
 
-	def correct(self, Rre, Rim, period, F):
+	def correct(self, R, period, F):
 		d = self.data[period]
-		Zom = complex(d['open']['Rre'] , d['open']['Rim'])
-		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Zom = d['open']['R']
+		Zstdm = d['load']['R']
 		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
 		Zstd = 1/Ystd
 		#Zstd = complex(self.R, 0)
-		Zxm = complex(Rre , Rim)
+		Zxm = R
 		Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
 		if period==96:
 			print "Zsm=", Zsm
@@ -382,12 +375,12 @@ class CorrectorShort:
 		self.R = json_load['R']
 		pass
 
-	def correct(self, Rre, Rim, period, F):
+	def correct(self, R, period, F):
 		d = self.data[period]
-		Zsm = complex(d['short']['Rre'] , d['short']['Rim'])
-		Zstdm = complex(d['load']['Rre'] , d['load']['Rim'])
+		Zsm = d['short']['R']
+		Zstdm = d['load']['R']
 		Zstd = complex(self.R, 0)
-		Zxm = complex(Rre , Rim)
+		Zxm = R
 		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
 		if period==720000:
 			print "Zsm=", Zsm
@@ -411,10 +404,10 @@ class Corrector:
 		self.corr.append(Corrector2x(2, self.gain_corrector))
 		self.corr.append(CorrectorOpen(self.gain_corrector))
 		pass
-	def correct(self, Rre, Rim, period, F, resistor_index):
-		if abs(complex(Rre, Rim))<100:
-			return self.corr_short.correct(Rre, Rim, period, F)
-		return self.corr[resistor_index].correct(Rre, Rim, period, F)
+	def correct(self, R, period, F, resistor_index):
+		if abs(R)<100:
+			return self.corr_short.correct(R, period, F)
+		return self.corr[resistor_index].correct(R, period, F)
 
 	def calculateJson(self, jf):
 		if jf['attr']['gain_index_V']==7:
@@ -422,12 +415,12 @@ class Corrector:
 			#не используем gain_corrector
 			#по хорошему надо бы использовать его для тока, но не будем, вроде на всем диапазоне gain_index_I=0
 			res = calculateJson(jf, gain_corrector=None)
-			Zx = self.corr_short1Om.correct(res['Rre'], res['Rim'], res['period'], res['F'])
+			Zx = self.corr_short1Om.correct(res['R'], res['period'], res['F'])
 			res['Zx'] = Zx
 			return res
 
 		res = calculateJson(jf, gain_corrector=self.gain_corrector)
-		Zx = self.correct(res['Rre'], res['Rim'], res['period'], res['F'], jf['attr']['resistor_index'])
+		Zx = self.correct(res['R'], res['period'], res['F'], jf['attr']['resistor_index'])
 		res['Zx'] = Zx
 		return res
 
@@ -475,8 +468,8 @@ def calculate(fileName):
 	res = calculateJson(jout)
 
 	F = res['F']
-	Rre = res['Rre']
-	Rim = res['Rim']
+	Rre = res['R'].real
+	Rim = res['R'].imag
 	print "F=", F
 	print "dfi=", res['dfi']
 	print "ampV=", res['ampV'], "V"
@@ -484,9 +477,6 @@ def calculate(fileName):
 	print "resistance=", res['resistance'], "Om"
 	print "Rre=", Rre, "Om"
 	print "Rim=", Rim, "Om"
-
-	print "cRe=", res['cRe']
-	print "cIm=", res['cIm']
 
 	if Rim<0:
 		# capacitor
@@ -543,129 +533,6 @@ def plotIV_2():
 	plt.show()
 	pass
 
-def plotFreq(fileName):
-	jout = readJson(fileName)
-	jfreq = jout['freq']
-
-	f_data = []
-	re_data = []
-	im_data = []
-	dfi_data = []
-	re_error = []
-	im_error = []
-	re_corr = []
-	im_corr = []
-	arr_L = []
-	arr_C = []
-
-	im_sin = []
-	im_cos = []
-
-	corr = Corrector()
-
-	for jf in jfreq:
-		res = calculateJson(jf)
-		F = res['F']
-		f_data.append(F)
-
-		re_data.append(math.fabs(res['Rre']))
-		#im_data.append(math.sqrt(res['Rre']**2+res['Rim']**2))
-		#re_data.append(res['Rre'])
-		im_data.append(math.fabs(res['Rim']))
-		#im_data.append(res['Rim'])
-		re_error.append(jf['summary']['V']['square_error'])
-		im_error.append(jf['summary']['I']['square_error'])
-
-		gain_I = jf['attr']["gain_I"]
-		gain_V = jf['attr']["gain_V"]
-		#re_error.append(math.sqrt(jf['summary']['V']['sin']**2+jf['summary']['V']['cos']**2)/gain_V)
-		#im_error.append(math.sqrt(jf['summary']['I']['sin']**2+jf['summary']['I']['cos']**2)/gain_I)
-
-		im_sin.append(jf['summary']['I']['sin']/gain_I)
-		im_cos.append(jf['summary']['I']['cos']/gain_I)
-
-		#dfi_data.append(res['dfi']*1e6/F)
-		dfi_data.append(res['dfi'])
-
-		if True:
-			Zx = complex(res['Rre'], res['Rim'])
-			#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
-			re_corr.append(Zx.real)
-			im_corr.append(math.fabs(Zx.imag))
-			
-			if Zx.imag>0:
-				L = Zx.imag/(2*math.pi*F)
-			else:
-				L = 0
-
-			if Zx.imag<-1e-10:
-				C = -1/(2*math.pi*F*Zx.imag)
-				#C = min(C, 1e-6)
-			else:
-				C = 0
-			arr_L.append(L*1e6)
-			arr_C.append(C*1e12)
-		if False:
-			#Zx = complex(res['Rre'], res['Rim'])
-			Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F)
-			Yx = 1/Zx
-
-			if Yx.real < 1e-8:
-				re_corr.append(1e8)
-			else:
-				re_corr.append(1/Yx.real)
-
-			im_max = 1e8
-			if math.fabs(Yx.imag)*im_max>1:
-				im_corr.append(1/Yx.imag)
-			else:
-				if Yx.imag>0:
-					im_corr.append(im_max)
-				else:
-					im_corr.append(-im_max)
-
-			C = Yx.imag/(2*math.pi*F)
-			C = min(C, 1e-6)
-			C = max(C, -1e-6)
-			arr_C.append(C*1e12)
-
-			if Yx.imag<0:
-				L = -1/(2*math.pi*F*Yx.imag)
-			else:
-				L = 0
-			arr_L.append(L*1e6)
-
-
-
-	fig, ax = plt.subplots()
-	#ax.set_title("1 uF 160 V")
-	ax.set_xscale('log')
-	#ax.set_yscale('log')
-	ax.set_xlabel("Hz")
-
-	ax.set_ylabel("Om")
-	#ax.plot (f_data, re_data, '-', color="red")
-	#ax.plot (f_data, im_data, '-', color="blue")
-	#ax.plot (f_data, dfi_data, '-', color="green")
-
-	#ax.plot (f_data, re_error, '.', color="red")
-	#ax.plot (f_data, im_error, '.-', color="blue")
-
-	#ax.plot (f_data, im_sin, '.', color="red")
-	#ax.plot (f_data, im_cos, '.-', color="blue")
-
-	#ax.plot (f_data, re_corr, '.-', color="#00FF00")
-	#ax.plot (f_data, im_corr, '.-', color="#555555")
-
-	ax.set_ylabel("uH")
-	ax.plot (f_data, arr_L, '-', color="red")
-
-	#ax.set_ylabel("pF")
-	#ax.plot (f_data, arr_C, '-', color="red")
-
-	plt.show()
-	pass
-
 def plotDelta(fileName1, fileName2, K):
 	jfreq1 = readJson(fileName1)['freq']
 	jfreq2 = readJson(fileName2)['freq']
@@ -705,13 +572,10 @@ def main():
 	#plotDelta("0_1200.json", "1_600.json", 2)
 	#return
 
-	if fileName[0]=='f':
-		plotFreq(fileName)
-	else:
-		#plot(fileName)
-		#plotRaw(fileName, "V", average=False)
-		plotIV(fileName, average=True)
-		#plotIV_2()
+	#plot(fileName)
+	#plotRaw(fileName, "V", average=False)
+	plotIV(fileName, average=True)
+	#plotIV_2()
 
 if __name__ == "__main__":
 	main()

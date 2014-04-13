@@ -152,11 +152,11 @@ class FormDrawData(QtGui.QMainWindow):
 
 			ampV.append(res['ampV'])
 			ampI.append(res['ampI'])
-			#re_data.append(math.fabs(res['Rre']))
-			#im_data.append(math.sqrt(res['Rre']**2+res['Rim']**2))
-			re_data.append(res['Rre'])
-			#im_data.append(math.fabs(res['Rim']))
-			im_data.append(res['Rim'])
+			#re_data.append(math.fabs(res['R'].real))
+			#im_data.append(abs(res['R']))
+			re_data.append(res['R'].real)
+			#im_data.append(math.fabs(res['R'].imag))
+			im_data.append(res['R'].imag)
 			re_error.append(jf['summary']['V']['square_error'])
 			im_error.append(jf['summary']['I']['square_error'])
 
@@ -178,8 +178,6 @@ class FormDrawData(QtGui.QMainWindow):
 			fiI_data.append(res['fiI'])
 
 			if self.serial:
-				#Zx = complex(res['Rre'], res['Rim'])
-				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				re_corr.append(Zx.real)
 				#re_corr.append(res['ampV']/res['ampI'])
 				#im_corr.append(math.fabs(Zx.imag))
@@ -199,8 +197,6 @@ class FormDrawData(QtGui.QMainWindow):
 				arr_C.append(C*1e12)
 
 			if not self.serial: #parrallel
-				#Zx = complex(res['Rre'], res['Rim'])
-				#Zx = corr.correct(res['Rre'], res['Rim'], res['period'], F, jf['attr']['resistor_index'])
 				Yx = 1/Zx
 
 				im_max = 1e10
@@ -272,8 +268,6 @@ class FormDrawData(QtGui.QMainWindow):
 		if gtype=="L":
 			ax.set_ylabel("uH")
 			ax.plot (f_data, arr_L, '-', color="red")
-
-
 		pass
 
 class FormMeasure(QtGui.QMainWindow):
@@ -369,8 +363,8 @@ class FormMeasure(QtGui.QMainWindow):
 		(L, C, isC) = jplot.calculateLC(res, self.serial)
 		Zx = res['Zx']
 		#uncorrected
-		#txt = "Rre=" + jplot.formatR(res['Rre'])
-		#txt += "\nRim=" + jplot.formatR(res['Rim'])
+		#txt = "Rre=" + jplot.formatR(res['R'].real)
+		#txt += "\nRim=" + jplot.formatR(res['R'].imag)
 		if self.serial:
 			txt = "Rre=" + jplot.formatR(Zx.real)
 			txt += "\nRim=" + jplot.formatR(Zx.imag)

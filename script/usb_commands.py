@@ -488,8 +488,8 @@ def adcSynchroJson():
     f.close()
 
     data = calculateJson(jout)
-    print "Rre=", data['Rre']
-    print "Rim=", data['Rim']
+    print "Rre=", data['R'].real
+    print "Rim=", data['R'].imag
 
     print "ErrV=", jout['summary']['V']['square_error']
     print "ErrI=", jout['summary']['I']['square_error']
