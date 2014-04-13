@@ -135,8 +135,6 @@ class FormDrawData(QtGui.QMainWindow):
 		im_cos = []
 		fiV_data = []
 		fiI_data = []
-		ampV = []
-		ampI = []
 
 		if gtype=="ReImRaw":
 			corr_gain = None
@@ -150,8 +148,6 @@ class FormDrawData(QtGui.QMainWindow):
 			Zx = res['Zx']
 			f_data.append(F)
 
-			ampV.append(res['ampV'])
-			ampI.append(res['ampI'])
 			#re_data.append(math.fabs(res['R'].real))
 			#im_data.append(abs(res['R']))
 			re_data.append(res['R'].real)
@@ -168,18 +164,16 @@ class FormDrawData(QtGui.QMainWindow):
 			im_sin.append(jf['summary']['I']['sin']/gain_I)
 			im_cos.append(jf['summary']['I']['cos']/gain_I)
 
-			#dfi_data.append(res['dfi']*1e6/F)
 			if gtype=='dfic':
 				dfi_data.append(cmath.phase(Zx)*180/math.pi)
 			if gtype=='dfi':
-				dfi_data.append(res['dfi']*180/math.pi)
+				dfi_data.append(cmath.phase(res['R'])*180/math.pi)
 			
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
 
 			if self.serial:
 				re_corr.append(Zx.real)
-				#re_corr.append(res['ampV']/res['ampI'])
 				#im_corr.append(math.fabs(Zx.imag))
 				im_corr.append(Zx.imag)
 				
@@ -214,7 +208,6 @@ class FormDrawData(QtGui.QMainWindow):
 						im_corr.append(-im_max)
 
 				C = Yx.imag/(2*math.pi*F)
-				#C = 1.0/(2*math.pi*F*res["resistance"])
 				C = min(C, 1e-6)
 				C = max(C, -1e-6)
 				arr_C.append(C*1e12)
@@ -233,10 +226,6 @@ class FormDrawData(QtGui.QMainWindow):
 		ax.set_xlabel("Hz")
 
 		#ax.set_ylabel("Om")
-		#ax.plot (f_data, ampV, '-', color="red")
-		#ax.plot (f_data, ampI, '-', color="blue")
-		#ax.plot (f_data, re_data, '-', color="red")
-		#ax.plot (f_data, im_data, '-', color="blue")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
 		#ax.plot (f_data, im_sin, '.', color="red")

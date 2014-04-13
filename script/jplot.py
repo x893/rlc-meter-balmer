@@ -132,13 +132,7 @@ def plotRaw(fileName, IV, average = False):
 	plt.show()
 
 def calcFast(period, clock, ncycle, sdata):
-	(amplitude, fi) = smath.calcFi(sdata["sin"], sdata["cos"])
-	#(a,f) = cmath.polar(complex(sdata["sin"], sdata["cos"]))
-	#print "fi=", fi, "f=", f
-	#print "am=", amplitude, "a=", a
-	return {"amplitude": amplitude, "fi": fi}
-
-
+	return complex(sdata["sin"], sdata["cos"])
 
 def calculateJson(jout, gain_corrector = None):
 	jattr = jout["attr"]
@@ -148,57 +142,37 @@ def calculateJson(jout, gain_corrector = None):
 
 	resistor = jattr["resistor"]
 
-	F = clock/period #frequency, herz
+	F = clock/float(period) #frequency, herz
 
 	if gain_corrector:
-		(ampV, fiV, ampI, fiI)=gain_corrector.calc(period=period, clock=clock, ncycle=ncycle, jout=jout)
+		(ampV, fiV, ampI, fiI)=gain_corrector.calcPolar(period=period, clock=clock, ncycle=ncycle, jout=jout)
+		(zV, zI)=gain_corrector.calcComplex(period=period, clock=clock, ncycle=ncycle, jout=jout)
 	else:
+		gain_V = jattr["gain_V"]
+		gain_I = jattr["gain_I"]
 		if 'summary' in jout:
-			resultV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
-			resultI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+			zV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
+			zI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+			zV *= toVolts/gain_V
+			zI *= toVolts/gain_I
+			(ampV, fiV) = cmath.polar(zV)
+			(ampI, fiI) = cmath.polar(zI)
 		else:
 			resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
 			resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
-		gain_V = jattr["gain_V"]
-		gain_I = jattr["gain_I"]
-		ampV = resultV['amplitude']
-		ampI = resultI['amplitude']
-		fiV = resultV['fi']
-		fiI = resultI['fi']
-		ampV *= toVolts/gain_V
-		ampI *= toVolts/gain_I
-		#print "F=", F, "gain_V=", gain_V, "gain_I=", gain_I
+			zV = cmath.rect(resultV['amplitude'], resultV['fi'])
+			zI = cmath.rect(resultI['amplitude'], resultI['fi'])
+			zV *= toVolts/gain_V
+			zI *= toVolts/gain_I
 
-	if fiV<0:
-		fiV+=math.pi*2
-	if fiI<0:
-		fiI+=math.pi*2
-
-	#dfi = resultV['fi']-resultI['fi']
-	dfi = fiV-fiI
-
-	if dfi>math.pi:
-		dfi -= math.pi*2
-	if dfi<-math.pi:
-		dfi += math.pi*2
-
-
-	current = ampI/resistor # current in Ampers
-
-	resistanceComplex = ampV/current
-	R = resistanceComplex*complex(math.cos(dfi), math.sin(dfi))
+	R = (zV/zI)*resistor
 
 	return {
-		"ampV": ampV,
-		"ampI": ampI,
 		"R": R,
 		"F": F,
-		"dfi": dfi,
-		"current": current,
-		"resistance": resistanceComplex,
 		"period": period,
-		"fiV": fiV,
-		"fiI": fiI
+		"fiV": cmath.polar(zV),
+		"fiI": cmath.polar(zI)
 	}
 
 class GainCorrector:
@@ -229,7 +203,12 @@ class GainCorrector:
 		jsons.append(data)
 		pass
 
-	def calc(self, period, clock, ncycle, jout):
+	def calcComplex(self, period, clock, ncycle, jout):
+		zV = self.calcX('V', self.jsonsV, jout, index=jout['attr']['gain_index_V'], period=period)
+		zI = self.calcX('I', self.jsonsI, jout, index=jout['attr']['gain_index_I'], period=period)
+		return (zV, zI)
+
+	def calcPolar(self, period, clock, ncycle, jout):
 		zV = self.calcX('V', self.jsonsV, jout, index=jout['attr']['gain_index_V'], period=period)
 		zI = self.calcX('I', self.jsonsI, jout, index=jout['attr']['gain_index_I'], period=period)
 		(ampV, fiV) = cmath.polar(zV)
@@ -471,10 +450,8 @@ def calculate(fileName):
 	Rre = res['R'].real
 	Rim = res['R'].imag
 	print "F=", F
-	print "dfi=", res['dfi']
-	print "ampV=", res['ampV'], "V"
-	print "ampI=", res['current'], "A"
-	print "resistance=", res['resistance'], "Om"
+	print "dfi=", cmath.phase(res['R'])
+	print "resistance=", abs(res['R']), "Om"
 	print "Rre=", Rre, "Om"
 	print "Rim=", Rim, "Om"
 
@@ -533,44 +510,9 @@ def plotIV_2():
 	plt.show()
 	pass
 
-def plotDelta(fileName1, fileName2, K):
-	jfreq1 = readJson(fileName1)['freq']
-	jfreq2 = readJson(fileName2)['freq']
-	f_data = []
-	ampV = []
-	ampI = []
-	dfi_data = []
-	for i in xrange(0, len(jfreq1)):
-		jf1 = jfreq1[i]
-		jf2 = jfreq2[i]		
-		res1 = calculateJson(jf1)
-		res2 = calculateJson(jf2)
-		F = res1['F']
-		f_data.append(F)
-		ampV.append(res2['ampV']*K/res1['ampV']-1.0)
-		ampI.append(res2['ampI']*K/res1['ampI']-1.0)
-		dfi_data.append(res2['dfi']-res1['dfi'])
-		pass
-
-	fig, ax = plt.subplots()
-	ax.set_xscale('log')
-	ax.set_xlabel("Hz")
-	ax.set_ylabel("V")
-
-	ax.plot (f_data, ampV, '-', color="red")
-	ax.plot (f_data, ampI, '-', color="blue")
-	ax.plot (f_data, dfi_data, '-', color="green")
-
-	plt.show()
-	pass
-
 def main():
 	if len(sys.argv)>=2:
 		fileName = sys.argv[1]
-
-	#plotDelta("0_1200.json", "4_150.json", 8)
-	#plotDelta("0_1200.json", "1_600.json", 2)
-	#return
 
 	#plot(fileName)
 	#plotRaw(fileName, "V", average=False)

@@ -84,7 +84,7 @@ def calcAll(period, clock, ncycle, data):
 
 	(amplitude, fi) = calcFi(csin, ccos)
 	square_error = correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle)
-	t_propagation = fi/2*math.pi*ncycle/clock
+	t_propagation = fi/(2*math.pi)*ncycle/clock
 
 	print "square_error=", square_error
 
@@ -95,32 +95,6 @@ def calcAll(period, clock, ncycle, data):
 
 
 def main():
-	data = readFileAsShort(fileName)
-	#period = 720 # F=100000
-	#period = 7200 # F=10000
-	#period = 3600 # F=20000
-	#period = 72000 # F=1000
-	period = 120000 # F=600
-	#period = 7*120 #F=85714
-	clock = 72000000
-	ncycle = 10
-	#data = [ math.sin(2*math.pi*i/ncycle) for i in xrange(ncycle)]
-
-	print "calcAll=",calcAll(period, clock, ncycle, data)
-
-	(c0, csin, ccos) = calcSinCos(period, clock, ncycle, data)
-
-	(amplitude, fi) = calcFi(csin, ccos)
-
-	err = deltaError(data, c0, amplitude, fi, ncycle)
-	with open("out_error.dat", "wb") as file:
-		arr = array.array('H')
-		for i in xrange(len(err)):
-			arr.append(int(math.floor(err[i]+0.5+2500)))
-		arr.tofile(file)
-
-	print "serror=", correctedSampleStandardDeviation(data, c0, amplitude, fi, ncycle)
-	print "dt=", fi/2*math.pi*ncycle/clock
 	pass
 
 if __name__ == "__main__":
