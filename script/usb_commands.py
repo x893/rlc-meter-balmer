@@ -22,6 +22,7 @@ COMMAND_LAST_COMPUTE = 8
 COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
+COMMAND_START_GAIN_AUTO = 12
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -145,11 +146,13 @@ def readCommand():
         pass
     elif cmd==COMMAND_SET_LOW_PASS:
         pass
+    elif cmd==COMMAND_START_GAIN_AUTO:
+        pass
     else:
         print "Unknown command="+str(data[0])
     pass
 
-def setFreq(F):    
+def setFreq(F):
     print "write=",dwrite(struct.pack("=BI", COMMAND_SET_FREQUENCY, F))
     readCommand()
     pass
@@ -163,6 +166,12 @@ def setSetGain(isVoltage, gain):
     dwrite([ COMMAND_SET_GAIN, isVoltage, gain])
     readCommand()
     pass
+
+def startGainAuto():
+    dwrite(struct.pack("=B", COMMAND_START_GAIN_AUTO))
+    readCommand()
+    pass
+
 
 def setResistor(r):
     global resistorIdx
@@ -703,6 +712,8 @@ def main():
 
         adcSynchro(period)
         setLowPass(True)
+        startGainAuto()
+        return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
         if False:

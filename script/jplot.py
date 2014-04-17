@@ -145,7 +145,6 @@ def calculateJson(jout, gain_corrector = None):
 	F = clock/float(period) #frequency, herz
 
 	if gain_corrector:
-		(ampV, fiV, ampI, fiI)=gain_corrector.calcPolar(period=period, clock=clock, ncycle=ncycle, jout=jout)
 		(zV, zI)=gain_corrector.calcComplex(period=period, clock=clock, ncycle=ncycle, jout=jout)
 	else:
 		gain_V = jattr["gain_V"]
@@ -233,7 +232,6 @@ class GainCorrector:
 
 	def calcZ(self, sdata):
 		return complex(sdata["sin"], sdata["cos"])
-		#return math.sqrt(sdata["sin"]*sdata["sin"]+sdata["cos"]*sdata["cos"])
 
 class Corrector2x:
 	def __init__(self, diapazon, gain_corrector = None):

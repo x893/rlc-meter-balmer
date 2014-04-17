@@ -6,6 +6,7 @@
 #include "dac.h"
 #include "adc.h"
 #include "mcp6s21.h"
+#include "calc_rc.h"
 
 void GetClockFrequency(void)
 {
@@ -80,6 +81,10 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		break;
 	case 11://COMMAND_SET_LOW_PASS
 		SetLowPassFilter(commandBuffer[1]?true:false);
+		break;
+	case 12://COMMAND_START_GAIN_AUTO
+		ProcessSetState(STATE_START_GAIN_AUTO);
+		AdcUsbRequestData();
 		break;
 	}
 

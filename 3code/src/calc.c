@@ -26,7 +26,7 @@ void AdcClearData(AdcSummaryData* data)
 	data->nop_number = 33;
 }
 
-static void AdcSquareError(AdcSummaryChannel* ch, uint16_t* in, uint16_t count)
+static void CalcSquareError(AdcSummaryChannel* ch, uint16_t* in, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
 	uint16_t nsamples4 = nsamples>>2;
@@ -46,7 +46,7 @@ static void AdcSquareError(AdcSummaryChannel* ch, uint16_t* in, uint16_t count)
 	ch->square_error = sqrt(sum_error/(count-1));
 }
 
-void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count)
+void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
 	uint16_t nsamples4 = nsamples>>2;
@@ -118,7 +118,7 @@ void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t cou
 	data->ch_i.k_sin = sin_i*2.0f/(float)count;
 	data->ch_i.k_cos = cos_i*2.0f/(float)count;
 
-	AdcSquareError(&data->ch_v, inV, count);
-	AdcSquareError(&data->ch_i, inI, count);
+	CalcSquareError(&data->ch_v, inV, count);
+	CalcSquareError(&data->ch_i, inI, count);
 
 }

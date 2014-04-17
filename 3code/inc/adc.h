@@ -1,3 +1,5 @@
+#ifndef _ADC_H_
+#define _ADC_H_
 // balmer@inbox.ru 2013 RLC Meter
 
 #define RESULT_BUFFER_SIZE 3000
@@ -21,13 +23,8 @@ typedef struct {
 } AdcSummaryData;
 
 void AdcInit();
-
-
-
 void AdcDacStartSynchro(uint32_t period, uint16_t amplitude);
-
 void AdcQuant();
-
 void AdcSendLastCompute();
 
 extern uint16_t g_adcStatus;
@@ -37,6 +34,8 @@ extern uint32_t g_adc_elapsed_time;
 extern uint32_t g_resultBufferCopy[RESULT_BUFFER_SIZE];
 extern uint32_t g_ResultBufferSize;
 
+extern AdcSummaryData g_data;
+
 //usb functions
 void AdcUsbRequestData();
 bool AdcUsbBufferComplete();
@@ -45,4 +44,6 @@ void AdcUsbReadBuffer();
 
 //Calc functions
 void AdcClearData(AdcSummaryData* data);
-void AdcAddData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count);
+void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count);
+
+#endif//_ADC_H_

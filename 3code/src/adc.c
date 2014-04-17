@@ -6,6 +6,7 @@
 #include "voltage.h"
 #include "usb_desc.h"
 #include "systick.h"
+#include "calc_rc.h"
 
 #include "lcd_interface.h"//test code
 
@@ -332,9 +333,18 @@ static void AdcOnComplete()
 
 	g_data.count = g_ResultBufferSize;
 
-	AdcAddData(&g_data, inV, inI, g_ResultBufferSize);
+	AdcCalcData(&g_data, inV, inI, g_ResultBufferSize);
 
-	g_usb_sampled_data = true;
+	ProcessData();
+
+	if(ProcessGetState()==STATE_NOP)
+	{
+		g_usb_sampled_data = true;
+	} else
+	{
+		g_usb_request_data = true;
+	}
+
 }
 
 void AdcQuant()
