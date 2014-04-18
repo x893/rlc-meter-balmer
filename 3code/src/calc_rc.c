@@ -21,15 +21,24 @@
 
 static STATES state = STATE_NOP;
 
+#define gainValuesCount 8
+uint8_t gainValues[gainValuesCount] = {1,2,4,5,8,10,16,32};
+
 
 uint8_t resistorIdx;
 uint8_t gainVoltageIdx;
 uint8_t gainCurrentIdx;
 
+uint8_t gainIndexIterator;
+bool gainIndexStopV;
+bool gainIndexStopI;
+
 extern int printDelta;
 
 void OnStartGainAuto();
 void OnResistorIndex();
+void OnStartGainIndex();
+void OnGainIndex();
 
 void ProcessSetState(STATES state_)
 {
@@ -66,7 +75,12 @@ void ProcessData()
 		break;
 	case STATE_RESISTOR_INDEX_WAIT:
 		state = STATE_RESISTOR_INDEX;
-		printDelta = 456;
+		break;
+	case STATE_GAIN_INDEX:
+		OnGainIndex();
+		break;
+	case STATE_GAIN_INDEX_WAIT:
+		state = STATE_GAIN_INDEX;
 		break;
 	}
 }
@@ -92,12 +106,66 @@ void OnResistorIndex()
 	printDelta = di;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
-		state = STATE_NOP;
+		OnStartGainIndex();
 	} else
 	{
 		state = STATE_RESISTOR_INDEX_WAIT;
 		resistorIdx++;
 		SetResistor(resistorIdx);
+	}
+
+	LcdRepaint();
+}
+
+void OnStartGainIndex()
+{
+	state = STATE_GAIN_INDEX;
+    gainIndexStopV = false;
+    gainIndexStopI = false;
+    gainIndexIterator = 0;
+
+	OnGainIndex();
+}
+
+void OnGainIndex()
+{
+	int vmin = g_data.ch_v.adc_min;
+	int vmax = g_data.ch_v.adc_max;
+	int imin = g_data.ch_i.adc_min;
+	int imax = g_data.ch_i.adc_max;
+	printDelta = gainIndexIterator+100;
+
+	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
+	{
+		gainVoltageIdx = gainIndexIterator;
+	} else
+	{
+		MCPSetGain(true, gainVoltageIdx);
+		gainIndexStopV = true;
+	}
+
+	if(!gainIndexStopI && imax<goodMax && imin>goodMin)
+	{
+		gainCurrentIdx = gainIndexIterator;
+	} else
+	{
+		MCPSetGain(false, gainCurrentIdx);
+		gainIndexStopI = true;
+	}
+
+	gainIndexIterator++;
+	if(gainIndexIterator>=gainValuesCount)
+	{
+		MCPSetGain(true, gainVoltageIdx);
+		MCPSetGain(false, gainCurrentIdx);
+		state = STATE_NOP;
+	} else
+	{
+		if(!gainIndexStopV)
+			MCPSetGain(true, gainIndexIterator);
+		if(!gainIndexStopI)
+			MCPSetGain(false, gainIndexIterator);
+		state = STATE_GAIN_INDEX_WAIT;
 	}
 
 	LcdRepaint();

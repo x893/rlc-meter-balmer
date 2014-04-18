@@ -23,5 +23,9 @@ void LcdRepaint()
   LcdGotoXYFont(1,3);
   LcdStr(FONT_1X, "R=");
   printInt(resistorIdx, FONT_1X);
+  LcdStr(FONT_1X, " V=");
+  printInt(gainVoltageIdx, FONT_1X);  
+  LcdStr(FONT_1X, " I=");
+  printInt(gainCurrentIdx, FONT_1X);
   LcdUpdate();
 }

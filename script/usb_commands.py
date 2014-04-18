@@ -420,7 +420,7 @@ def setGainAuto(predefinedRes=-1):
 
     setSetGain(1, idxV)
     setSetGain(0, idxI)
-    #print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
+    print "gain auto", " V="+str(idxV), "I="+str(idxI), "R="+str(resistorIdx)
     pass
 
 def adcLastCompute():
@@ -707,7 +707,7 @@ def main():
     #return
 
     if True:
-        period = periodByFreq(1000)
+        period = periodByFreq(100)
         #period = 384
 
         adcSynchro(period)
@@ -716,9 +716,9 @@ def main():
         return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        if False:
-            #setGainAuto()
-            setGainAuto(predefinedRes=0)
+        if True:
+            setGainAuto()
+            #setGainAuto(predefinedRes=0)
         else:
             setResistor(0)
             setSetGain(1, 6) #V
