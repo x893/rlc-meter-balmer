@@ -83,8 +83,7 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		SetLowPassFilter(commandBuffer[1]?true:false);
 		break;
 	case 12://COMMAND_START_GAIN_AUTO
-		ProcessSetState(STATE_START_GAIN_AUTO);
-		AdcUsbRequestData();
+		ProcessStartComputeX(commandBuffer[1]/*count*/, commandBuffer[2]/*predefinedResistorIdx*/);
 		break;
 	}
 

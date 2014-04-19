@@ -6,15 +6,16 @@
 typedef enum STATES
 {
 	STATE_NOP=0,
-	STATE_START_GAIN_AUTO,
 	STATE_RESISTOR_INDEX,
 	STATE_RESISTOR_INDEX_WAIT,
 	STATE_GAIN_INDEX,
 	STATE_GAIN_INDEX_WAIT,
+	STATE_COMPUTE_X,
+	STATE_COMPUTE_X_WAIT,
 } STATES;
 
 void ProcessData();
-void ProcessSetState(STATES state);
+void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx);
 STATES ProcessGetState();
 
 extern uint8_t resistorIdx;

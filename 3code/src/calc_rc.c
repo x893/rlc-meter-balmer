@@ -33,16 +33,25 @@ uint8_t gainIndexIterator;
 bool gainIndexStopV;
 bool gainIndexStopI;
 
+uint8_t computeXCount;
+uint8_t computeXIterator;
+uint8_t predefinedResistorIdx;
+
 extern int printDelta;
 
 void OnStartGainAuto();
 void OnResistorIndex();
-void OnStartGainIndex();
+void OnStartGainIndex(bool wait);
 void OnGainIndex();
+void OnComputeX();
 
-void ProcessSetState(STATES state_)
+void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
 {
-	state = state_;
+	computeXCount = count;
+	computeXIterator = 0;
+	predefinedResistorIdx = predefinedResistorIdx_;
+	OnStartGainAuto();
+	AdcUsbRequestData();
 }
 
 STATES ProcessGetState()
@@ -67,9 +76,6 @@ void ProcessData()
 	{
 	case STATE_NOP:
 		return;
-	case STATE_START_GAIN_AUTO:
-		OnStartGainAuto();
-		break;
 	case STATE_RESISTOR_INDEX:
 		OnResistorIndex();
 		break;
@@ -82,6 +88,12 @@ void ProcessData()
 	case STATE_GAIN_INDEX_WAIT:
 		state = STATE_GAIN_INDEX;
 		break;
+	case STATE_COMPUTE_X:
+		OnComputeX();
+		break;
+	case STATE_COMPUTE_X_WAIT:
+		state = STATE_COMPUTE_X;
+		break;
 	}
 }
 
@@ -90,10 +102,20 @@ void OnStartGainAuto()
 	resistorIdx = 0;
 	gainVoltageIdx = 0;
 	gainCurrentIdx = 0;
-	SetResistor(resistorIdx);
 	MCPSetGain(true, gainVoltageIdx);
 	MCPSetGain(false, gainCurrentIdx);
-	state = STATE_RESISTOR_INDEX_WAIT;
+
+	if(predefinedResistorIdx!=255)
+	{
+		resistorIdx = predefinedResistorIdx;
+		SetResistor(resistorIdx);
+		OnStartGainIndex(true);
+	} else
+	{
+		SetResistor(resistorIdx);
+		state = STATE_RESISTOR_INDEX_WAIT;
+	}
+
 
 	printDelta = 123;
 	LcdRepaint();
@@ -106,7 +128,7 @@ void OnResistorIndex()
 	printDelta = di;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
-		OnStartGainIndex();
+		OnStartGainIndex(false);
 	} else
 	{
 		state = STATE_RESISTOR_INDEX_WAIT;
@@ -117,9 +139,12 @@ void OnResistorIndex()
 	LcdRepaint();
 }
 
-void OnStartGainIndex()
+void OnStartGainIndex(bool wait)
 {
-	state = STATE_GAIN_INDEX;
+	if(wait)
+		state = STATE_GAIN_INDEX_WAIT;
+	else
+		state = STATE_GAIN_INDEX;
     gainIndexStopV = false;
     gainIndexStopI = false;
     gainIndexIterator = 0;
@@ -169,4 +194,8 @@ void OnGainIndex()
 	}
 
 	LcdRepaint();
+}
+
+void OnComputeX()
+{
 }

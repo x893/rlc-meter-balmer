@@ -167,8 +167,8 @@ def setSetGain(isVoltage, gain):
     readCommand()
     pass
 
-def startGainAuto():
-    dwrite(struct.pack("=B", COMMAND_START_GAIN_AUTO))
+def startGainAuto(countComputeX, predefinedResistorIdx=255):
+    dwrite(struct.pack("=BBB", COMMAND_START_GAIN_AUTO, countComputeX, predefinedResistorIdx))
     readCommand()
     pass
 
@@ -712,7 +712,7 @@ def main():
 
         adcSynchro(period)
         setLowPass(True)
-        startGainAuto()
+        startGainAuto(1)
         return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
