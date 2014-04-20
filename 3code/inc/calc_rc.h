@@ -2,25 +2,8 @@
 #define _CALC_RC_H_
 
 #include "adc.h"
+#include "process_measure.h"
 
-typedef enum STATES
-{
-	STATE_NOP=0,
-	STATE_RESISTOR_INDEX,
-	STATE_RESISTOR_INDEX_WAIT,
-	STATE_GAIN_INDEX,
-	STATE_GAIN_INDEX_WAIT,
-	STATE_MEASURE,
-	STATE_MEASURE_WAIT,
-} STATES;
-
-void ProcessData();
-void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx);
-STATES ProcessGetState();
-void SendRVI();
-
-extern uint8_t resistorIdx;
-extern uint8_t gainVoltageIdx;
-extern uint8_t gainCurrentIdx;
+void OnCalculate();
 
 #endif//_CALC_RC_H_

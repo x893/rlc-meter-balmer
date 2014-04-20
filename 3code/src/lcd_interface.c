@@ -4,6 +4,8 @@
 
 static uint32_t frequency = 0;
 int printDelta = 0;
+float Rre = 0;
+float Rim = 0;
 
 void LcdFrequency(uint32_t f)
 {
@@ -27,5 +29,11 @@ void LcdRepaint()
   printInt(gainVoltageIdx, FONT_1X);  
   LcdStr(FONT_1X, " I=");
   printInt(gainCurrentIdx, FONT_1X);
+  LcdGotoXYFont(1,4);
+  LcdStr(FONT_1X, "re=");
+  printInt((int)Rre, FONT_1X);
+  LcdGotoXYFont(1,5);
+  LcdStr(FONT_1X, "im=");
+  printInt((int)Rim, FONT_1X);
   LcdUpdate();
 }
