@@ -10,6 +10,7 @@
 #include <complex.h>
 #include <math.h>
 #include <stdbool.h>
+#include <voltage.h>
 #include "calc_rc.h"
 #include "mcp6s21.h"
 #include "lcd_interface.h"
@@ -39,16 +40,20 @@ uint8_t predefinedResistorIdx;
 
 extern int printDelta;
 
+static AdcSummaryData sum_data;
+
 void OnStartGainAuto();
 void OnResistorIndex();
 void OnStartGainIndex(bool wait);
 void OnGainIndex();
-void OnComputeX();
+void OnMeasure();
+void OnMeasureStart();
 
 void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
 {
+	if(count==0)
+		count = 1;
 	computeXCount = count;
-	computeXIterator = 0;
 	predefinedResistorIdx = predefinedResistorIdx_;
 	OnStartGainAuto();
 	AdcUsbRequestData();
@@ -88,11 +93,11 @@ void ProcessData()
 	case STATE_GAIN_INDEX_WAIT:
 		state = STATE_GAIN_INDEX;
 		break;
-	case STATE_COMPUTE_X:
-		OnComputeX();
+	case STATE_MEASURE:
+		OnMeasure();
 		break;
-	case STATE_COMPUTE_X_WAIT:
-		state = STATE_COMPUTE_X;
+	case STATE_MEASURE_WAIT:
+		state = STATE_MEASURE;
 		break;
 	}
 }
@@ -196,6 +201,55 @@ void OnGainIndex()
 	LcdRepaint();
 }
 
-void OnComputeX()
+void OnMeasureStart()
 {
+	state = STATE_MEASURE_WAIT;
+	computeXIterator = 0;
+}
+
+void OnMeasure()
+{
+	if(computeXIterator==0)
+	{
+		sum_data = g_data;
+	} else
+	{
+		sum_data.ch_i.k_sin += g_data.ch_i.k_sin;
+		sum_data.ch_i.k_cos += g_data.ch_i.k_cos;
+		sum_data.ch_i.square_error += g_data.ch_i.square_error;
+
+		sum_data.ch_v.k_sin += g_data.ch_v.k_sin;
+		sum_data.ch_v.k_cos += g_data.ch_v.k_cos;
+		sum_data.ch_v.square_error += g_data.ch_v.square_error;
+
+		if(g_data.error)
+			sum_data.error = true;			
+	}
+
+	computeXIterator++;
+	if(computeXIterator<computeXCount)
+	{
+		state = STATE_MEASURE_WAIT;
+		return;
+	}
+
+	//calculate result
+	sum_data.ch_i.k_sin /= computeXCount;
+	sum_data.ch_i.k_cos /= computeXCount;
+	sum_data.ch_i.square_error /= computeXCount;
+
+	sum_data.ch_v.k_sin /= computeXCount;
+	sum_data.ch_v.k_cos /= computeXCount;
+	sum_data.ch_v.square_error /= computeXCount;
+
+	g_data = sum_data;
+
+	state = STATE_NOP;
+}
+
+void SendRVI()
+{
+	USBAdd8(resistorIdx);
+	USBAdd8(gainVoltageIdx);
+	USBAdd8(gainCurrentIdx);
 }

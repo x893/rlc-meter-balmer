@@ -23,6 +23,7 @@ COMMAND_REQUEST_DATA = 9
 COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 COMMAND_START_GAIN_AUTO = 12
+COMMAND_RVI_INDEXES = 13
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -197,6 +198,16 @@ def adcElapsedTime():
     readCommand()
     pass
 
+def adcReadRVI():
+    global gainVoltageIdx, gainCurrentIdx, resistorIdx
+
+    dwrite([COMMAND_RVI_INDEXES])
+    data = dread()
+    assert(data[0]==COMMAND_RVI_INDEXES)
+    (resistorIdx, gainVoltageIdx, gainCurrentIdx) = struct.unpack_from('=BBB', data, 1)
+    print "V="+str(gainVoltageIdx), "I="+str(gainCurrentIdx), "R="+str(resistorIdx)
+    pass
+
 def adcReadBuffer():
     dwrite([COMMAND_ADC_READ_BUFFER])
     time.sleep(0.01)
@@ -337,6 +348,25 @@ def adcRequestLastComputeX(count=10):
     dataI['square_error'] /= count
     return data
 
+def adcRequestLastComputeHardAuto(countComputeX, predefinedResistorIdx=255):
+    startGainAuto(countComputeX, predefinedResistorIdx)
+
+    for i in xrange(0,20):
+        time.sleep(0.1)
+        dwrite([COMMAND_DATA_COMPLETE]);
+        data = dread()
+        complete = struct.unpack_from('=B', data, 1)[0]
+        if complete==1:
+            break
+
+    if complete!=1:
+        print "complete error = ", complete
+    else:
+        print "complete ok"
+
+    adcReadRVI()    
+    return adcLastCompute()
+
 
 def getMinMax(arr):
     xmin = arr[0]
@@ -475,7 +505,7 @@ def getAttr():
     jattr["low_pass"] = currentLowPass
     return jattr
 
-def adcSynchroJson():
+def adcSynchroJson(soft=True):
     (out1, out2) = adcRequestData()
     jout = {}
     jdata = {}
@@ -492,7 +522,10 @@ def adcSynchroJson():
     
     f = open('sout.json', 'w')
     #jout = adcLastCompute()
-    jout = adcRequestLastComputeX(100)
+    if soft:
+        jout = adcRequestLastComputeX(10)
+    else:
+        jout = adcRequestLastComputeHardAuto(10)
     f.write(json.dumps(jout))
     f.close()
 
@@ -707,13 +740,14 @@ def main():
     #return
 
     if True:
-        period = periodByFreq(100)
+        period = periodByFreq(1000)
         #period = 384
 
         adcSynchro(period)
         setLowPass(True)
-        startGainAuto(1)
-        return
+        #startGainAuto(1)
+        #print adcRequestLastComputeHardAuto(1)
+        #return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
         if True:
@@ -724,7 +758,7 @@ def main():
             setSetGain(1, 6) #V
             setSetGain(0, 0) #I
         time.sleep(0.1)
-        adcSynchroJson()
+        adcSynchroJson(soft=False)
     else:
         allFreq()
     pass
