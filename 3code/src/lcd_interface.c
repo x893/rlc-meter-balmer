@@ -1,5 +1,6 @@
 #include "hw_config.h"
 #include "lcd_interface.h"
+#include "format_print.h"
 #include "calc_rc.h"
 
 static uint32_t frequency = 0;
@@ -31,9 +32,9 @@ void LcdRepaint()
   printInt(gainCurrentIdx, FONT_1X);
   LcdGotoXYFont(1,4);
   LcdStr(FONT_1X, "re=");
-  printInt((int)Rre, FONT_1X);
+  printR(Rre, FONT_1X);
   LcdGotoXYFont(1,5);
   LcdStr(FONT_1X, "im=");
-  printInt((int)Rim, FONT_1X);
+  printR(Rim, FONT_1X);
   LcdUpdate();
 }
