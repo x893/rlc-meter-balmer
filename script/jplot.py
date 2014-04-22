@@ -233,6 +233,19 @@ class GainCorrector:
 	def calcZ(self, sdata):
 		return complex(sdata["sin"], sdata["cos"])
 
+	def getCoeffV(self, period):
+		out = []
+		for js in self.jsonsV:
+			out.append(js[period]['V'])
+		return out
+	def getCoeffI(self, period):
+		out = []
+		for js in self.jsonsI:
+			out.append(js[period]['I'])
+		return out
+
+
+
 class Corrector2x:
 	def __init__(self, diapazon, gain_corrector = None):
 		self.gain_corrector = gain_corrector

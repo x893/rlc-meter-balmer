@@ -7,6 +7,7 @@
 #include "adc.h"
 #include "mcp6s21.h"
 #include "calc_rc.h"
+#include "corrector.h"
 
 void GetClockFrequency(void)
 {
@@ -87,6 +88,12 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		break;
 	case 13://COMMAND_RVI_INDEXES
 		SendRVI();
+		break;
+	case 14://COMMAND_SET_GAIN_CORRECTOR_V
+		SetGAinCorrectorV((float*)(commandBuffer+4));
+		break;
+	case 15://COMMAND_SET_GAIN_CORRECTOR_I
+		SetGAinCorrectorI((float*)(commandBuffer+4));
 		break;
 	}
 

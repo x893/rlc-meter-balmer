@@ -123,23 +123,36 @@ FormatValue:;
 
 	{
 		int value;
-		uint8_t dot = aValue<50;
 
-		//format XX.X
-		if(dot)
-			value = (int)(aValue*10+0.5f);
-		else
+		if(aValue>=200)
+		{
 			value = (int)(aValue+0.5f);
-
-		char c = (value/100);
-		//*aBuffer++ = c?'0'+c:' ';
-		if(c)
+			char c = (value/100);
 			*aBuffer++ = '0'+c;
-		*aBuffer++ = '0'+(char)((value/10)%10);
-		if(dot)
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '0'+(char)(value%10);
+		} else
+		if(aValue>=20)
+		{
+			value = (int)(aValue*10+0.5f);
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+(value/100)%10;
+			*aBuffer++ = '0'+(char)((value/10)%10);
 			*aBuffer++ = '.';
-		*aBuffer++ = '0'+(char)(value%10);
-
+			*aBuffer++ = '0'+(char)(value%10);
+		} else
+		{
+			value = (int)(aValue*100+0.5f);
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+(value/100)%10;
+			*aBuffer++ = '.';
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '0'+(char)(value%10);
+		}
 	}
 
 AddSufix:;

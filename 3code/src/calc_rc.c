@@ -7,29 +7,15 @@
 //
 
 #include "hw_config.h"
-#include <complex.h>
 #include <math.h>
 #include <stdbool.h>
 #include "voltage.h"
 #include "calc_rc.h"
 #include "mcp6s21.h"
 #include "lcd_interface.h"
-
-typedef complex float complexf;
+#include "corrector.h"
 
 extern float Rre, Rim;
-
-
-/*
-void f()
-{
-    complexf p1 = 1.0+2.0fi;
-    complexf p2 = 3.0+4.1fi;
-    complexf pd = p1/p2;
-    float pf = cabsf(p1);
-}
-*/
-
 
 void OnCalculate()
 {
@@ -43,6 +29,7 @@ void OnCalculate()
 	zI *= toVolts/gain_I;
 
 	complexf R = (zV/zI)*resistor;
+	R *= GainCorrector(gainVoltageIdx, gainCurrentIdx);
 
 	Rre = creal(R);
 	Rim = cimag(R);

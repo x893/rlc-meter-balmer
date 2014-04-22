@@ -8,6 +8,7 @@ import array
 import math
 import smath
 from jplot import calculateJson
+import jplot
 import json
 
 DEFAULT_DAC_AMPLITUDE = 1200
@@ -24,6 +25,8 @@ COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 COMMAND_START_GAIN_AUTO = 12
 COMMAND_RVI_INDEXES = 13
+COMMAND_SET_GAIN_CORRECTOR_V = 14
+COMMAND_SET_GAIN_CORRECTOR_I = 15
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -304,6 +307,40 @@ def adcRequestData():
 
     return (out1, out2)
 
+def setGainCottector(corrector, period, one=False):
+    if one:
+        v = [complex(1,0)]*7
+    else:
+        v = corrector.getCoeffV(period)
+    dwrite(struct.pack("=BBBBffffffffffffff", COMMAND_SET_GAIN_CORRECTOR_V, 0,0,0,
+        v[0].real, v[0].imag,
+        v[1].real, v[1].imag,
+        v[2].real, v[2].imag,
+        v[3].real, v[3].imag,
+        v[4].real, v[4].imag,
+        v[5].real, v[5].imag,
+        v[6].real, v[6].imag
+        ))
+    data = dread()
+    assert(data[0]==COMMAND_SET_GAIN_CORRECTOR_V)
+    if one:
+        i = [complex(1,0)]*7
+    else:
+        i = corrector.getCoeffI(period)
+    dwrite(struct.pack("=BBBBffffffffffffff", COMMAND_SET_GAIN_CORRECTOR_I, 0,0,0,
+        i[0].real, i[0].imag,
+        i[1].real, i[1].imag,
+        i[2].real, i[2].imag,
+        i[3].real, i[3].imag,
+        i[4].real, i[4].imag,
+        i[5].real, i[5].imag,
+        i[6].real, i[6].imag
+        ))
+    data = dread()
+    assert(data[0]==COMMAND_SET_GAIN_CORRECTOR_I)
+    pass
+
+
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
@@ -505,7 +542,7 @@ def getAttr():
     jattr["low_pass"] = currentLowPass
     return jattr
 
-def adcSynchroJson(soft=True):
+def adcSynchroJson(soft=True, gain_corrector = None):
     (out1, out2) = adcRequestData()
     jout = {}
     jdata = {}
@@ -529,7 +566,7 @@ def adcSynchroJson(soft=True):
     f.write(json.dumps(jout))
     f.close()
 
-    data = calculateJson(jout)
+    data = calculateJson(jout, gain_corrector)
     print "Rre=", data['R'].real
     print "Rim=", data['R'].imag
 
@@ -742,6 +779,8 @@ def main():
     if True:
         period = periodByFreq(1000)
         #period = 384
+        gain_corrector = jplot.GainCorrector()
+        setGainCottector(gain_corrector, period, one=False)
 
         adcSynchro(period)
         setLowPass(True)
@@ -758,7 +797,9 @@ def main():
             setSetGain(1, 6) #V
             setSetGain(0, 0) #I
         time.sleep(0.1)
-        adcSynchroJson(soft=False)
+        adcSynchroJson(soft=False, gain_corrector=gain_corrector)
+        #adcSynchroJson(soft=True, gain_corrector=gain_corrector)
+        #adcSynchroJson(soft=True)
     else:
         allFreq()
     pass
