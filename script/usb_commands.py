@@ -27,6 +27,7 @@ COMMAND_START_GAIN_AUTO = 12
 COMMAND_RVI_INDEXES = 13
 COMMAND_SET_GAIN_CORRECTOR_V = 14
 COMMAND_SET_GAIN_CORRECTOR_I = 15
+COMMAND_SET_CORRECTOR2X = 16
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -340,6 +341,24 @@ def setGainCottector(corrector, period, one=False):
     assert(data[0]==COMMAND_SET_GAIN_CORRECTOR_I)
     pass
 
+def setCorrector2x(corrector, period):
+    for i in xrange(3):
+        #i == rezistorIdx
+        corr = corrector.corr[i]
+        d = corr.data[period]
+        Z1 = corr.Rmin
+        Z2 = corr.Rmax
+        Zm1 = d['min']['R']
+        Zm2 = d['max']['R']
+        dwrite(struct.pack("=BBBBffffff", COMMAND_SET_CORRECTOR2X, i,0,0,
+            Zm1.real, Zm1.imag,
+            Zm2.real, Zm2.imag,
+            Z1, Z2
+            ))
+        data = dread()
+        assert(data[0]==COMMAND_SET_CORRECTOR2X)
+        assert(data[1]==i)
+    pass
 
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
@@ -542,7 +561,7 @@ def getAttr():
     jattr["low_pass"] = currentLowPass
     return jattr
 
-def adcSynchroJson(soft=True, gain_corrector = None):
+def adcSynchroJson(soft=True, corrector = None):
     (out1, out2) = adcRequestData()
     jout = {}
     jdata = {}
@@ -566,9 +585,14 @@ def adcSynchroJson(soft=True, gain_corrector = None):
     f.write(json.dumps(jout))
     f.close()
 
-    data = calculateJson(jout, gain_corrector)
-    print "Rre=", data['R'].real
-    print "Rim=", data['R'].imag
+    if corrector:
+        data = corrector.calculateJson(jout)
+        print "Rre=", data['Zx'].real
+        print "Rim=", data['Zx'].imag
+    else:
+        data = calculateJson(jout)
+        print "Rre=", data['R'].real
+        print "Rim=", data['R'].imag
 
     print "ErrV=", jout['summary']['V']['square_error']
     print "ErrI=", jout['summary']['I']['square_error']
@@ -782,6 +806,9 @@ def main():
         gain_corrector = jplot.GainCorrector()
         setGainCottector(gain_corrector, period, one=False)
 
+        corrector = jplot.Corrector(gain_corrector)
+        setCorrector2x(corrector, period)
+
         adcSynchro(period)
         setLowPass(True)
         #startGainAuto(1)
@@ -789,15 +816,17 @@ def main():
         #return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        if True:
-            setGainAuto()
-            #setGainAuto(predefinedRes=0)
-        else:
-            setResistor(0)
-            setSetGain(1, 6) #V
-            setSetGain(0, 0) #I
+        soft = False
+        if soft:
+            if True:
+                setGainAuto()
+                #setGainAuto(predefinedRes=0)
+            else:
+                setResistor(0)
+                setSetGain(1, 6) #V
+                setSetGain(0, 0) #I
         time.sleep(0.1)
-        adcSynchroJson(soft=False, gain_corrector=gain_corrector)
+        adcSynchroJson(soft=False, corrector=corrector)
         #adcSynchroJson(soft=True, gain_corrector=gain_corrector)
         #adcSynchroJson(soft=True)
     else:

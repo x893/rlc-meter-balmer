@@ -31,6 +31,8 @@ void OnCalculate()
 	complexf R = (zV/zI)*resistor;
 	R *= GainCorrector(gainVoltageIdx, gainCurrentIdx);
 
+	R = Corrector(R);
+
 	Rre = creal(R);
 	Rim = cimag(R);
 }

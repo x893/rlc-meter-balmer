@@ -127,8 +127,10 @@ FormatValue:;
 		if(aValue>=200)
 		{
 			value = (int)(aValue+0.5f);
-			char c = (value/100);
-			*aBuffer++ = '0'+c;
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+((value/100)%10);
 			*aBuffer++ = '0'+(char)((value/10)%10);
 			*aBuffer++ = '0'+(char)(value%10);
 		} else

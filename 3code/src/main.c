@@ -6,13 +6,14 @@
 #include "systick.h"
 #include "mcp6s21.h"
 #include "pcd8544.h"
-
+#include "corrector.h"
 
 void USB_Config(void)
 {
   Set_System();
   Set_USBClock();
   USB_Interrupts_Config();
+  CorrectorInit();
   
   USB_Init();
 
