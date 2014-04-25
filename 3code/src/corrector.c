@@ -2,12 +2,18 @@
 #include <complex.h>
 
 #include "corrector.h"
+#include "dac.h"
+
+complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
+complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c);
 
 
-complexf gainCorrectorValuesV[GAIN_CORRECTOR_VALUES_COUNT] = {1,1,1,1,1,1,1};
-complexf gainCorrectorValuesI[GAIN_CORRECTOR_VALUES_COUNT] = {1,1,1,1,1,1,1};
+complexf gainCorrectorValuesV[GAIN_CORRECTOR_VALUES_COUNT];
+complexf gainCorrectorValuesI[GAIN_CORRECTOR_VALUES_COUNT];
 
 CoeffCorrector2x coeffCorrector2x[CORRECTOR2X_DIAPAZONS];
+CoeffCorrectorOpen coeffCorrectorOpen;
+
 
 void CorrectorInit()
 {
@@ -32,6 +38,13 @@ void CorrectorInit()
 	coeffCorrector2x[2].Zm2 = 1e5;
 	coeffCorrector2x[2].Z1 = 1e4;
 	coeffCorrector2x[2].Z2 = 1e5;
+/*
+	//Почемуто когда расскомментируешь эти строчки - перестает корректно программа работать!!!
+	coeffCorrectorOpen.Zstdm = 1e5;
+	coeffCorrectorOpen.Zom = 1e10;
+	coeffCorrectorOpen.R = 1e5;
+	coeffCorrectorOpen.C = 0;
+*/
 }
 
 
@@ -65,11 +78,17 @@ complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I)
 	return pV/pI;
 }
 
+
 complexf Corrector(complexf Zxm)
 {
 	if(resistorIdx<CORRECTOR2X_DIAPAZONS)
 	{
 		return Corrector2x(Zxm, coeffCorrector2x+resistorIdx);
+	}
+
+	if(resistorIdx==3)
+	{
+		return CorrectorOpen(Zxm, &coeffCorrectorOpen);
 	}
 
 	return Zxm;
@@ -86,11 +105,29 @@ void SetCorrector2x(uint8_t diapazon, float* data)
 	c->Z2 = data[5];
 }
 
+void SetCorrectorOpen(float* data)
+{
+	CoeffCorrectorOpen* c = &coeffCorrectorOpen;
+	c->Zstdm = data[0]+data[1]*I;
+	c->Zom = data[2]+data[3]*I;
+	c->R = data[4];
+	c->C = data[5];
+}
+
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c)
 {
 	complexf A = (c->Z2-c->Z1)/(c->Zm2-c->Zm1);
 	complexf B = (c->Z1*c->Zm2-c->Z2*c->Zm1)/(c->Zm2-c->Zm1);
 	complexf Zx = A*Zxm+B;
+	return Zx;
+}
+
+complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c)
+{
+	float F = DacFrequency();
+	complexf Ystd = 1.0f/c->R + 2.0f*pi*F*c->C*I;
+	complexf Zstd = 1.0f/Ystd;
+	complexf Zx = Zstd*(1/c->Zstdm-1/c->Zom)*Zxm/(1-Zxm/c->Zom);
 	return Zx;
 }

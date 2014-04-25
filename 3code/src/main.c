@@ -12,9 +12,7 @@ void USB_Config(void)
 {
   Set_System();
   Set_USBClock();
-  USB_Interrupts_Config();
-  CorrectorInit();
-  
+  USB_Interrupts_Config();  
   USB_Init();
 
   while (bDeviceState != CONFIGURED)
@@ -24,6 +22,7 @@ void USB_Config(void)
 int main(void)
 {
   delay_init();
+  CorrectorInit();
   LcdInit();
 
   LcdClear();

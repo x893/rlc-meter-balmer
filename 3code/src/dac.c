@@ -22,6 +22,13 @@ uint32_t DacPeriod(void)
 	return g_dac_period;
 }
 
+float DacFrequency()
+{
+	if(g_dac_period==0)
+		return 1.0f;
+	return SystemCoreClock/(float)g_dac_period;
+}
+
 uint32_t DacSamplesPerPeriod(void)
 {
 	return SinusBufferSize;

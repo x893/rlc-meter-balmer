@@ -16,6 +16,7 @@ void DacSetPeriod(uint32_t sinusPeriod, uint16_t amplitude);
 void DacStart();
 
 uint32_t DacPeriod(void);
+float DacFrequency();
 uint32_t DacSamplesPerPeriod(void);
 uint32_t DacSampleTicks(void);
 

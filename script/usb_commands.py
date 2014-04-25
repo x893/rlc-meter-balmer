@@ -28,6 +28,7 @@ COMMAND_RVI_INDEXES = 13
 COMMAND_SET_GAIN_CORRECTOR_V = 14
 COMMAND_SET_GAIN_CORRECTOR_I = 15
 COMMAND_SET_CORRECTOR2X = 16
+COMMAND_SET_CORRECTOR_OPEN = 17
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -360,6 +361,20 @@ def setCorrector2x(corrector, period):
         assert(data[1]==i)
     pass
 
+def setCorrectorOpen(corrector, period):
+    corr = corrector.corr[3]
+    d = corr.data[period]
+    Zom = d['open']['R']
+    Zstdm = d['load']['R']
+    dwrite(struct.pack("=BBBBffffff", COMMAND_SET_CORRECTOR_OPEN, 0,0,0,
+        Zstdm.real, Zstdm.imag,
+        Zom.real, Zom.imag,
+        corr.R, corr.C
+        ))
+    data = dread()
+    assert(data[0]==COMMAND_SET_CORRECTOR_OPEN)
+    pass
+
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
@@ -462,9 +477,9 @@ def setGainAuto(predefinedRes=-1):
             imin = jI['min']
             imax = jI['max']
             di = imax - imin
-            #print "gainR=", i
-            #print " imin="+str(imin)
-            #print " imax="+str(imax)
+            print "gainR=", i
+            print " imin="+str(imin)
+            print " imax="+str(imax)
 
             #прикидываем, что следующий диапазон уже плох
             if di*10>goodDelta:
@@ -797,9 +812,6 @@ def initDevice():
 def main():
     initDevice()
 
-    #calibrate1_Om()
-    #return
-
     if True:
         period = periodByFreq(1000)
         #period = 384
@@ -808,6 +820,7 @@ def main():
 
         corrector = jplot.Corrector(gain_corrector)
         setCorrector2x(corrector, period)
+        setCorrectorOpen(corrector, period)
 
         adcSynchro(period)
         setLowPass(True)
@@ -816,7 +829,7 @@ def main():
         #return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        soft = False
+        soft = True
         if soft:
             if True:
                 setGainAuto()

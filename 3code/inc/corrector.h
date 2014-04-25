@@ -14,13 +14,24 @@ typedef struct CoeffCorrector2x
 	float Z2;//real maximal value
 } CoeffCorrector2x;
 
-void CorrectorInit();
+typedef struct CoeffCorrectorOpen
+{
+	complexf Zstdm;//measured load 100 КОм
+	complexf Zom;//measured open fixtures
+	float R;//precize 100 КОм real value
+	float C;//capacitance load
+} CoeffCorrectorOpen;
 
+
+void CorrectorInit();
 
 void SetGAinCorrectorV(float* data);
 void SetGAinCorrectorI(float* data);
 
+
 void SetCorrector2x(uint8_t diapazon, float* data);
+
+void SetCorrectorOpen(float* data);
 
 /*
 Коэффициэнт, на который нужно умножить R для того, чтобы избавится от 
@@ -28,7 +39,6 @@ void SetCorrector2x(uint8_t diapazon, float* data);
 */
 complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I);
 
-complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
 complexf Corrector(complexf Zxm);
 
 
