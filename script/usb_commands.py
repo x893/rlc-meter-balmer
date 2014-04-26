@@ -29,6 +29,7 @@ COMMAND_SET_GAIN_CORRECTOR_V = 14
 COMMAND_SET_GAIN_CORRECTOR_I = 15
 COMMAND_SET_CORRECTOR2X = 16
 COMMAND_SET_CORRECTOR_OPEN = 17
+COMMAND_SET_CORRECTOR_SHORT = 18
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -375,6 +376,26 @@ def setCorrectorOpen(corrector, period):
     assert(data[0]==COMMAND_SET_CORRECTOR_OPEN)
     pass
 
+def setCorrectorShort(corrector, period):
+    for i in xrange(2):
+        if i==1:
+            corr = corrector.corr_short1Om
+        else:
+            corr = corrector.corr_short
+
+        d = corr.data[period]
+        Zsm = d['short']['R']
+        Zstdm = d['load']['R']
+        dwrite(struct.pack("=BBBBfffff", COMMAND_SET_CORRECTOR_SHORT, i,0,0,
+            Zstdm.real, Zstdm.imag,
+            Zsm.real, Zsm.imag,
+            corr.R
+            ))
+        data = dread()
+        assert(data[0]==COMMAND_SET_CORRECTOR_SHORT)
+        assert(data[1]==i)
+    pass
+
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
@@ -477,9 +498,9 @@ def setGainAuto(predefinedRes=-1):
             imin = jI['min']
             imax = jI['max']
             di = imax - imin
-            print "gainR=", i
-            print " imin="+str(imin)
-            print " imax="+str(imax)
+            #print "gainR=", i
+            #print " imin="+str(imin)
+            #print " imax="+str(imax)
 
             #прикидываем, что следующий диапазон уже плох
             if di*10>goodDelta:
@@ -813,14 +834,15 @@ def main():
     initDevice()
 
     if True:
-        period = periodByFreq(1000)
-        #period = 384
+        #period = periodByFreq(1000)
+        period = 384
         gain_corrector = jplot.GainCorrector()
         setGainCottector(gain_corrector, period, one=False)
 
         corrector = jplot.Corrector(gain_corrector)
         setCorrector2x(corrector, period)
         setCorrectorOpen(corrector, period)
+        setCorrectorShort(corrector, period)
 
         adcSynchro(period)
         setLowPass(True)
@@ -829,7 +851,7 @@ def main():
         #return
 
         #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
-        soft = True
+        soft = False
         if soft:
             if True:
                 setGainAuto()
@@ -839,7 +861,7 @@ def main():
                 setSetGain(1, 6) #V
                 setSetGain(0, 0) #I
         time.sleep(0.1)
-        adcSynchroJson(soft=False, corrector=corrector)
+        adcSynchroJson(soft=soft, corrector=corrector)
         #adcSynchroJson(soft=True, gain_corrector=gain_corrector)
         #adcSynchroJson(soft=True)
     else:

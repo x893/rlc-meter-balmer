@@ -102,6 +102,10 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 	case 17://COMMAND_SET_CORRECTOR_OPEN
 		SetCorrectorOpen((float*)(commandBuffer+4));
 		break;
+	case 18://COMMAND_SET_CORRECTOR_SHORT
+		USBAdd8(commandBuffer[1]);
+		SetCorrectorShort(commandBuffer[1]?true:false, (float*)(commandBuffer+4));
+		break;
 	}
 
 	USBSend();

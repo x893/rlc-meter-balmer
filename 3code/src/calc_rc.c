@@ -29,8 +29,6 @@ void OnCalculate()
 	zI *= toVolts/gain_I;
 
 	complexf R = (zV/zI)*resistor;
-	R *= GainCorrector(gainVoltageIdx, gainCurrentIdx);
-
 	R = Corrector(R);
 
 	Rre = creal(R);

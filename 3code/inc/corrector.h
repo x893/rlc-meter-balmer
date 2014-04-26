@@ -22,16 +22,20 @@ typedef struct CoeffCorrectorOpen
 	float C;//capacitance load
 } CoeffCorrectorOpen;
 
+typedef struct CoeffCorrectorShort
+{
+	complexf Zstdm;//measured load
+	complexf Zsm;//measured short
+	float R;//real load value
+} CoeffCorrectorShort;
 
 void CorrectorInit();
 
 void SetGAinCorrectorV(float* data);
 void SetGAinCorrectorI(float* data);
-
-
 void SetCorrector2x(uint8_t diapazon, float* data);
-
 void SetCorrectorOpen(float* data);
+void SetCorrectorShort(bool is1Om, float* data);
 
 /*
 Коэффициэнт, на который нужно умножить R для того, чтобы избавится от 

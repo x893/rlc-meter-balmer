@@ -6,13 +6,15 @@
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
 complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c);
-
+complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* c);
 
 complexf gainCorrectorValuesV[GAIN_CORRECTOR_VALUES_COUNT];
 complexf gainCorrectorValuesI[GAIN_CORRECTOR_VALUES_COUNT];
 
 CoeffCorrector2x coeffCorrector2x[CORRECTOR2X_DIAPAZONS];
-CoeffCorrectorOpen coeffCorrectorOpen;
+CoeffCorrectorOpen coeffCorrectorOpen = {1e5f,1e10, 1e5, 0 };
+CoeffCorrectorShort coeffCorrectorShort100 = {0, 1, 1};
+CoeffCorrectorShort coeffCorrectorShort1 = {0, 1, 1};
 
 
 void CorrectorInit()
@@ -81,6 +83,18 @@ complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I)
 
 complexf Corrector(complexf Zxm)
 {
+	if(gainVoltageIdx==7)
+	{
+		return CorrectorShort(Zxm, &coeffCorrectorShort1);
+	}
+
+	Zxm *= GainCorrector(gainVoltageIdx, gainCurrentIdx);
+
+	if(cabs(Zxm)<100)
+	{
+		return CorrectorShort(Zxm, &coeffCorrectorShort100);	
+	}
+
 	if(resistorIdx<CORRECTOR2X_DIAPAZONS)
 	{
 		return Corrector2x(Zxm, coeffCorrector2x+resistorIdx);
@@ -114,6 +128,14 @@ void SetCorrectorOpen(float* data)
 	c->C = data[5];
 }
 
+void SetCorrectorShort(bool is1Om, float* data)
+{
+	CoeffCorrectorShort* c = is1Om?&coeffCorrectorShort1:&coeffCorrectorShort100;
+	c->Zstdm = data[0]+data[1]*I;
+	c->Zsm = data[2]+data[3]*I;
+	c->R = data[4];
+}
+
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c)
 {
@@ -130,4 +152,11 @@ complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c)
 	complexf Zstd = 1.0f/Ystd;
 	complexf Zx = Zstd*(1/c->Zstdm-1/c->Zom)*Zxm/(1-Zxm/c->Zom);
 	return Zx;
+}
+
+complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* c)
+{
+	complexf Zstd = c->R;
+	complexf Zx = Zstd/(c->Zstdm-c->Zsm)*(Zxm-c->Zsm);
+	return Zx;	
 }
