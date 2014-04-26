@@ -30,8 +30,14 @@ COMMAND_SET_GAIN_CORRECTOR_I = 15
 COMMAND_SET_CORRECTOR2X = 16
 COMMAND_SET_CORRECTOR_OPEN = 17
 COMMAND_SET_CORRECTOR_SHORT = 18
+COMMAND_SET_CORRECTOR_PERIOD = 19
+COMMAND_CORRECTOR_FLASH_CLEAR = 20
+COMMAND_FLASH_CURRENT_DATA = 21
 
 LOW_PASS_PERIOD = 24000 #3 KHz
+
+HARDWARE_CORRECTOR_PERIODS = [720000, 72000, 7200, 768]
+
 
 
 dev = None
@@ -401,6 +407,24 @@ def setCorrector(corrector, period):
     setCorrector2x(corrector, period)
     setCorrectorOpen(corrector, period)
     setCorrectorShort(corrector, period)
+
+    dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
+    data = dread()
+    assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
+    pass
+
+def FlashCorrector(corrector):
+    dwrite([COMMAND_CORRECTOR_FLASH_CLEAR])
+    data = dread()
+    assert(data[0]==COMMAND_CORRECTOR_FLASH_CLEAR)
+    print "flash clear code=", data[1]
+
+    for period in HARDWARE_CORRECTOR_PERIODS:
+        setCorrector(corrector, period)
+        dwrite([COMMAND_FLASH_CURRENT_DATA])
+        data = dread()
+        assert(data[0]==COMMAND_FLASH_CURRENT_DATA)
+        print "flash write code=", data[1]
     pass
 
 def adcRequestLastCompute():
@@ -841,12 +865,14 @@ def main():
     initDevice()
 
     if True:
-        period = periodByFreq(100)
+        period = periodByFreq(10000)
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)
+        #FlashCorrector(corrector)
+        #return
 
-        setCorrector(corrector, period)
+        #setCorrector(corrector, period)
 
         adcSynchro(period)
         setLowPass(True)

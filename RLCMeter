@@ -587,9 +587,6 @@ amp    KI
 	- open --ok
 	- short --ok
 
-- запись корректирующих коэффициэнтов во flash
-	sizeof(CoeffCorrector2x)*7
-	+sizeof(CoeffCorrectorOpen)
-	+sizeof(CoeffCorrectorShort)*2
+- запись корректирующих коэффициэнтов во flash --ok
 - продумать расположение элементов на экране
 

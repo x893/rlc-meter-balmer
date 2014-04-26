@@ -37,6 +37,7 @@ DEPS += \
 	output/StdPeriph_Driver/stm32f30x_dac.d \
 	output/StdPeriph_Driver/stm32f30x_dma.d \
 	output/StdPeriph_Driver/stm32f30x_exti.d \
+	output/StdPeriph_Driver/stm32f30x_flash.d \
 	output/StdPeriph_Driver/stm32f30x_gpio.d \
 	output/StdPeriph_Driver/stm32f30x_misc.d \
 	output/StdPeriph_Driver/stm32f30x_rcc.d \
@@ -79,6 +80,7 @@ OBJS += \
 	output/StdPeriph_Driver/stm32f30x_dac.o \
 	output/StdPeriph_Driver/stm32f30x_dma.o \
 	output/StdPeriph_Driver/stm32f30x_exti.o \
+	output/StdPeriph_Driver/stm32f30x_flash.o \
 	output/StdPeriph_Driver/stm32f30x_gpio.o \
 	output/StdPeriph_Driver/stm32f30x_misc.o \
 	output/StdPeriph_Driver/stm32f30x_rcc.o \
@@ -217,6 +219,10 @@ output/StdPeriph_Driver/stm32f30x_dma.o: Libraries/STM32F30x_StdPeriph_Driver/sr
 
 output/StdPeriph_Driver/stm32f30x_exti.o: Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_exti.c
 	@echo 'Building target: stm32f30x_exti.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/StdPeriph_Driver/stm32f30x_flash.o: Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_flash.c
+	@echo 'Building target: stm32f30x_flash.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/StdPeriph_Driver/stm32f30x_gpio.o: Libraries/STM32F30x_StdPeriph_Driver/src/stm32f30x_gpio.c

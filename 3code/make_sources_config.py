@@ -34,7 +34,7 @@ sources = [
 		#"stm32f30x_dbgmcu.c",
 		"stm32f30x_dma.c",
 		"stm32f30x_exti.c",
-		#"stm32f30x_flash.c",
+		"stm32f30x_flash.c",
 		"stm32f30x_gpio.c",
 		#"stm32f30x_i2c.c",
 		#"stm32f30x_iwdg.c",

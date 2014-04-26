@@ -5,6 +5,7 @@
 
 #define GAIN_CORRECTOR_VALUES_COUNT 7
 #define CORRECTOR2X_DIAPAZONS 3
+#define PREDEFINED_PERIODS_COUNT 4
 
 typedef struct CoeffCorrectroeGain
 {
@@ -38,22 +39,23 @@ typedef struct CoeffCorrectorShort
 //sizeof(CoeffCorrector)==256
 typedef struct CoeffCorrector
 {
+	uint32_t period;//period==0 - not filled
+	uint32_t pad;
 	CoeffCorrectroeGain gain;
 	CoeffCorrector2x x2x[CORRECTOR2X_DIAPAZONS];
 	CoeffCorrectorOpen open;
 	CoeffCorrectorShort short100;
 	CoeffCorrectorShort short1;
-	uint32_t period;
-	uint32_t pad;
 } CoeffCorrector;
 
 void CorrectorInit();
 
-void SetGAinCorrectorV(float* data);
-void SetGAinCorrectorI(float* data);
+void SetGainCorrectorV(float* data);
+void SetGainCorrectorI(float* data);
 void SetCorrector2x(uint8_t diapazon, float* data);
 void SetCorrectorOpen(float* data);
 void SetCorrectorShort(bool is1Om, float* data);
+void SetCorrectorPeriod(uint32_t period);
 
 /*
 Коэффициэнт, на который нужно умножить R для того, чтобы избавится от 
@@ -63,5 +65,10 @@ complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I);
 
 complexf Corrector(complexf Zxm);
 
+//Очистить весь flash необходимый для записи калибровоячных констант
+bool CorrectorFlashClear();
+
+//Записать текущие константы в нужный кусок flash.
+bool CorrectorFlashCurrentData();
 
 #endif//_CORRECTOR_H_
