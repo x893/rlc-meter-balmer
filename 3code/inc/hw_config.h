@@ -28,6 +28,8 @@ void Get_SerialNum(void);
 */
 void SetResistor(uint8_t idx);
 
+//24000 == 3 KHz
+#define LOW_PASS_PERIOD 24000 
 /*
 Add 3.3 nF capacitor to filter after DAC.
 */

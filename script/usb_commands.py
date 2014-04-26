@@ -865,7 +865,8 @@ def main():
     initDevice()
 
     if True:
-        period = periodByFreq(10000)
+        #period = periodByFreq(10000)
+        period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)
@@ -875,14 +876,10 @@ def main():
         #setCorrector(corrector, period)
 
         adcSynchro(period)
-        setLowPass(True)
-        #startGainAuto(1)
-        #print adcRequestLastComputeHardAuto(1)
-        #return
 
-        #[0=1, 1=2, 2=4, 3=5, 4=8, 5=10, 6=16, 732]
         soft = False
         if soft:
+            setLowPass(False)
             if True:
                 setGainAuto()
                 #setGainAuto(predefinedRes=0)

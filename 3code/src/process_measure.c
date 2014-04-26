@@ -11,6 +11,7 @@
 #include "calc_rc.h"
 #include "mcp6s21.h"
 #include "lcd_interface.h"
+#include "dac.h"
 
 #define goodMin 1500
 #define goodMax 4000
@@ -128,6 +129,8 @@ void OnStartGainAuto()
 	MCPSetGain(true, gainVoltageIdx);
 	MCPSetGain(false, gainCurrentIdx);
 
+	SetLowPassFilter(DacPeriod()>=LOW_PASS_PERIOD);
+
 	if(predefinedResistorIdx!=255)
 	{
 		resistorIdx = predefinedResistorIdx;
@@ -146,8 +149,8 @@ void OnStartGainAuto()
 
 void OnResistorIndex()
 {
-	AdcSummaryChannel* pi = &g_data.ch_i;
-	int di = pi->adc_max-pi->adc_min;
+	AdcSummaryChannel* asc = &g_data.ch_i;
+	int di = asc->adc_max - asc->adc_min;
 	printDelta = di;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
