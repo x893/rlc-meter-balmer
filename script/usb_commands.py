@@ -396,6 +396,13 @@ def setCorrectorShort(corrector, period):
         assert(data[1]==i)
     pass
 
+def setCorrector(corrector, period):
+    setGainCottector(corrector.gain_corrector, period, one=False)
+    setCorrector2x(corrector, period)
+    setCorrectorOpen(corrector, period)
+    setCorrectorShort(corrector, period)
+    pass
+
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
@@ -834,15 +841,12 @@ def main():
     initDevice()
 
     if True:
-        #period = periodByFreq(1000)
-        period = 384
+        period = periodByFreq(100)
+        #period = 384
         gain_corrector = jplot.GainCorrector()
-        setGainCottector(gain_corrector, period, one=False)
-
         corrector = jplot.Corrector(gain_corrector)
-        setCorrector2x(corrector, period)
-        setCorrectorOpen(corrector, period)
-        setCorrectorShort(corrector, period)
+
+        setCorrector(corrector, period)
 
         adcSynchro(period)
         setLowPass(True)

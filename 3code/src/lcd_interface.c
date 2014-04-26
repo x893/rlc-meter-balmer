@@ -7,6 +7,7 @@ static uint32_t frequency = 0;
 int printDelta = 0;
 float Rre = 0;
 float Rim = 0;
+extern uint32_t corrSize;
 
 void LcdFrequency(uint32_t f)
 {
@@ -18,7 +19,8 @@ void LcdRepaint()
   LcdClear();
   LcdGotoXYFont(1,1);
   LcdStr(FONT_1X, "D=");
-  printInt(printDelta, FONT_1X);
+  //printInt(printDelta, FONT_1X);
+  printInt(corrSize, FONT_1X);
 
   LcdGotoXYFont(1,2);
   LcdStr(FONT_1X, "F=");

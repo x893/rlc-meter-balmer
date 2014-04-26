@@ -8,53 +8,20 @@ complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
 complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c);
 complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* c);
 
-complexf gainCorrectorValuesV[GAIN_CORRECTOR_VALUES_COUNT];
-complexf gainCorrectorValuesI[GAIN_CORRECTOR_VALUES_COUNT];
+static CoeffCorrector coeff;
 
-CoeffCorrector2x coeffCorrector2x[CORRECTOR2X_DIAPAZONS];
-CoeffCorrectorOpen coeffCorrectorOpen = {1e5f,1e10, 1e5, 0 };
-CoeffCorrectorShort coeffCorrectorShort100 = {0, 1, 1};
-CoeffCorrectorShort coeffCorrectorShort1 = {0, 1, 1};
+uint32_t corrSize =	sizeof(CoeffCorrector);
 
 
 void CorrectorInit()
 {
-	int i;
-	for(i=0; i<GAIN_CORRECTOR_VALUES_COUNT; i++)
-	{
-		gainCorrectorValuesV[i] = 1;
-		gainCorrectorValuesI[i] = 1;
-	}
-
-	coeffCorrector2x[0].Zm1 = 1e2;
-	coeffCorrector2x[0].Zm2 = 1e3;
-	coeffCorrector2x[0].Z1 = 1e2;
-	coeffCorrector2x[0].Z2 = 1e3;
-
-	coeffCorrector2x[1].Zm1 = 1e3;
-	coeffCorrector2x[1].Zm2 = 1e4;
-	coeffCorrector2x[1].Z1 = 1e3;
-	coeffCorrector2x[1].Z2 = 1e4;
-
-	coeffCorrector2x[2].Zm1 = 1e4;
-	coeffCorrector2x[2].Zm2 = 1e5;
-	coeffCorrector2x[2].Z1 = 1e4;
-	coeffCorrector2x[2].Z2 = 1e5;
-/*
-	//Почемуто когда расскомментируешь эти строчки - перестает корректно программа работать!!!
-	coeffCorrectorOpen.Zstdm = 1e5;
-	coeffCorrectorOpen.Zom = 1e10;
-	coeffCorrectorOpen.R = 1e5;
-	coeffCorrectorOpen.C = 0;
-*/
 }
-
 
 void SetGAinCorrectorV(float* data)
 {
 	for(int i=0; i<GAIN_CORRECTOR_VALUES_COUNT; i++)
 	{
-		gainCorrectorValuesV[i] = data[i*2]+data[i*2+1]*I;
+		coeff.gain.ValuesV[i] = data[i*2]+data[i*2+1]*I;
 	}
 }
 
@@ -62,7 +29,7 @@ void SetGAinCorrectorI(float* data)
 {
 	for(int i=0; i<GAIN_CORRECTOR_VALUES_COUNT; i++)
 	{
-		gainCorrectorValuesI[i] = data[i*2]+data[i*2+1]*I;
+		coeff.gain.ValuesI[i] = data[i*2]+data[i*2+1]*I;
 	}
 }
 
@@ -74,8 +41,8 @@ complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I)
 	if(gain_index_I>=GAIN_CORRECTOR_VALUES_COUNT)
 		gain_index_I = GAIN_CORRECTOR_VALUES_COUNT-1;
 
-	complexf pV = gainCorrectorValuesV[0]/gainCorrectorValuesV[gain_index_V];
-	complexf pI = gainCorrectorValuesI[0]/gainCorrectorValuesI[gain_index_I];
+	complexf pV = coeff.gain.ValuesV[0]/coeff.gain.ValuesV[gain_index_V];
+	complexf pI = coeff.gain.ValuesI[0]/coeff.gain.ValuesI[gain_index_I];
 
 	return pV/pI;
 }
@@ -85,24 +52,24 @@ complexf Corrector(complexf Zxm)
 {
 	if(gainVoltageIdx==7)
 	{
-		return CorrectorShort(Zxm, &coeffCorrectorShort1);
+		return CorrectorShort(Zxm, &coeff.short1);
 	}
 
 	Zxm *= GainCorrector(gainVoltageIdx, gainCurrentIdx);
 
 	if(cabs(Zxm)<100)
 	{
-		return CorrectorShort(Zxm, &coeffCorrectorShort100);	
+		return CorrectorShort(Zxm, &coeff.short100);	
 	}
 
 	if(resistorIdx<CORRECTOR2X_DIAPAZONS)
 	{
-		return Corrector2x(Zxm, coeffCorrector2x+resistorIdx);
+		return Corrector2x(Zxm, coeff.x2x+resistorIdx);
 	}
 
 	if(resistorIdx==3)
 	{
-		return CorrectorOpen(Zxm, &coeffCorrectorOpen);
+		return CorrectorOpen(Zxm, &coeff.open);
 	}
 
 	return Zxm;
@@ -112,7 +79,7 @@ void SetCorrector2x(uint8_t diapazon, float* data)
 {
 	if(diapazon>=CORRECTOR2X_DIAPAZONS)
 		return;
-	CoeffCorrector2x* c = coeffCorrector2x+diapazon;
+	CoeffCorrector2x* c = coeff.x2x+diapazon;
 	c->Zm1 = data[0]+data[1]*I;
 	c->Zm2 = data[2]+data[3]*I;
 	c->Z1 = data[4];
@@ -121,7 +88,7 @@ void SetCorrector2x(uint8_t diapazon, float* data)
 
 void SetCorrectorOpen(float* data)
 {
-	CoeffCorrectorOpen* c = &coeffCorrectorOpen;
+	CoeffCorrectorOpen* c = &coeff.open;
 	c->Zstdm = data[0]+data[1]*I;
 	c->Zom = data[2]+data[3]*I;
 	c->R = data[4];
@@ -130,7 +97,7 @@ void SetCorrectorOpen(float* data)
 
 void SetCorrectorShort(bool is1Om, float* data)
 {
-	CoeffCorrectorShort* c = is1Om?&coeffCorrectorShort1:&coeffCorrectorShort100;
+	CoeffCorrectorShort* c = is1Om?&coeff.short1:&coeff.short100;
 	c->Zstdm = data[0]+data[1]*I;
 	c->Zsm = data[2]+data[3]*I;
 	c->R = data[4];

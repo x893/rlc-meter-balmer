@@ -585,4 +585,11 @@ amp    KI
 	- gain_corrector --ok
 	- Corrector2X --ok
 	- open --ok
-	- short
+	- short --ok
+
+- запись корректирующих коэффициэнтов во flash
+	sizeof(CoeffCorrector2x)*7
+	+sizeof(CoeffCorrectorOpen)
+	+sizeof(CoeffCorrectorShort)*2
+- продумать расположение элементов на экране
+

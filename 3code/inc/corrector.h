@@ -6,6 +6,12 @@
 #define GAIN_CORRECTOR_VALUES_COUNT 7
 #define CORRECTOR2X_DIAPAZONS 3
 
+typedef struct CoeffCorrectroeGain
+{
+	complexf ValuesV[GAIN_CORRECTOR_VALUES_COUNT];
+	complexf ValuesI[GAIN_CORRECTOR_VALUES_COUNT];
+} CoeffCorrectroeGain;
+
 typedef struct CoeffCorrector2x
 {
 	complexf Zm1;//measured minimal value
@@ -28,6 +34,18 @@ typedef struct CoeffCorrectorShort
 	complexf Zsm;//measured short
 	float R;//real load value
 } CoeffCorrectorShort;
+
+//sizeof(CoeffCorrector)==256
+typedef struct CoeffCorrector
+{
+	CoeffCorrectroeGain gain;
+	CoeffCorrector2x x2x[CORRECTOR2X_DIAPAZONS];
+	CoeffCorrectorOpen open;
+	CoeffCorrectorShort short100;
+	CoeffCorrectorShort short1;
+	uint32_t period;
+	uint32_t pad;
+} CoeffCorrector;
 
 void CorrectorInit();
 
