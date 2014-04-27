@@ -865,11 +865,11 @@ def main():
     initDevice()
 
     if True:
-        #period = periodByFreq(10000)
-        period = HARDWARE_CORRECTOR_PERIODS[3]
+        #period = periodByFreq(10)
+        period = HARDWARE_CORRECTOR_PERIODS[1]
         #period = 384
         gain_corrector = jplot.GainCorrector()
-        corrector = jplot.Corrector(gain_corrector)
+        corrector = None #jplot.Corrector(gain_corrector)
         #FlashCorrector(corrector)
         #return
 

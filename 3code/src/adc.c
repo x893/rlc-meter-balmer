@@ -281,7 +281,6 @@ void AdcDacStartSynchro(uint32_t period, uint16_t amplitude)
 
 	g_cur_cycle = 0;
 
-	LcdFrequency(SystemCoreClock/period);
 	LcdRepaint();
 
 	DacSetPeriod(period, amplitude);
