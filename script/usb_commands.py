@@ -848,6 +848,7 @@ def initDevice():
 
     if not findDevice():
         return False
+    dev.reset()
     for cfg in dev:
         for i in cfg:
             print "interface=", i.bInterfaceNumber
@@ -855,10 +856,9 @@ def initDevice():
                 print e.bEndpointAddress
                 #printEndpoint(e)
 
-    #readOne()
-    for x in xrange(4):
-        print "write=",dwrite([1])
-        readOne()
+    #for x in xrange(4):
+    #    print "write=",dwrite([1])
+    #    readOne()
     return True    
 
 def main():
@@ -869,7 +869,7 @@ def main():
         period = HARDWARE_CORRECTOR_PERIODS[1]
         #period = 384
         gain_corrector = jplot.GainCorrector()
-        corrector = None #jplot.Corrector(gain_corrector)
+        corrector = jplot.Corrector(gain_corrector)
         #FlashCorrector(corrector)
         #return
 
