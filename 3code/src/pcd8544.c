@@ -373,14 +373,27 @@ byte LcdChr ( LcdFontSize size, char chr )
  *                              into cache.
  * Return value :  see return value on pcd8544.h
  */
-byte LcdStr ( LcdFontSize size, char dataArray[] )
+byte LcdStr ( LcdFontSize size, const char* dataArray )
 {
     byte tmpIdx=0;
     byte response;
-    while( dataArray[ tmpIdx ] != '\0' )
+    char chr;
+    while(1)
 	{
+        chr = dataArray[ tmpIdx ];
+        if(chr==0)
+            break;
+
+        if(size==FONT_2X && chr=='.' && tmpIdx>0)
+            LcdCacheIdx = (LcdCacheIdx - 2) % LCD_CACHE_SIZE;
         /* Send char */
 		response = LcdChr( size, dataArray[ tmpIdx ] );
+
+        if(size==FONT_2X)
+        {
+            if(chr=='.')
+                LcdCacheIdx = (LcdCacheIdx - 5) % LCD_CACHE_SIZE;
+        }
         /* Just in case OUT_OF_BORDER occured */
         /* Dont worry if the signal == OK_WITH_WRAP, the string will
         be wrapped to starting point */

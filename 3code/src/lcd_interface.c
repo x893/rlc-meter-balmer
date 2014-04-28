@@ -44,12 +44,18 @@ void LcdRepaint()
 
     LcdGotoXYFont(1,1);
     printLcdFrequency();
-    LcdGotoXYFont(1,4);
-    LcdStr(FONT_1X, "re=");
-    printR(Rre, FONT_1X);
-    LcdGotoXYFont(1,5);
-    LcdStr(FONT_1X, "im=");
-    printR(Rim, FONT_1X);
+    printRX2(Rre, 2);
+    printRX2(Rim, 4);
+    LcdGotoXYFont(12,2);
+    LcdStr(FONT_1X, "Rre");
+    LcdGotoXYFont(12,4);
+    LcdStr(FONT_1X, "Rim");
+    //LcdGotoXYFont(1,4);
+    //LcdStr(FONT_1X, "re=");
+    //printR(Rre, FONT_1X);
+    //LcdGotoXYFont(1,5);
+    //LcdStr(FONT_1X, "im=");
+    //printR(Rim, FONT_1X);
 
     LcdGotoXYFont(1,6);
     LcdStr(FONT_1X, "D=");

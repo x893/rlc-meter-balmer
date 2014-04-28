@@ -74,7 +74,7 @@ void LcdImage      ( const byte *imageData );
 void LcdContrast   ( byte contrast);
 byte LcdGotoXYFont ( byte x, byte y );
 byte LcdChr        ( LcdFontSize size, char ch );
-byte LcdStr        ( LcdFontSize size, char dataArray[] );
+byte LcdStr        ( LcdFontSize size, const char* dataArray);
 byte LcdPixel      ( byte x, byte y, LcdPixelMode mode );
 byte LcdLine       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );
 byte LcdRect       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );

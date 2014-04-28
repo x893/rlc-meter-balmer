@@ -80,7 +80,6 @@ static const char*  const strTime[] ={"mks", "ms", "s"};
 static const char*  const strFrequency[] ={"mHz", "Hz", "KHz", "MHz"};
 static const char*  const strInductor[] = {"nH","mkH","mH","H"};
 
-
 void formatPrint(char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
 {
 	float mul = 1;
@@ -199,4 +198,95 @@ void printL(float aValue, uint8_t font)
 {
 	formatPrint(Buffer, aValue, strInductor, sizeof(strInductor)/sizeof(strInductor[0]), -3);
 	LcdStr(font, Buffer);	
+}
+
+void formatPrintX2(uint8_t y, char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
+{
+	char* startBuffer = aBuffer;
+	float mul = 1;
+	int8_t iSuffix = 0;
+
+	if(aValue<0)
+	{
+		LcdSingleBar  ( 0, y*8+2, 2, 5, PIXEL_ON);
+		aValue = -aValue;
+	}
+
+	if(aValue>=1)
+	{
+		for(iSuffix = -aSuffixMin; iSuffix<(int8_t)aSuffixCount; iSuffix++)
+		{
+			float mul1 = mul*1000;
+			if(aValue<mul1)
+				goto FormatValue;
+			mul = mul1; 
+		}
+
+		*aBuffer++ = 'i';
+		*aBuffer++ = 'n';
+		*aBuffer++ = 'f';
+		iSuffix = -aSuffixMin;
+		goto AddSufix;
+	}else
+	{
+		for(iSuffix = -aSuffixMin; iSuffix>0; iSuffix--)
+		{
+			if(aValue>=mul)
+				break;
+			mul *= 1e-3f;
+		}
+	}
+
+
+FormatValue:;
+	aValue /= mul;
+
+	{
+		int value;
+
+		if(aValue>=200)
+		{
+			value = (int)(aValue+0.5f);
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+((value/100)%10);
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '0'+(char)(value%10);
+		} else
+		if(aValue>=20)
+		{
+			value = (int)(aValue*10+0.5f);
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+(value/100)%10;
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '.';
+			*aBuffer++ = '0'+(char)(value%10);
+		} else
+		{
+			value = (int)(aValue*100+0.5f);
+			char c = (value/1000);
+			if(c)
+				*aBuffer++ = '0'+c;
+			*aBuffer++ = '0'+(value/100)%10;
+			*aBuffer++ = '.';
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '0'+(char)(value%10);
+		}
+	}
+
+AddSufix:;
+	*aBuffer = 0;
+	LcdGotoXYFont(2, y+1);
+	LcdStr(FONT_2X, startBuffer);
+
+	LcdGotoXYFont(12, y+1);
+	LcdStr(FONT_1X, aSuffix[iSuffix]);
+}
+
+void printRX2(float aValue, uint8_t y)
+{
+	formatPrintX2(y, Buffer, aValue, strResistor, sizeof(strResistor)/sizeof(strResistor[0]), -1);
 }
