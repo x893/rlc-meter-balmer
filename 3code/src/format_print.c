@@ -290,3 +290,13 @@ void printRX2(float aValue, uint8_t y)
 {
 	formatPrintX2(y, Buffer, aValue, strResistor, sizeof(strResistor)/sizeof(strResistor[0]), -1);
 }
+
+void printLX2(float aValue, uint8_t y)
+{
+	formatPrintX2(y, Buffer, aValue, strInductor, sizeof(strInductor)/sizeof(strInductor[0]), -3);
+}
+
+void printCX2(float aValue, uint8_t y)
+{
+	formatPrintX2(y, Buffer, aValue, strCapacitor, sizeof(strCapacitor)/sizeof(strCapacitor[0]), -4);
+}

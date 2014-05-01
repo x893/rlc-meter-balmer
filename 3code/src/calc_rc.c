@@ -14,8 +14,14 @@
 #include "mcp6s21.h"
 #include "lcd_interface.h"
 #include "corrector.h"
+#include "dac.h"
 
-extern float Rre, Rim;
+extern float Rre;
+extern float Rim;
+extern bool isSerial;
+extern bool valueIsC;
+extern float valueL;
+extern float valueC;
 
 void OnCalculate()
 {
@@ -28,9 +34,51 @@ void OnCalculate()
 	zV *= toVolts/gain_V;
 	zI *= toVolts/gain_I;
 
-	complexf R = (zV/zI)*resistor;
-	R = Corrector(R);
+	complexf Zx = (zV/zI)*resistor;
+	Zx = Corrector(Zx);
 
-	Rre = creal(R);
-	Rim = cimag(R);
+	Rre = creal(Zx);
+	Rim = cimag(Zx);
+
+	float F = DacFrequency();
+
+	if(isSerial)
+	{
+		valueIsC = false;
+		valueL = cimag(Zx)/(2*pi*F);
+
+		if(cimag(Zx)<-1e-10f)
+		{
+			valueIsC = true;
+			valueC = -1/(2*pi*F*cimag(Zx));
+		} else
+		{
+			valueC = 0;
+		}
+		//если сопротивление маленькое и индуктивность немного отрицательная, то таки считаем что это ошибка калибрации
+		if(cabs(Zx)<1 && valueL<0 && valueL>-20e-9)
+			valueIsC = false;
+	} else
+	{//parrallel
+		valueIsC = true;
+		complexf Yx = 1/Zx;
+		valueC = cimag(Yx)/(2*pi*F);
+
+		if(cimag(Yx)<-1e-10)
+		{
+			valueIsC = false;
+			valueL = -1/(2*pi*F*cimag(Yx));
+		} else
+		{
+			valueL = 0;
+		}
+
+		//если сопротивление большое и емкость немного отрицательная, то таки считаем что это ошибка калибрации
+		if(cabs(Zx)>1e5f && valueC<0 && valueC>-5e-12)
+			valueIsC = true;
+
+		Rre = 1.0f/creal(Yx);
+		Rim = 1.0f/cimag(Yx);
+	}
+
 }

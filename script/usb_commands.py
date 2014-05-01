@@ -33,6 +33,7 @@ COMMAND_SET_CORRECTOR_SHORT = 18
 COMMAND_SET_CORRECTOR_PERIOD = 19
 COMMAND_CORRECTOR_FLASH_CLEAR = 20
 COMMAND_FLASH_CURRENT_DATA = 21
+COMMAND_SET_SERIAL = 22
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -426,6 +427,17 @@ def FlashCorrector(corrector):
         assert(data[0]==COMMAND_FLASH_CURRENT_DATA)
         print "flash write code=", data[1]
     pass
+
+def setSerial(ser=True):
+    if ser:
+        ser = 1
+    else:
+        ser = 0
+
+    dwrite([COMMAND_SET_SERIAL, ser])
+    data = dread()
+    assert(data[0]==COMMAND_SET_SERIAL)
+    
 
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
@@ -866,7 +878,7 @@ def main():
 
     if True:
         #period = periodByFreq(10)
-        period = HARDWARE_CORRECTOR_PERIODS[1]
+        period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)
@@ -875,6 +887,7 @@ def main():
 
         #setCorrector(corrector, period)
 
+        setSerial(False)
         adcSynchro(period)
 
         soft = False

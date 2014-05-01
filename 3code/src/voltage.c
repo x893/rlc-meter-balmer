@@ -8,6 +8,9 @@
 #include "mcp6s21.h"
 #include "calc_rc.h"
 #include "corrector.h"
+#include "lcd_interface.h"
+
+extern bool isSerial;
 
 void GetClockFrequency(void)
 {
@@ -114,6 +117,10 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		break;
 	case 21://COMMAND_FLASH_CURRENT_DATA
 		USBAdd8(CorrectorFlashCurrentData());
+		break;
+	case 22://COMMAND_SET_SERIAL
+		isSerial = commandBuffer[1]?true:false;
+		LcdRepaint();
 		break;
 	}
 

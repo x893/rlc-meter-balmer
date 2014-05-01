@@ -12,5 +12,7 @@ void printF(float aValue);
 void printL(float aValue, uint8_t font);
 
 void printRX2(float aValue, uint8_t y);
+void printLX2(float aValue, uint8_t y);
+void printCX2(float aValue, uint8_t y);
 
 #endif//_FORMAT_PRINT_H_

@@ -36,7 +36,7 @@ uint8_t computeXCount;
 uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
 
-extern int printDelta;
+extern int printD;
 
 static AdcSummaryData sum_data;
 
@@ -143,7 +143,7 @@ void OnStartGainAuto()
 	}
 
 
-	printDelta = 123;
+	printD = 123;
 	LcdRepaint();
 }
 
@@ -151,7 +151,7 @@ void OnResistorIndex()
 {
 	AdcSummaryChannel* asc = &g_data.ch_i;
 	int di = asc->adc_max - asc->adc_min;
-	printDelta = di;
+	printD = di;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
 		OnStartGainIndex(false);
@@ -184,7 +184,7 @@ void OnGainIndex()
 	int vmax = g_data.ch_v.adc_max;
 	int imin = g_data.ch_i.adc_min;
 	int imax = g_data.ch_i.adc_max;
-	printDelta = gainIndexIterator+100;
+	printD = gainIndexIterator+100;
 
 	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{

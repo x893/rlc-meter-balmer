@@ -20,7 +20,7 @@ void CorrectorLoadData();
 
 static CoeffCorrector coeff;
 
-uint32_t corrSize =	sizeof(CoeffCorrector);
+extern int printD;
 
 
 void CorrectorInit()
@@ -206,11 +206,11 @@ void CorrectorLoadData()
 
 	if(cfound==NULL)
 	{
-		corrSize = 44;
+		printD = 44;
 		coeff.period = 0;
 		return;
 	}
 
 	coeff = *cfound;
-	corrSize = 23;
+	printD = 23;
 }

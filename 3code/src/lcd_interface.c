@@ -5,10 +5,16 @@
 #include "calc_rc.h"
 #include "dac.h"
 
-int printDelta = 0;
+int printD = 0; //debug
+
 float Rre = 0;
 float Rim = 0;
-extern uint32_t corrSize;
+
+bool isSerial = true;
+bool valueIsC = true;
+float valueL = 0;
+float valueC = 0;
+
 
 void printLcdFrequency()
 {
@@ -41,26 +47,41 @@ void printLcdFrequency()
 void LcdRepaint()
 {
     LcdClear();
+    bool printRim = false; 
 
     LcdGotoXYFont(1,1);
     printLcdFrequency();
+
+    LcdGotoXYFont(8, 1);
+    LcdStr(FONT_1X, isSerial?"SER":"PAR");
+
     printRX2(Rre, 2);
-    printRX2(Rim, 4);
     LcdGotoXYFont(12,2);
     LcdStr(FONT_1X, "Rre");
-    LcdGotoXYFont(12,4);
-    LcdStr(FONT_1X, "Rim");
-    //LcdGotoXYFont(1,4);
-    //LcdStr(FONT_1X, "re=");
-    //printR(Rre, FONT_1X);
-    //LcdGotoXYFont(1,5);
-    //LcdStr(FONT_1X, "im=");
-    //printR(Rim, FONT_1X);
+
+    if(printRim)
+    {
+        printRX2(Rim, 4);
+        LcdGotoXYFont(12,4);
+        LcdStr(FONT_1X, "Rim");
+    } else
+    {
+        if(valueIsC)
+        {
+            printCX2(valueC, 4);
+            LcdGotoXYFont(12,4);
+            LcdStr(FONT_1X, "C");
+        } else
+        {
+            printLX2(valueL, 4);
+            LcdGotoXYFont(12,4);
+            LcdStr(FONT_1X, "L");
+        }
+    }
 
     LcdGotoXYFont(1,6);
     LcdStr(FONT_1X, "D=");
-    //printInt(printDelta, FONT_1X);
-    printInt(corrSize, FONT_1X);
+    printInt(printD, FONT_1X);
     LcdGotoXYFont(9,6);
     LcdStr(FONT_1X, "R");
     printInt(resistorIdx, FONT_1X);
