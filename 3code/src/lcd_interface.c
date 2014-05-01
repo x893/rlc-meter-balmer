@@ -12,6 +12,7 @@ float Rim = 0;
 
 bool isSerial = true;
 bool valueIsC = true;
+bool calculatedValues = false;
 float valueL = 0;
 float valueC = 0;
 
@@ -55,27 +56,31 @@ void LcdRepaint()
     LcdGotoXYFont(8, 1);
     LcdStr(FONT_1X, isSerial?"SER":"PAR");
 
-    printRX2(Rre, 2);
-    LcdGotoXYFont(12,2);
-    LcdStr(FONT_1X, "Rre");
 
-    if(printRim)
+    if(calculatedValues)
     {
-        printRX2(Rim, 4);
-        LcdGotoXYFont(12,4);
-        LcdStr(FONT_1X, "Rim");
-    } else
-    {
-        if(valueIsC)
+        printRX2(Rre, 2);
+        LcdGotoXYFont(12,2);
+        LcdStr(FONT_1X, "Rre");
+        
+        if(printRim)
         {
-            printCX2(valueC, 4);
+            printRX2(Rim, 4);
             LcdGotoXYFont(12,4);
-            LcdStr(FONT_1X, "C");
+            LcdStr(FONT_1X, "Rim");
         } else
         {
-            printLX2(valueL, 4);
-            LcdGotoXYFont(12,4);
-            LcdStr(FONT_1X, "L");
+            if(valueIsC)
+            {
+                printCX2(valueC, 4);
+                LcdGotoXYFont(12,4);
+                LcdStr(FONT_1X, "C");
+            } else
+            {
+                printLX2(valueL, 4);
+                LcdGotoXYFont(12,4);
+                LcdStr(FONT_1X, "L");
+            }
         }
     }
 

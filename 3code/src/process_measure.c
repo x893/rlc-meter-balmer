@@ -23,7 +23,6 @@ static STATES state = STATE_NOP;
 #define gainValuesCount 8
 uint8_t gainValues[gainValuesCount] = {1,2,4,5,8,10,16,32};
 
-
 uint8_t resistorIdx;
 uint8_t gainVoltageIdx;
 uint8_t gainCurrentIdx;
@@ -35,6 +34,9 @@ bool gainIndexStopI;
 uint8_t computeXCount;
 uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
+
+bool bContinuousMode = false;
+static bool debugRepaint = false;
 
 extern int printD;
 
@@ -81,6 +83,7 @@ float getResistorOm()
 
 void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
 {
+	//calculatedValues = false;
 	if(count==0)
 		count = 1;
 	computeXCount = count;
@@ -123,6 +126,11 @@ void ProcessData()
 
 void OnStartGainAuto()
 {
+	if(!debugRepaint)
+	{
+		LcdRepaint();
+	}
+
 	resistorIdx = 0;
 	gainVoltageIdx = 0;
 	gainCurrentIdx = 0;
@@ -143,15 +151,17 @@ void OnStartGainAuto()
 	}
 
 
-	printD = 123;
-	LcdRepaint();
+	if(debugRepaint)
+	{
+		printD = 123;
+		LcdRepaint();
+	}
 }
 
 void OnResistorIndex()
 {
 	AdcSummaryChannel* asc = &g_data.ch_i;
 	int di = asc->adc_max - asc->adc_min;
-	printD = di;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
 		OnStartGainIndex(false);
@@ -162,7 +172,11 @@ void OnResistorIndex()
 		SetResistor(resistorIdx);
 	}
 
-	LcdRepaint();
+	if(debugRepaint)
+	{
+		printD = di;
+		LcdRepaint();
+	}
 }
 
 void OnStartGainIndex(bool wait)
@@ -184,7 +198,8 @@ void OnGainIndex()
 	int vmax = g_data.ch_v.adc_max;
 	int imin = g_data.ch_i.adc_min;
 	int imax = g_data.ch_i.adc_max;
-	printD = gainIndexIterator+100;
+	if(debugRepaint)
+		printD = gainIndexIterator+100;
 
 	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{
@@ -219,11 +234,13 @@ void OnGainIndex()
 		state = STATE_GAIN_INDEX_WAIT;
 	}
 
-	LcdRepaint();
+	if(debugRepaint)
+		LcdRepaint();
 }
 
 void OnMeasureStart()
 {
+	LcdRepaint();
 	state = STATE_MEASURE_WAIT;
 	computeXIterator = 0;
 }
@@ -264,10 +281,49 @@ void OnMeasure()
 
 	g_data = sum_data;
 
-	OnCalculate();
-	LcdRepaint();
+	bool oldLastZxFilled = lastZxFilled;
+	complexf oldLastZx = lastZx;
 
-	state = STATE_NOP;
+	OnCalculate();
+
+	LcdRepaint();
+	
+	if(bContinuousMode)
+	{
+		bool startFast = false;
+		if(oldLastZxFilled)
+		{
+			float d = cabs(oldLastZx-lastZx)/cabs(lastZx);
+			if(d>1)
+				d = 1;
+			printD = d*99;
+			if(d<5e-2f)
+			{
+				int vmin = g_data.ch_v.adc_min;
+				int vmax = g_data.ch_v.adc_max;
+				int imin = g_data.ch_i.adc_min;
+				int imax = g_data.ch_i.adc_max;
+
+				printD += 1000;
+
+				if(vmax<goodMax && vmin>goodMin && imax<goodMax && imin>goodMin)
+				{
+					//Все хорошо, мтожно не пересчитывать коэффициэнты и не переставлять резистор
+					startFast = true;
+				}
+			}
+		}
+
+		if(startFast)
+			OnMeasureStart();
+		else
+			ProcessStartComputeX(computeXCount, predefinedResistorIdx);
+	}
+	else
+	{
+		state = STATE_NOP;
+	}
+
 }
 
 void SendRVI()

@@ -206,11 +206,11 @@ void CorrectorLoadData()
 
 	if(cfound==NULL)
 	{
-		printD = 44;
+		//printD = 44;
 		coeff.period = 0;
 		return;
 	}
 
 	coeff = *cfound;
-	printD = 23;
+	//printD = 23;
 }

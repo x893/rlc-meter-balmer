@@ -16,12 +16,8 @@
 #include "corrector.h"
 #include "dac.h"
 
-extern float Rre;
-extern float Rim;
-extern bool isSerial;
-extern bool valueIsC;
-extern float valueL;
-extern float valueC;
+complexf lastZx = 0;
+bool lastZxFilled = false;
 
 void OnCalculate()
 {
@@ -35,6 +31,11 @@ void OnCalculate()
 	zI *= toVolts/gain_I;
 
 	complexf Zx = (zV/zI)*resistor;
+
+	lastZxFilled = true;
+	calculatedValues = true;
+	lastZx = Zx;
+
 	Zx = Corrector(Zx);
 
 	Rre = creal(Zx);

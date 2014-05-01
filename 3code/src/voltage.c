@@ -11,6 +11,7 @@
 #include "lcd_interface.h"
 
 extern bool isSerial;
+extern bool bContinuousMode;
 
 void GetClockFrequency(void)
 {
@@ -121,6 +122,9 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 	case 22://COMMAND_SET_SERIAL
 		isSerial = commandBuffer[1]?true:false;
 		LcdRepaint();
+		break;
+	case 23://COMMAND_SET_CONTINUOUS_MODE
+		bContinuousMode = commandBuffer[1]?true:false;
 		break;
 	}
 

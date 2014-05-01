@@ -34,6 +34,7 @@ COMMAND_SET_CORRECTOR_PERIOD = 19
 COMMAND_CORRECTOR_FLASH_CLEAR = 20
 COMMAND_FLASH_CURRENT_DATA = 21
 COMMAND_SET_SERIAL = 22
+COMMAND_SET_CONTINUOUS_MODE = 23
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -438,6 +439,16 @@ def setSerial(ser=True):
     data = dread()
     assert(data[0]==COMMAND_SET_SERIAL)
     
+def setContinuousMode(m=True):
+    if m:
+        m = 1
+    else:
+        m = 0
+
+    dwrite([COMMAND_SET_CONTINUOUS_MODE, m])
+    data = dread()
+    assert(data[0]==COMMAND_SET_CONTINUOUS_MODE)
+
 
 def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
@@ -878,7 +889,7 @@ def main():
 
     if True:
         #period = periodByFreq(10)
-        period = HARDWARE_CORRECTOR_PERIODS[3]
+        period = HARDWARE_CORRECTOR_PERIODS[0]
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)
@@ -887,6 +898,7 @@ def main():
 
         #setCorrector(corrector, period)
 
+        setContinuousMode(True)
         setSerial(False)
         adcSynchro(period)
 
