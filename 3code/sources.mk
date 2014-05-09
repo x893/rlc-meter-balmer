@@ -18,6 +18,7 @@ DEPS += \
 	output/base/src/mcp6s21.d \
 	output/base/src/pcd8544.d \
 	output/base/src/process_measure.d \
+	output/base/src/quadrature_encoder.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
 	output/base/src/systick.d \
@@ -61,6 +62,7 @@ OBJS += \
 	output/base/src/mcp6s21.o \
 	output/base/src/pcd8544.o \
 	output/base/src/process_measure.o \
+	output/base/src/quadrature_encoder.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
 	output/base/src/systick.o \
@@ -143,6 +145,10 @@ output/base/src/pcd8544.o: ./src/pcd8544.c
 
 output/base/src/process_measure.o: ./src/process_measure.c
 	@echo 'Building target: process_measure.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/quadrature_encoder.o: ./src/quadrature_encoder.c
+	@echo 'Building target: quadrature_encoder.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c

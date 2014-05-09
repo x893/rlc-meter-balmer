@@ -87,6 +87,14 @@ void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
 	if(count==0)
 		count = 1;
 	computeXCount = count;
+	int F = (int)DacFrequency();
+	if(F<2000)
+		computeXCount = F/10;
+	else
+		computeXCount = F/30;
+	if(computeXCount<1)
+		computeXCount = 1;
+
 	predefinedResistorIdx = predefinedResistorIdx_;
 	OnStartGainAuto();
 	AdcUsbRequestData();
@@ -287,7 +295,7 @@ void OnMeasure()
 	OnCalculate();
 
 	LcdRepaint();
-	
+
 	if(bContinuousMode)
 	{
 		bool startFast = false;

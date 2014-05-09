@@ -7,6 +7,8 @@
 #include "mcp6s21.h"
 #include "pcd8544.h"
 #include "corrector.h"
+#include "quadrature_encoder.h"
+#include "lcd_interface.h"
 
 void USB_Config(void)
 {
@@ -39,10 +41,19 @@ int main(void)
   AdcInit();
 
   MCPInit();
+  QuadEncInit();
 
   while (1)
   {
     AdcQuant();
+    int printD_new = QuadEncValue();
+    if(QuadEncButton())
+      printD_new+=1000;
+    if(printD_new!=printD)
+    {
+      printD = printD_new;
+      LcdRepaint();
+    }
   }
 }
 
