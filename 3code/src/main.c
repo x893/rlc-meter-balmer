@@ -46,6 +46,7 @@ int main(void)
   while (1)
   {
     AdcQuant();
+    /*
     int printD_new = QuadEncValue();
     if(QuadEncButton())
       printD_new+=1000;
@@ -54,6 +55,7 @@ int main(void)
       printD = printD_new;
       LcdRepaint();
     }
+    */
   }
 }
 

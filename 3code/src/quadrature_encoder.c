@@ -1,5 +1,6 @@
 #include "hw_config.h"
 #include "quadrature_encoder.h"
+#include "lcd_interface.h"
 
 //-------------------------------------------#DEFINE------------------------------------------
 #define Codeur_A           GPIO_Pin_6
@@ -14,6 +15,8 @@
 
 #define BUTTON_PIN 			GPIO_Pin_5
 #define BUTTON_GPIO			GPIOA
+
+void QuadTimerButton();
 
 void QuadEncInit()
 {
@@ -56,6 +59,8 @@ void QuadEncInit()
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_Init(BUTTON_GPIO, &GPIO_InitStructure);
+
+    QuadTimerButton();
 }
 
 uint16_t QuadEncValue()
@@ -66,4 +71,41 @@ uint16_t QuadEncValue()
 bool QuadEncButton()
 {
 	return GPIO_ReadInputDataBit(BUTTON_GPIO, BUTTON_PIN)==0;
+}
+
+void QuadTimerButton()
+{
+    NVIC_InitTypeDef NVIC_InitStructure;
+    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
+
+    //TIM_TimeBaseStructure.TIM_Period = 2000; // 1 sec
+    TIM_TimeBaseStructure.TIM_Period = 40; // 20 msec
+    TIM_TimeBaseStructure.TIM_Prescaler = 72*500-1; // 2000 tick per sec
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
+
+    TIM_TimeBaseInit(TIM7,&TIM_TimeBaseStructure);       
+    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);
+    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+    TIM_Cmd(TIM7, ENABLE);
+
+    NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+void TIM7_IRQHandler(void)
+{
+    if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET)
+    {
+        //printD++;
+        //if(printD%50==0)
+        //    LcdRepaint();
+
+        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+    }
 }
