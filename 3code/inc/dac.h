@@ -3,6 +3,7 @@
 
 #define pi  3.14159f
 #define SINUS_BUFFER_SIZE 1000
+#define DEFAULT_DAC_AMPLITUDE 1200
 
 extern float g_sinusBufferFloat[SINUS_BUFFER_SIZE];
 

@@ -889,7 +889,7 @@ def main():
 
     if True:
         #period = periodByFreq(10)
-        period = HARDWARE_CORRECTOR_PERIODS[2]
+        period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)

@@ -10,8 +10,6 @@
 #include "corrector.h"
 #include "lcd_interface.h"
 
-extern bool isSerial;
-extern bool bContinuousMode;
 
 void GetClockFrequency(void)
 {

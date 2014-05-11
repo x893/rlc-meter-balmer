@@ -16,6 +16,9 @@
 #define BUTTON_PIN 			GPIO_Pin_5
 #define BUTTON_GPIO			GPIOA
 
+static bool g_lastButtonState = false;
+static uint16_t g_lastEncValue = 0;
+
 void QuadTimerButton();
 
 void QuadEncInit()
@@ -102,9 +105,23 @@ void TIM7_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET)
     {
+        bool buttonState = QuadEncButton();
+        if(buttonState && !g_lastButtonState)
+        {
+            OnButtonPressed();   
+        }
+        g_lastButtonState = buttonState;
         //printD++;
         //if(printD%50==0)
         //    LcdRepaint();
+        uint16_t encValue = QuadEncValue();
+        if(encValue!=g_lastEncValue)
+        {
+            OnWeel(encValue-g_lastEncValue);
+        }
+
+        g_lastEncValue = encValue;
+        OnTimer();
 
         TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
     }

@@ -4,6 +4,7 @@
 #include "format_print.h"
 #include "calc_rc.h"
 #include "dac.h"
+#include "menu.h"
 
 int printD = 0; //debug
 
@@ -48,6 +49,13 @@ void printLcdFrequency()
 void LcdRepaint()
 {
     LcdClear();
+    if(MenuIsOpen())
+    {
+        MenuRepaint();
+        LcdUpdate();
+        return;
+    }
+
     bool printRim = false; 
 
     LcdGotoXYFont(1,1);
