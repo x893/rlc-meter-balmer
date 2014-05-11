@@ -6,10 +6,11 @@ import os
 import struct
 import array
 import math
-import smath
+import cmath
 from jplot import calculateJson
 import jplot
 import json
+import smath
 
 DEFAULT_DAC_AMPLITUDE = 1200
 COMMAND_SET_LED = 1
@@ -530,9 +531,8 @@ def setGainAuto(predefinedRes=-1):
     idxI = 0
 
     goodMin = 1500
-    goodMax = 4000
-    #goodMin = 500
-    #goodMax = 3300
+    #goodMax = 4000
+    goodMax = 3300
 
     goodDelta = goodMax-goodMin
 
@@ -677,13 +677,14 @@ def adcSynchroJson(soft=True, corrector = None):
 
     if corrector:
         data = corrector.calculateJson(jout)
-        print "Rre=", data['Zx'].real
-        print "Rim=", data['Zx'].imag
+        R = data['Zx']
     else:
         data = calculateJson(jout)
-        print "Rre=", data['R'].real
-        print "Rim=", data['R'].imag
+        R = data['R']
 
+    print "Rre=", R.real
+    print "Rim=", R.imag
+    print "Q={:3.3f} grad".format(cmath.phase(R)*180.0/math.pi)
     print "ErrV=", jout['summary']['V']['square_error']
     print "ErrI=", jout['summary']['I']['square_error']
 
@@ -889,7 +890,7 @@ def main():
 
     if True:
         #period = periodByFreq(10)
-        period = HARDWARE_CORRECTOR_PERIODS[3]
+        period = HARDWARE_CORRECTOR_PERIODS[1]
         #period = 384
         gain_corrector = jplot.GainCorrector()
         corrector = jplot.Corrector(gain_corrector)
@@ -898,23 +899,22 @@ def main():
 
         #setCorrector(corrector, period)
 
-        setContinuousMode(True)
+        soft = True
+        setContinuousMode(False)
         setSerial(True)
         adcSynchro(period)
 
-        soft = False
         if soft:
-            setLowPass(False)
+            setLowPass(True)
             if True:
                 setGainAuto()
                 #setGainAuto(predefinedRes=0)
             else:
                 setResistor(0)
-                setSetGain(1, 6) #V
-                setSetGain(0, 0) #I
+                setSetGain(1, 1) #V
+                setSetGain(0, 1) #I
         time.sleep(0.1)
         adcSynchroJson(soft=soft, corrector=corrector)
-        #adcSynchroJson(soft=True, gain_corrector=gain_corrector)
         #adcSynchroJson(soft=True)
     else:
         allFreq()

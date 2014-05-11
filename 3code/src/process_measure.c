@@ -14,7 +14,7 @@
 #include "dac.h"
 
 #define goodMin 1500
-#define goodMax 4000
+#define goodMax 3300
 #define goodDelta (goodMax-goodMin)
 
 
