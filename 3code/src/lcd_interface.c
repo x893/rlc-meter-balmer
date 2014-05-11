@@ -11,6 +11,7 @@ int printD = 0; //debug
 float Rre = 0;
 float Rim = 0;
 
+bool printRim = false; 
 bool isSerial = true;
 bool valueIsC = true;
 bool calculatedValues = false;
@@ -55,8 +56,6 @@ void LcdRepaint()
         LcdUpdate();
         return;
     }
-
-    bool printRim = false; 
 
     LcdGotoXYFont(1,1);
     printLcdFrequency();

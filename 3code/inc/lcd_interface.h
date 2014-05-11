@@ -9,6 +9,7 @@ extern int printD;
 extern float Rre;
 extern float Rim;
 
+extern bool printRim;
 extern bool isSerial;
 extern bool valueIsC;
 extern bool calculatedValues;
