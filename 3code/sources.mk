@@ -10,6 +10,7 @@ DEPS += \
 	output/base/src/calc_rc.d \
 	output/base/src/corrector.d \
 	output/base/src/dac.d \
+	output/base/src/display_light.d \
 	output/base/src/format_print.d \
 	output/base/src/hw_config.d \
 	output/base/src/hw_pcd8544.d \
@@ -55,6 +56,7 @@ OBJS += \
 	output/base/src/calc_rc.o \
 	output/base/src/corrector.o \
 	output/base/src/dac.o \
+	output/base/src/display_light.o \
 	output/base/src/format_print.o \
 	output/base/src/hw_config.o \
 	output/base/src/hw_pcd8544.o \
@@ -115,6 +117,10 @@ output/base/src/corrector.o: ./src/corrector.c
 
 output/base/src/dac.o: ./src/dac.c
 	@echo 'Building target: dac.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/display_light.o: ./src/display_light.c
+	@echo 'Building target: display_light.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/format_print.o: ./src/format_print.c

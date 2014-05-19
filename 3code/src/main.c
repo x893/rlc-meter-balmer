@@ -10,12 +10,15 @@
 #include "quadrature_encoder.h"
 #include "lcd_interface.h"
 
+void InitLight();
+
 void USB_Config(void)
 {
   Set_System();
   Set_USBClock();
   USB_Interrupts_Config();  
   USB_Init();
+  InitLight();
 
   while (bDeviceState != CONFIGURED)
   {}

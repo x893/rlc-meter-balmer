@@ -13,6 +13,7 @@ typedef enum MenuEnum {
 	MENU_MAIN_FREQUENCY,
 	MENU_MAIN_SER_PAR,
 	MENU_MAIN_VIEW_PARAM, //Какой из параметров отображается.
+	MENU_MAIN_TOGGLE_LIGHT, //Подсветка дисплея
 	MENU_F_RETURN,
 	MENU_F_100Hz,
 	MENU_F_1KHz,
@@ -36,6 +37,7 @@ static MenuElem g_main_menu[]={
 	{"Frequency", MENU_MAIN_FREQUENCY},
 	{"SER/PAR", MENU_MAIN_SER_PAR},
 	{"View", MENU_MAIN_VIEW_PARAM},
+	{"Toggle Light", MENU_MAIN_TOGGLE_LIGHT},
 };
 
 static MenuElem g_f_menu[]={
@@ -80,6 +82,8 @@ void MenuSetSerial(bool ser);
 void MenuSetPos(MenuEnum pos);
 void MenuSetPrinRim(bool pr);
 
+void ToggleLight();
+
 void OnButtonPressed()
 {
 	g_update = true;
@@ -112,6 +116,10 @@ void OnButtonPressed()
 		g_last_main_command = command;
 		MENU_START(g_v_menu);
 		MenuSetPos(printRim?MENU_V_RIM:MENU_V_LC);
+		break;
+	case MENU_MAIN_TOGGLE_LIGHT:
+		ToggleLight();
+		MENU_CLEAR();
 		break;
 	case MENU_F_RETURN:
 	case MENU_SP_RETURN:
@@ -155,7 +163,7 @@ void OnWeel(int16_t delta)
 	if(g_cur_menu==NULL)
 		return;
 
-	g_menu_pos = (g_menu_pos+g_menu_size-delta)%g_menu_size;
+	g_menu_pos = (g_menu_pos+g_menu_size+delta)%g_menu_size;
     g_update = true;
 }
 
