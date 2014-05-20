@@ -58,8 +58,6 @@ void LcdRepaint()
         return;
     }
 
-    VBatQuant();
-    
     LcdGotoXYFont(1,1);
     printLcdFrequency();
 
@@ -104,5 +102,8 @@ void LcdRepaint()
     printInt(gainVoltageIdx, FONT_1X);  
     LcdStr(FONT_1X, "I");
     printInt(gainCurrentIdx, FONT_1X);
+
+    VBatQuant();
+
     LcdUpdate();
 }
