@@ -14,21 +14,21 @@ void InitLight();
 
 void USB_Config(void)
 {
-  Set_System();
   Set_USBClock();
-  USB_Interrupts_Config();  
+  USB_Interrupts_Config();
   USB_Init();
-  InitLight();
 
-  while (bDeviceState != CONFIGURED)
-  {}
+  //while (bDeviceState != CONFIGURED) {}
 }
 
 int main(void)
 {
   delay_init();
+  Set_System();
+
   CorrectorInit();
   LcdInit();
+  InitLight();
 
   LcdClear();
   LcdGotoXYFont(1,1);
@@ -36,9 +36,6 @@ int main(void)
   LcdUpdate();
 
   USB_Config();
-
-  USB_SIL_Write(EP1_IN, (uint8_t *)"Hello", 5);
-  SetEPTxValid(ENDP1); 
 
   DacInit();
   AdcInit();
