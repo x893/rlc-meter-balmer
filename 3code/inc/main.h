@@ -16,3 +16,4 @@ void USB_Config (void);
 //Должно быть кратно 2 Kb = 0x800
 #define FLASH_PROGRAM_MAX_SIZE 0x1F000
 #define FLASH_START_ARRAY  (FLASH_BASE+FLASH_PROGRAM_MAX_SIZE)
+

@@ -30,10 +30,13 @@ int main(void)
   LcdInit();
   InitLight();
 
+  VBatInit();
+  
   LcdClear();
   LcdGotoXYFont(1,1);
   LcdStr(FONT_1X, "Hello!");
   LcdUpdate();
+
 
   USB_Config();
 

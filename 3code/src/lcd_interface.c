@@ -5,6 +5,7 @@
 #include "calc_rc.h"
 #include "dac.h"
 #include "menu.h"
+#include "vbat.h"
 
 int printD = 0; //debug
 
@@ -57,6 +58,8 @@ void LcdRepaint()
         return;
     }
 
+    VBatQuant();
+    
     LcdGotoXYFont(1,1);
     printLcdFrequency();
 
