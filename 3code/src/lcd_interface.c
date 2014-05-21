@@ -92,6 +92,8 @@ void LcdRepaint()
         }
     }
 
+    VBatQuant();
+
     LcdGotoXYFont(1,6);
     LcdStr(FONT_1X, "D=");
     printInt(printD, FONT_1X);
@@ -102,8 +104,6 @@ void LcdRepaint()
     printInt(gainVoltageIdx, FONT_1X);  
     LcdStr(FONT_1X, "I");
     printInt(gainCurrentIdx, FONT_1X);
-
-    VBatQuant();
 
     LcdUpdate();
 }

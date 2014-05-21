@@ -2,6 +2,8 @@
 #include "systick.h"
 #include "pcd8544.h"
 
+extern int printD;
+
 void VBatInit()
 {
 	ADC_InitTypeDef       ADC_InitStructure;
@@ -76,6 +78,17 @@ void VBatQuant()
 	//Не задерживаем вывод на экран. Батарейка все равно медленно разряжается, поэтому показываем старое значение
 	ADC_StartConversion(ADC2);
 
+	const int Vup = 3080;//6.2 V
+	const int Vdown = 2730;//5.5 V
+	int value = 0;
+
+	//Vup->6.5 Vdown->0
+	value = adcValue-Vdown;
+	if(value<0)
+		value = 0;
+
+	value = (value*65)/(10*(Vup-Vdown));
+
 	//Draw battery
 	byte x0 = 63, y0 = 0;
 	LcdLine(x0, x0, y0+1, y0+7, PIXEL_ON );
@@ -89,10 +102,12 @@ void VBatQuant()
 	LcdLine(x0+3, x0+19, y0+8, y0+8, PIXEL_ON );
 	LcdLine(x0+20, x0+20, y0+0, y0+8, PIXEL_ON );
 
-	LcdSingleBar( x0+2, y0+3+3, 3, 2, PIXEL_ON );
+	if(value>5)
+		LcdSingleBar( x0+2, y0+3+3, 3, 2, PIXEL_ON );
 
 	for(byte i=0; i<5; i++)
 	{
-		LcdSingleBar( x0+5+i*3, y0+3+4, 5, 2, PIXEL_ON );
+		if(value>4-i)
+			LcdSingleBar( x0+5+i*3, y0+3+4, 5, 2, PIXEL_ON );
 	}
  }
