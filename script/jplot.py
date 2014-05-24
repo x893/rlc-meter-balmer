@@ -20,10 +20,16 @@ def formatR(R):
 		return '{:3.2f} mOm'.format(R*1e3)
 	if RA<1:
 		return '{:3.1f} mOm'.format(R*1e3)
+	if RA<1e1:
+		return '{:3.2f} Om'.format(R)
 	if RA<1e3:
 		return '{:3.1f} Om'.format(R)
+	if RA<1e4:
+		return '{:3.2f} KOm'.format(R*1e-3)
 	if RA<1e6:
 		return '{:3.1f} KOm'.format(R*1e-3)
+	if RA<1e7:
+		return '{:3.2f} MOm'.format(R*1e-6)
 	return '{:3.1f} MOm'.format(R*1e-6)
 
 def formatC(C):

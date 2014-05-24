@@ -93,13 +93,6 @@ class FormDrawData(QtGui.QMainWindow):
 		self.fig.canvas.draw()
 		pass
 
-	def readPhase(self):
-		jphase = jplot.readJson('cor/phase.json')
-		set_phase = {}
-		for p in jphase:
-			set_phase[p['period']] = p
-		return set_phase
-
 	def OnSelectGraph(self, index):
 		self.gtype = self.gtype_combo_box.itemData(index).toString()
 		self.updateFigure(self.filename)
@@ -117,7 +110,6 @@ class FormDrawData(QtGui.QMainWindow):
 		gtype = self.gtype
 		ax = self.axes
 		jout = jplot.readJson(fileName)
-		set_phase = self.readPhase()
 		jfreq = jout['freq']
 
 		f_data = []

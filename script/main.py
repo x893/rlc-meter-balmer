@@ -290,8 +290,8 @@ class FormScan(QtGui.QMainWindow):
         info += '\n' + 'R='+usb_commands.getResistorValueStr(usb_commands.resistorIdx)
         info += '\n' + 'KU='+str(usb_commands.getGainValueV(usb_commands.gainVoltageIdx))+'x'
         info += ' KI='+str(usb_commands.getGainValueI(usb_commands.gainCurrentIdx))+'x'
-        info += '\n' + 'Rre='+str(formatR(data['Rre']))
-        info += '\n' + 'Rim='+str(formatR(data['Rim']))
+        info += '\n' + 'Rre='+str(formatR(data['R'].real))
+        info += '\n' + 'Rim='+str(formatR(data['R'].imag))
 
         s.info_label.setText(info)
         pass
@@ -324,6 +324,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         header_label = QtGui.QLabel(u'Калибровка')
 
         vbox.addWidget(header_label)
+        self.AddLine1Om(vbox)
         self.AddLine(vbox, u'100 Ом', self.On100_Om, 0)
         self.AddLine(vbox, u'1 KОм', self.On1_KOm, 1)
         self.AddLine(vbox, u'10 KОм', self.On10_KOm, 2)
@@ -342,16 +343,19 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.setCentralWidget(self.main_frame)
         pass
 
-    def AddLine(self, vbox, name, func, interval):
+    def AddLine(self, vbox, name, func, interval, overrideValue = None):
         hbox = QtGui.QHBoxLayout()
 
         label1 = QtGui.QLabel(u'Точное значение сопротивления ' + name + '=')
         hbox.addWidget(label1)
         edit = QtGui.QLineEdit()
-        validator = QtGui.QDoubleValidator()
-        validator.setRange(90, 250)
-        edit.setValidator(validator)
-        text = self.diapazon[interval]['value']
+        #validator = QtGui.QDoubleValidator()
+        #validator.setRange(90, 250)
+        #edit.setValidator(validator)
+        if overrideValue:
+            text = overrideValue
+        else:
+            text = self.diapazon[interval]['value']
         edit.setText(str(text))
         hbox.addWidget(edit)
         self.edits[interval] = edit
@@ -362,6 +366,32 @@ class FormCalibrationResistor(QtGui.QMainWindow):
 
         label = QtGui.QLabel(u'Не пройден')
         self.labels[interval] = label
+        label.setStyleSheet("QLabel { color : red; }");
+        hbox.addWidget(label)
+
+        vbox.addLayout(hbox)
+        pass
+
+    def AddLine1Om(self, vbox):
+        name = u'1 Ом'
+        value = 1.0
+        func = self.On1_Om
+
+        hbox = QtGui.QHBoxLayout()
+
+        label1 = QtGui.QLabel(u'Точное значение сопротивления ' + name + '=')
+        hbox.addWidget(label1)
+        edit = QtGui.QLineEdit()
+        edit.setText(str(value))
+        hbox.addWidget(edit)
+        self.edit1Om = edit
+
+        button = QtGui.QPushButton(name)
+        button.clicked.connect(func)
+        hbox.addWidget(button)
+
+        label = QtGui.QLabel(u'Не пройден')
+        self.label1Om = label
         label.setStyleSheet("QLabel { color : red; }");
         hbox.addWidget(label)
 
@@ -410,6 +440,11 @@ class FormCalibrationResistor(QtGui.QMainWindow):
     def On100_Om(self):
         R = float(self.edits[0].text())
         self.process(R, [0], "100Om")
+        pass
+
+    def On1_Om(self):
+        R = float(self.edit1Om.text())
+        self.process(R, [0], "1Om")
         pass
 
     def On1_KOm(self):
@@ -477,6 +512,16 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.setComplete(label, ok)
         pass
 
+    def checkComplete1Om(self):
+        diapason = 0
+        Rname = '1Om'
+        filename = getCorrName(diapason, Rname)
+        ok = os.path.isfile(filename)
+
+        label = self.label1Om
+        self.setComplete(label, ok)
+        pass
+
     def checkCompleteIV(self, IV):
         kmul = [0,1,2,3,4,5,6]
         if IV=='I':
@@ -501,6 +546,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         pass
 
     def checkComplete(self):
+        self.checkComplete1Om()
         self.checkCompleteOne([0], "100Om")
         self.checkCompleteOne([0, 1], "1KOm")
         self.checkCompleteOne([1, 2], "10KOm")
