@@ -109,6 +109,9 @@ void DacSetPeriod(uint32_t sinusPeriod, uint16_t amplitude)
 	//Нужно чтобы SinusBufferSize был кратен 4
 	sinusPeriod = (sinusPeriod/(period*4))*(period*4);
 
+	//Пусть будет не кратным 4, попробуем частоту 100 КГц
+	//sinusPeriod = (sinusPeriod/period)*period;
+
 	SinusBufferSize = sinusPeriod/period;
 
 	if(SinusBufferSize>SINUS_BUFFER_SIZE)

@@ -21,6 +21,7 @@ class FormDrawData(QtGui.QMainWindow):
 		self.setWindowTitle(title)
 
 		self.gtype = 'ReImCorrect'
+		#self.gtype = 'ReImRaw'
 		self.serial = True
 
 		self.createMainFrame()
@@ -52,8 +53,8 @@ class FormDrawData(QtGui.QMainWindow):
 		self.gtype_combo_box.addItem(u'C', QtCore.QVariant('C'))
 		self.gtype_combo_box.addItem(u'L', QtCore.QVariant('L'))
 		self.gtype_combo_box.addItem(u'Error', QtCore.QVariant('error'))
-		self.gtype_combo_box.addItem(u'Q (corrected)', QtCore.QVariant('dfic'))
-		self.gtype_combo_box.addItem(u'Q (uncorrected)', QtCore.QVariant('dfi'))
+		self.gtype_combo_box.addItem(u'DFI (corrected)', QtCore.QVariant('dfic'))
+		self.gtype_combo_box.addItem(u'DFI (uncorrected)', QtCore.QVariant('dfi'))
 		self.gtype_combo_box.addItem(u'Re+Im (Raw)', QtCore.QVariant('ReImRaw'))
 		self.gtype_combo_box.addItem(u'Re+Im (OnlyGainCorrector)', QtCore.QVariant('ReImRawG'))
 		
@@ -130,14 +131,24 @@ class FormDrawData(QtGui.QMainWindow):
 
 		if gtype=="ReImRaw":
 			corr_gain = None
+			corr = None
+		elif gtype=="ReImRawG":
+			corr_gain = jplot.GainCorrector()
+			corr = None #jplot.Corrector(corr_gain)
 		else:
 			corr_gain = jplot.GainCorrector()
-		corr = jplot.Corrector(corr_gain)
+			#corr_gain = None
+			corr = jplot.Corrector(corr_gain)
 
 		for jf in jfreq:
-			res = corr.calculateJson(jf)
+			if corr:
+				res = corr.calculateJson(jf)
+				Zx = res['Zx']
+			else:
+				res = jplot.calculateJson(jf, gain_corrector=corr_gain)
+				Zx = res['R']
+
 			F = res['F']
-			Zx = res['Zx']
 			f_data.append(F)
 
 			#re_data.append(math.fabs(res['R'].real))
@@ -152,6 +163,8 @@ class FormDrawData(QtGui.QMainWindow):
 			gain_V = jf['attr']["gain_V"]
 			#re_error.append(math.sqrt(jf['summary']['V']['sin']**2+jf['summary']['V']['cos']**2)/gain_V)
 			#im_error.append(math.sqrt(jf['summary']['I']['sin']**2+jf['summary']['I']['cos']**2)/gain_I)
+			#re_error.append(gain_V)
+			#im_error.append(gain_I)
 
 			im_sin.append(jf['summary']['I']['sin']/gain_I)
 			im_cos.append(jf['summary']['I']['cos']/gain_I)
@@ -240,7 +253,7 @@ class FormDrawData(QtGui.QMainWindow):
 		if gtype=="ReImRaw" or gtype=="ReImRawG":
 			ax.set_ylabel("Om")
 			ax.plot (f_data, re_data, '-', color="red")
-			#ax.plot (f_data, im_data, '-', color="blue")
+			ax.plot (f_data, im_data, '-', color="blue")
 
 		if gtype=="C":
 			ax.set_ylabel("pF")

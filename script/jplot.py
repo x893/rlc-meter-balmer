@@ -35,7 +35,7 @@ def formatR(R):
 def formatC(C):
 	CA = math.fabs(C)
 	if CA<1e-11:
-		return '{:3.2f} pF'.format(C*1e12)
+		return '{:3.3f} pF'.format(C*1e12)
 	if CA<1e-9:
 		return '{:3.1f} pF'.format(C*1e12)
 	if CA<1e-8:
@@ -180,10 +180,9 @@ def calculateJson(jout, gain_corrector = None):
 		"fiI": cmath.polar(zI)
 	}
 
+'''
 class GainCorrector:
-	'''
-	Корректирует неточность усиления из-за переключения диапазонов усиления
-	'''
+	#Корректирует неточность усиления из-за переключения диапазонов усиления
 	def __init__(self):
 		self.load()
 		pass
@@ -249,7 +248,61 @@ class GainCorrector:
 		for js in self.jsonsI:
 			out.append(js[period]['I'])
 		return out
+'''
+class GainCorrector:
+	#Корректирует неточность усиления из-за переключения диапазонов усиления
+	def __init__(self):
+		self.load()
+		pass
+	def load(self):
+		self.freq = {}
+		data = readJson("cor/amplitudes.json")
+		jfreq = data['freq']
 
+		for fr in jfreq:
+			errors = []
+			jerrors = fr['errors']
+			for e in jerrors:
+				errors.append({
+				'zV': complex(e['zVre'], e['zVim']),
+				'zI': complex(e['zIre'], e['zIim'])
+				})
+			pass
+			self.freq[fr['period']] = errors
+		pass
+
+	def calcComplex(self, period, clock, ncycle, jout):
+		fr = self.freq[period]
+		zV = fr[jout['attr']['gain_index_V']]['zV']
+		zI = fr[jout['attr']['gain_index_I']]['zI']
+		return (zV, zI)
+
+	def calcComplex(self, period, clock, ncycle, jout):
+		zV = self.calcX('V', jout, index=jout['attr']['gain_index_V'], period=period)
+		zI = self.calcX('I', jout, index=jout['attr']['gain_index_I'], period=period)
+		return (zV, zI)
+
+	def calcPolar(self, period, clock, ncycle, jout):
+		zV = self.calcX('V', jout, index=jout['attr']['gain_index_V'], period=period)
+		zI = self.calcX('I', jout, index=jout['attr']['gain_index_I'], period=period)
+		(ampV, fiV) = cmath.polar(zV)
+		(ampI, fiI) = cmath.polar(zI)
+		return (ampV, fiV, ampI, fiI)
+
+	def calcX(self, IV, jout, index, period):
+		gi = 'gain_'+IV
+		zMeasure = self.calcZ(jout['summary'][IV])
+
+		fr = self.freq[period]
+		zX = fr[index]['z'+IV]
+
+		zMeasure *= toVolts/jout['attr'][gi]
+		#if index!=0:
+		#	print "i"+IV+'=', index, "z0=", z0, "zX=", zX
+		return zMeasure/zX
+
+	def calcZ(self, sdata):
+		return complex(sdata["sin"], sdata["cos"])
 
 
 class Corrector2x:
@@ -324,7 +377,8 @@ class CorrectorOpen:
 
 		self.data = data
 		self.R = json_load['R']
-		self.C = 1.2e-12
+		#self.C = 0
+		self.C = 0.5e-12
 		pass
 
 	def correct(self, R, period, F):
@@ -335,7 +389,8 @@ class CorrectorOpen:
 		Zstd = 1/Ystd
 		#Zstd = complex(self.R, 0)
 		Zxm = R
-		Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
+		#Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
+		Zx = Zstd*(1/Zstdm-1/Zom)/(1/Zxm-1/Zom)
 		if period==96:
 			print "Zsm=", Zsm
 			print "Zstdm=", Zstdm
@@ -532,7 +587,7 @@ def main():
 		fileName = sys.argv[1]
 
 	#plot(fileName)
-	#plotRaw(fileName, "V", average=False)
+	#plotRaw(fileName, "I", average=False)
 	plotIV(fileName, average=True)
 	#plotIV_2()
 

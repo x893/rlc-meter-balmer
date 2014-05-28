@@ -11,10 +11,8 @@ import json
 import os.path
 
 import usb_commands
-from jplot import calculateJson
-from jplot import formatR
-from jplot import readJson
 import plot
+import jplot
 
 TITLE = 'RLC Meter "Balmer 303" (R) 2014'
 
@@ -284,14 +282,14 @@ class FormScan(QtGui.QMainWindow):
         s = self
         s.progress_bar.setValue(s.scan_freq.current())
         jout = s.scan_freq.jfreq[-1]
-        data = calculateJson(jout)
+        data = jplot.calculateJson(jout)
         info = ''
         info += 'F=' + str(int(data['F']))
         info += '\n' + 'R='+usb_commands.getResistorValueStr(usb_commands.resistorIdx)
         info += '\n' + 'KU='+str(usb_commands.getGainValueV(usb_commands.gainVoltageIdx))+'x'
         info += ' KI='+str(usb_commands.getGainValueI(usb_commands.gainCurrentIdx))+'x'
-        info += '\n' + 'Rre='+str(formatR(data['R'].real))
-        info += '\n' + 'Rim='+str(formatR(data['R'].imag))
+        info += '\n' + 'Rre='+str(jplot.formatR(data['R'].real))
+        info += '\n' + 'Rim='+str(jplot.formatR(data['R'].imag))
 
         s.info_label.setText(info)
         pass
@@ -334,6 +332,11 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.AddLineI(vbox)
         self.AddLineOpenShort(vbox, u'Замкнутые щупы', 'short')
         self.AddLineOpenShort(vbox, u'Открытые щупы', 'open')
+
+        button_close = QtGui.QPushButton(u'Записать в FLASH')
+        button_close.clicked.connect(self.OnWriteFlash)
+        vbox.addWidget(button_close)
+
 
         button_close = QtGui.QPushButton(u'Закрыть')
         button_close.clicked.connect(self.close)
@@ -491,6 +494,13 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         form.show()
         pass
 
+    def OnWriteFlash(self):
+        gain_corrector = jplot.GainCorrector()
+        corrector = jplot.Corrector(gain_corrector)
+        usb_commands.FlashCorrector(corrector)
+        QtGui.QMessageBox.about(self, TITLE, u"Запись корректирующих коэффициэнтов окончена.")
+        pass
+
     def setComplete(self, label, ok):
         if ok:
             label.setText(u"Пройден.")
@@ -558,35 +568,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.checkCompleteOpenShort('short')
         pass
 
-def makePhase():
-    '''
-    Вычисляем коэффициэнты для коррекции фазы по open/short файлам.
-    '''
-    freq_open = readJson('cor/freq_open.json')
-    freq_short = readJson('cor/freq_short.json')
-    jfreq_open = freq_open['freq']
-    jfreq_short = freq_short['freq']
-    jout = []
-
-    for idx in xrange(len(jfreq_open)):
-        res_open = calculateJson(jfreq_open[idx], correctR=False)
-        res_short = calculateJson(jfreq_short[idx], correctR=False)
-        assert res_open['F']==res_short['F']
-        d = {
-            'period' : jfreq_open[idx]['attr']['period'],
-            'fiV' : res_open['fiV'],
-            'fiI' : res_short['fiI']
-            }
-        jout.append(d)
-
-    f = open('cor/phase.json', 'w')
-    f.write(json.dumps(jout))
-    f.close()
-    pass
-
 def main():
-    #makePhase()
-    #return
     app = QtGui.QApplication(sys.argv)
     form = FormMain()
     form.show()
