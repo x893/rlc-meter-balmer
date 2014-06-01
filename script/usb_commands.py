@@ -61,6 +61,12 @@ def periodToFreqency(period):
 def getGainValuesX():
     return [1,2,4,5,8,10,16,32]
 
+def getGainCentralIdx():
+    return jplot.getGainCentralIdx() #[0,1,2]
+
+def getGainOpenShortIdx():
+    return jplot.getGainOpenShortIdx() #[0,1,2,4,6,7]
+
 def inited():
     return not (dev is None)
 
@@ -264,21 +270,14 @@ def arrByteToShort(barray):
     sarray = array.array('H', barray)
     return sarray.tolist()
 
-def getGainValuesXV(idx):
-    return getGainValuesX()[idx]
-
-def getGainValuesXI(idx):
-    k = getGainValuesX()[idx]
-    return k
-
 def getGainValueV(idx):
     mulPre = 3.74
-    mulX = getGainValuesXV(idx)
+    mulX = getGainValuesX()[idx]
     return mulPre*mulX
 
 def getGainValueI(idx):
     mulPre = 3.74
-    mulX = getGainValuesXI(idx)
+    mulX = getGainValuesX()[idx]
     return mulPre*mulX
 
 def getResistorValues():
@@ -294,7 +293,7 @@ def getResistorValueStr(idx):
 
 def adcSynchro(inPeriod, inAmplitude = None):
     global ncycle, period, clock, amplitude
-    if inAmplitude:
+    if inAmplitude!=None:
         amplitude = inAmplitude
     else:
         amplitude = DEFAULT_DAC_AMPLITUDE
@@ -531,9 +530,9 @@ def setGainAuto(predefinedRes=-1):
     idxV = 0
     idxI = 0
 
-    goodMin = 1500
-    #goodMax = 4000
-    goodMax = 3300
+    goodMin = 2200
+    goodMax = 4000
+    #goodMax = 3300
 
     goodDelta = goodMax-goodMin
 
@@ -562,11 +561,39 @@ def setGainAuto(predefinedRes=-1):
                 break
             pass
 
+    if predefinedRes==0:
+        jout = adcRequestLastCompute()
 
     gainValues = getGainValuesX()
     stopV = False
     stopI = False
-    for i in xrange(0, len(gainValues)):
+
+    if resistorIdx==0:
+        jV = jout['summary']['V']
+        vmin = jV['min']
+        vmax = jV['max']
+        jI = jout['summary']['I']
+        imin = jI['min']
+        imax = jI['max']
+        if (imax-imin) < (vmax-vmin):
+            stopV = True
+            gainIdx = getGainCentralIdx()
+            #print "getGainCentralIdx"
+        else:
+            stopI = True
+            gainIdx = getGainOpenShortIdx() #short calibration
+            #print "getGainOpenShortIdx"
+
+    elif resistorIdx==3:
+        stopV = True
+        gainIdx = getGainOpenShortIdx() #open calibration
+    else:
+        stopV = True
+        gainIdx = getGainCentralIdx()
+
+    #print gainIdx
+    for i in gainIdx:
+        #print i, stopV, stopI
         if not stopV:
             setSetGain(1, i)
         if not stopI:
@@ -584,6 +611,8 @@ def setGainAuto(predefinedRes=-1):
         #print " vmax="+str(vmax)
         #print " imin="+str(imin)
         #print " imax="+str(imax)
+        #print " DV="+str(vmax-vmin)
+        #print " DI="+str(imax-imin)
 
         if not stopV and vmax<goodMax and vmin>goodMin:
             idxV = i
@@ -594,6 +623,8 @@ def setGainAuto(predefinedRes=-1):
             idxI = i
         else:
             stopI = True
+        if stopI and stopV:
+            break
 
     setSetGain(1, idxV)
     setSetGain(0, idxI)
@@ -652,7 +683,7 @@ def getAttr():
     jattr["low_pass"] = currentLowPass
     return jattr
 
-def adcSynchroJson(soft=True, corrector = None):
+def adcSynchroJson(soft=True, corrector = None, count=10):
     (out1, out2) = adcRequestData()
     jout = {}
     jdata = {}
@@ -670,9 +701,9 @@ def adcSynchroJson(soft=True, corrector = None):
     f = open('sout.json', 'w')
     #jout = adcLastCompute()
     if soft:
-        jout = adcRequestLastComputeX(10)
+        jout = adcRequestLastComputeX(count)
     else:
-        jout = adcRequestLastComputeHardAuto(10)
+        jout = adcRequestLastComputeHardAuto(count, resistorIdx)
     f.write(json.dumps(jout))
     f.close()
 
@@ -685,7 +716,7 @@ def adcSynchroJson(soft=True, corrector = None):
 
     print "Rre=", R.real
     print "Rim=", R.imag
-    print "Q={:3.3f} grad".format(cmath.phase(R)*180.0/math.pi)
+    print "D={:3.3f} grad".format(cmath.phase(R)*180.0/math.pi)
     print "ErrV=", jout['summary']['V']['square_error']
     print "ErrI=", jout['summary']['I']['square_error']
 
@@ -726,7 +757,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 3*96, -96):
+    for period in xrange(75*96, 1*96, -96):
         arr.append(period)
     return arr
 
@@ -746,45 +777,14 @@ def periodAll():
     return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
     #return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_100KHz()+period100Khz_max()
 
-def allFreq():
-    jout = {}
-    jfreq = []
-
-    jout['freq'] = jfreq
-    #PERIOD_ROUND = period100Hz_300Hz()
-    #PERIOD_ROUND = period50Hz_150Hz()
-    #PERIOD_ROUND = period100Hz_1KHz() + period1KHz_10KHz()
-    #PERIOD_ROUND = period100Hz_1KHz()
-    #PERIOD_ROUND = period1KHz_10KHz()
-    #PERIOD_ROUND = period10Khz_max()
-    PERIOD_ROUND = periodAll()
-    #print PERIOD_ROUND
-    adcSynchro(PERIOD_ROUND[0])
-    time.sleep(0.2)
-
-
-    for period in PERIOD_ROUND:
-        adcSynchro(period)
-
-        if period>=LOW_PASS_PERIOD:
-            setLowPass(True)
-        else:
-            setLowPass(False)
-        if True:
-            setGainAuto()
-        if False:
-            setResistor(3)
-            setSetGain(1, 0) #V
-            setSetGain(0, 4) #I
-
-        time.sleep(0.01)
-        jresult = adcRequestLastComputeX()
-        jfreq.append(jresult)
+def allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, IIndex=None, fileName='freq.json'):
+    sc = ScanFreq()
+    sc.init(amplitude=amplitude, resistorIndex=resistorIndex, VIndex=VIndex, IIndex=IIndex, fileName=fileName)
+    while sc.next():
+        print "f=", periodToFreqency(period), "p=", period
         pass
-
-    f = open('freq.json', 'w')
-    f.write(json.dumps(jout))
-    f.close()
+    sc.save()
+    pass
 
 def oneFreq(period, lowPass='auto', inAmplitude = None):
     if lowPass=='auto':
@@ -814,9 +814,8 @@ class ScanFreq:
         self.jout['freq'] = self.jfreq
         #PERIOD_ROUND = period100Hz_300Hz()
         #PERIOD_ROUND = period50Hz_150Hz()
-        #PERIOD_ROUND = period100Hz_1KHz() + period1KHz_10KHz()
         #PERIOD_ROUND = period100Hz_1KHz()
-        #PERIOD_ROUND = period1KHz_10KHz()
+        #self.PERIOD_ROUND = period1KHz_10KHz()
         #PERIOD_ROUND = period10Khz_max()
         self.PERIOD_ROUND = periodAll()
         adcSynchro(self.PERIOD_ROUND[0], amplitude)
@@ -831,7 +830,7 @@ class ScanFreq:
         global currentLowPass
 
         period = self.PERIOD_ROUND[self.current_value]
-        adcSynchro(period)
+        adcSynchro(period, amplitude)
 
         oldLowPass = currentLowPass
         if period>=LOW_PASS_PERIOD: #3 KHz
@@ -856,6 +855,8 @@ class ScanFreq:
 
         time.sleep(0.01)
         jresult = adcRequestLastComputeX(10)
+        #jresult = adcRequestLastComputeX(100)
+        #jresult = adcRequestLastComputeHardAuto(10)
         self.jfreq.append(jresult)
 
         self.current_value += 1
@@ -1004,15 +1005,17 @@ def main():
     initDevice()
 
     #scanAmplitudes(384)
-    scanAmplitudes(period = 24000, saveTmp = True)
+    #scanAmplitudes(period = 24000, saveTmp = True)
     #allAmplitudes()
-    return
+    #return
 
     if True:
         period = HARDWARE_CORRECTOR_PERIODS[3]
-        #period = 384
-        gain_corrector = jplot.GainCorrector()
-        corrector = jplot.Corrector(gain_corrector)
+        #period = 19968
+        #period = 7488
+        #period = 1*96
+        #period = periodToFreqency(5000)
+        corrector = jplot.Corrector()
         #FlashCorrector(corrector)
         #return
 
@@ -1021,22 +1024,25 @@ def main():
         soft = True
         setContinuousMode(False)
         setSerial(True)
-        adcSynchro(period)
+        adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE/4)
+        #adcSynchro(period, inAmplitude=0)
 
         if soft:
             setLowPass(False)
             if True:
                 setGainAuto()
-                #setGainAuto(predefinedRes=0)
+                #setGainAuto(predefinedRes=3)
             else:
                 setResistor(0)
                 setSetGain(1, 0) #V
                 setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson(soft=soft, corrector=corrector)
-        #adcSynchroJson(soft=True)
+        #adcSynchroJson(soft=True, count=10)
     else:
-        allFreq()
+        #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')
+        #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=0, VIndex=0, IIndex=2, fileName='freq_200Om.json')
+        allFreq(fileName='freq_200Om.json')
     pass
 
 

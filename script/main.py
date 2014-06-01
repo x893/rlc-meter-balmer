@@ -99,10 +99,13 @@ class FormMain(QtGui.QMainWindow):
         form.show()
         pass
 
-def getCorrName(resistorIndex, Rname):
-    return 'cor/D'+str(resistorIndex)+'_'+Rname+'.json'
+def getCorrName(resistorData, Rname):
+    return 'cor/R'+str(resistorData['resistorIndex'])+'V'+str(resistorData['VIndex'])+'I'+str(resistorData['IIndex'])+'_'+Rname+'.json'
 
-
+#DX_KY_R
+#X - индекс резистора 0..3
+#Y - крэффициэнт усиления в канале I
+#R - имя резистора, который измеряется
 
 class FormScan(QtGui.QMainWindow):
 
@@ -126,20 +129,20 @@ class FormScan(QtGui.QMainWindow):
         self.th.start()
         pass
 
-    def startCalibrateIV(self, parent_self=None, calibrateV=True):
-        if calibrateV:
-            self.th = threading.Thread(target=FormScan.CalibrateThreadV, args=[self, parent_self])
-        else:
-            self.th = threading.Thread(target=FormScan.CalibrateThreadI, args=[self, parent_self])
-        self.th.start()
-        pass
-
-    def startCalibrateR(self, parent_self, R, resistorIndexes, Rname):
+    def startCalibrateR(self, parent_self, R, resistorData, Rname):
         '''
-        resistorIndexes - диапазон на котором производится измерение
+        resistorData - диапазоны на котором производится измерение
+            [
+            {
+            'resistorIndex':1..3,
+            'VIndex':0..7,
+            'IIndex':0..7,
+            },
+            ...
+            ]
         Rindex - индекс резистора для getCorrName
         '''
-        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, parent_self, R, resistorIndexes, Rname])
+        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, parent_self, R, resistorData, Rname])
         self.th.start()
         pass
 
@@ -187,78 +190,26 @@ class FormScan(QtGui.QMainWindow):
         pass
 
     @staticmethod
-    def CalibrateThreadI(self_ptr, parent_self):
-        '''
-        Калибровка коэффициэнтов усиления тока сопротивлением 1 КОм
-        '''
+    def CalibrateThreadR(self_ptr, parent_self, R, resistorDatas, Rname):
         s = self_ptr
 
-        resistorIndex = 0
-        prefix = 'cor/KI'+str(resistorIndex)
-
-        for index in xrange(7):
-            fileName = prefix+'_'+str(index)+'.json'
+        for resistorData in resistorDatas:            
+            fileName = getCorrName(resistorData, Rname)
             s.header_label.setText(fileName)
             s.scan_freq = usb_commands.ScanFreq()
-            s.scan_freq.init(resistorIndex=resistorIndex, VIndex=0, IIndex=index, fileName=fileName)
 
-            s.progress_bar.setRange(0, s.scan_freq.count())
-            s.progress_bar.setValue(0)
+            VIndex=resistorData['VIndex']
+            IIndex=resistorData['IIndex']
+            div = resistorData['div']
 
-            while s.scan_freq.next():
-                if s.end_thread:
-                    return
-                s.SetInfo()
-                pass
+            amplitude = usb_commands.DEFAULT_DAC_AMPLITUDE / div
 
-            s.SetInfo()
-            s.scan_freq.save()
-        s.close()
-        if parent_self:
-            parent_self.OnCompleteProcess()
-        pass
+            print "resistorIndex="+str(resistorData['resistorIndex']),
+            print "VIndex="+str(VIndex), "IIndex="+str(IIndex), "amplitude="+str(amplitude)
 
-    @staticmethod
-    def CalibrateThreadV(self_ptr, parent_self):
-        '''
-        Калибровка коэффициэнтов усиления напряжения сопротивлением 10 Ом
-        '''
-        s = self_ptr
-
-        resistorIndex = 0
-        prefix = 'cor/KV'+str(resistorIndex)
-
-        for index in xrange(7):
-            fileName = prefix+'_'+str(index)+'.json'
-            s.header_label.setText(fileName)
-            s.scan_freq = usb_commands.ScanFreq()
-            s.scan_freq.init(resistorIndex=resistorIndex, VIndex=index, IIndex=0, fileName=fileName)
-
-            s.progress_bar.setRange(0, s.scan_freq.count())
-            s.progress_bar.setValue(0)
-
-            while s.scan_freq.next():
-                if s.end_thread:
-                    return
-                s.SetInfo()
-                pass
-
-            s.SetInfo()
-            s.scan_freq.save()
-        s.close()
-        if parent_self:
-            parent_self.OnCompleteProcess()
-        pass
-
-    @staticmethod
-    def CalibrateThreadR(self_ptr, parent_self, R, resistorIndexes, Rname):
-        s = self_ptr
-
-        for resistorIndex in resistorIndexes:
-            fileName = getCorrName(resistorIndex, Rname)
-            s.header_label.setText(fileName)
-            s.scan_freq = usb_commands.ScanFreq()
-            s.scan_freq.init(resistorIndex=resistorIndex, fileName=fileName)
+            s.scan_freq.init(resistorIndex=resistorData['resistorIndex'],
+                            VIndex=VIndex, IIndex=IIndex,
+                            amplitude=amplitude, fileName=fileName)
 
             s.progress_bar.setRange(0, s.scan_freq.count())
             s.progress_bar.setValue(0)
@@ -306,8 +257,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.diapazon.append({'diapazon':1, 'value':1e3})
         self.diapazon.append({'diapazon':2, 'value':1e4})
         self.diapazon.append({'diapazon':3, 'value':1e5})
-        self.labels  = [None]*4
-        self.edits  = [None]*4
+        self.lines  = []
         self.labelOS = {}
 
         self.setWindowTitle(TITLE)
@@ -322,16 +272,65 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         header_label = QtGui.QLabel(u'Калибровка')
 
         vbox.addWidget(header_label)
-        self.AddLine1Om(vbox)
-        self.AddLine(vbox, u'100 Ом', self.On100_Om, 0)
-        self.AddLine(vbox, u'1 KОм', self.On1_KOm, 1)
-        self.AddLine(vbox, u'10 KОм', self.On10_KOm, 2)
-        self.AddLine(vbox, u'100 KОм', self.On100_KOm, 3)
 
-        self.AddLineV(vbox)
-        self.AddLineI(vbox)
-        self.AddLineOpenShort(vbox, u'Замкнутые щупы', 'short')
-        self.AddLineOpenShort(vbox, u'Открытые щупы', 'open')
+        self.AddLine(vbox, u'1 Ом', '1Om', 1.0, [
+            {'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 1},
+            ])
+
+        self.AddLine(vbox, u'100 Ом', '100Om', 1e2, [
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 2},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 4},
+
+            {'resistorIndex': 0, 'VIndex':1, 'IIndex':0, 'div': 2},
+            {'resistorIndex': 0, 'VIndex':2, 'IIndex':0, 'div': 4},
+            {'resistorIndex': 0, 'VIndex':4, 'IIndex':0, 'div': 8},
+            {'resistorIndex': 0, 'VIndex':6, 'IIndex':0, 'div': 16},
+            {'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 32},
+            ])
+
+        self.AddLine(vbox, u'1 KОм', '1KOm', 1e3, [
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 1},
+
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 2},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 4},
+            ])
+
+        self.AddLine(vbox, u'10 KОм', '10KOm', 1e4, [
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 1},
+
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 2},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 4},
+            ])
+
+        self.AddLine(vbox, u'100 KОм', '100KOm', 1e5, [
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 1},
+
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':1, 'div': 2},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':2, 'div': 4},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':4, 'div': 8},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':6, 'div': 16},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':7, 'div': 32},
+            ])
+
+        self.AddLineOpenShort(vbox, u'Замкнутые щупы', 'short', [
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':1, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':2, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':4, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':6, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 1},
+            ])
+        #self.AddLineOpenShort(vbox, u'Открытые щупы', 'open')
 
         button_close = QtGui.QPushButton(u'Записать в FLASH')
         button_close.clicked.connect(self.OnWriteFlash)
@@ -346,7 +345,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.setCentralWidget(self.main_frame)
         pass
 
-    def AddLine(self, vbox, name, func, interval, overrideValue = None):
+    def AddLine(self, vbox, name, nameShort, value, data):
+        line = { 'data': data, 'name': nameShort }
         hbox = QtGui.QHBoxLayout()
 
         label1 = QtGui.QLabel(u'Точное значение сопротивления ' + name + '=')
@@ -355,136 +355,54 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         #validator = QtGui.QDoubleValidator()
         #validator.setRange(90, 250)
         #edit.setValidator(validator)
-        if overrideValue:
-            text = overrideValue
-        else:
-            text = self.diapazon[interval]['value']
-        edit.setText(str(text))
-        hbox.addWidget(edit)
-        self.edits[interval] = edit
 
-        button = QtGui.QPushButton(name)
-        button.clicked.connect(func)
-        hbox.addWidget(button)
-
-        label = QtGui.QLabel(u'Не пройден')
-        self.labels[interval] = label
-        label.setStyleSheet("QLabel { color : red; }");
-        hbox.addWidget(label)
-
-        vbox.addLayout(hbox)
-        pass
-
-    def AddLine1Om(self, vbox):
-        name = u'1 Ом'
-        value = 1.0
-        func = self.On1_Om
-
-        hbox = QtGui.QHBoxLayout()
-
-        label1 = QtGui.QLabel(u'Точное значение сопротивления ' + name + '=')
-        hbox.addWidget(label1)
-        edit = QtGui.QLineEdit()
         edit.setText(str(value))
         hbox.addWidget(edit)
-        self.edit1Om = edit
+        line['edit'] = edit
 
         button = QtGui.QPushButton(name)
-        button.clicked.connect(func)
+        button.clicked.connect(lambda: self.process(line) )
         hbox.addWidget(button)
 
         label = QtGui.QLabel(u'Не пройден')
-        self.label1Om = label
+        line['label'] = label
         label.setStyleSheet("QLabel { color : red; }");
         hbox.addWidget(label)
 
         vbox.addLayout(hbox)
+        self.lines.append(line)
         pass
 
-    def AddLineV(self, vbox):
-        hbox = QtGui.QHBoxLayout()
-        label1 = QtGui.QLabel(u'Подключите сопротивление примерно 10 Ом')
-        hbox.addWidget(label1)
-        button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(self.OnCalibrateV)
-        hbox.addWidget(button)
-        label = QtGui.QLabel(u'XXX')
-        self.labelV = label
-        hbox.addWidget(label)
-        vbox.addLayout(hbox)
-        pass
-
-    def AddLineI(self, vbox):
-        hbox = QtGui.QHBoxLayout()
-        label1 = QtGui.QLabel(u'Подключите сопротивление примерно 1 КОм')
-        hbox.addWidget(label1)
-        button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(self.OnCalibrateI)
-        hbox.addWidget(button)
-        label = QtGui.QLabel(u'XXX')
-        self.labelI = label
-        hbox.addWidget(label)
-        vbox.addLayout(hbox)
-        pass
-
-    def AddLineOpenShort(self, vbox, title, name):
+    def AddLineOpenShort(self, vbox, title, name, data):
+        line = { 'data': data, 'name': name }        
         hbox = QtGui.QHBoxLayout()
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(lambda: self.OnCalibrateOpenShort(name))
+        button.clicked.connect(lambda: self.processOpenShort(line))
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')
-        self.labelOS[name] = label
+        line['label'] = label
         hbox.addWidget(label)
         vbox.addLayout(hbox)
+
+        self.lines.append(line)
         pass
 
-    def On100_Om(self):
-        R = float(self.edits[0].text())
-        self.process(R, [0], "100Om")
-        pass
-
-    def On1_Om(self):
-        R = float(self.edit1Om.text())
-        self.process(R, [0], "1Om")
-        pass
-
-    def On1_KOm(self):
-        R = float(self.edits[1].text())
-        self.process(R, [0, 1], "1KOm")
-        pass
-
-    def On10_KOm(self):
-        R = float(self.edits[2].text())
-        self.process(R, [1, 2], "10KOm")
-        pass
-
-    def On100_KOm(self):
-        R = float(self.edits[3].text())
-        self.process(R, [2, 3], "100KOm")
-        pass
-
-    def process(self, R, diapason, name):
+    def process(self, line):
+        R = float(line['edit'].text())
         form = FormScan(self)
-        form.startCalibrateR(self, R, diapason, name)
+        form.startCalibrateR(self, R, line['data'], line['name'])
         form.show()
         pass
+    def processOpenShort(self, line):
+        R = 0
+        form = FormScan(self)
+        form.startCalibrateR(self, R, line['data'], line['name'])
+        form.show()
 
     def OnCompleteProcess(self):
         self.checkComplete()
-        pass
-
-    def OnCalibrateV(self):
-        form = FormScan(self)
-        form.startCalibrateIV(parent_self=self, calibrateV=True)
-        form.show()
-        pass
-
-    def OnCalibrateI(self):
-        form = FormScan(self)
-        form.startCalibrateIV(parent_self=self, calibrateV=False)
-        form.show()
         pass
 
     def OnCalibrateOpenShort(self, name):
@@ -510,42 +428,17 @@ class FormCalibrationResistor(QtGui.QMainWindow):
             label.setStyleSheet("QLabel { color : red; }");
         pass
 
-    def checkCompleteOne(self, diapasons, Rname):
+    def checkCompleteOne(self, line):
         ok = True
+        Rname = line['name']
+        diapasons = line['data']
         for diapason in diapasons:
             filename = getCorrName(diapason, Rname)
             if not os.path.isfile(filename):
                 ok = False
                 break
 
-        label = self.labels[diapasons[-1]]
-        self.setComplete(label, ok)
-        pass
-
-    def checkComplete1Om(self):
-        diapason = 0
-        Rname = '1Om'
-        filename = getCorrName(diapason, Rname)
-        ok = os.path.isfile(filename)
-
-        label = self.label1Om
-        self.setComplete(label, ok)
-        pass
-
-    def checkCompleteIV(self, IV):
-        kmul = [0,1,2,3,4,5,6]
-        if IV=='I':
-            label = self.labelI
-        else:
-            label = self.labelV
-
-        ok = True
-        for kindex in kmul:
-            filename = 'cor/K'+IV+'0_'+str(kindex)+'.json'
-            if not os.path.isfile(filename):
-                ok = False
-                break
-
+        label = line['label']
         self.setComplete(label, ok)
         pass
 
@@ -556,16 +449,10 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         pass
 
     def checkComplete(self):
-        self.checkComplete1Om()
-        self.checkCompleteOne([0], "100Om")
-        self.checkCompleteOne([0, 1], "1KOm")
-        self.checkCompleteOne([1, 2], "10KOm")
-        self.checkCompleteOne([2, 3], "100KOm")
-        self.checkCompleteIV('I')
-        self.checkCompleteIV('V')
+        for line in self.lines:
+            self.checkCompleteOne(line)
 
-        self.checkCompleteOpenShort('open')
-        self.checkCompleteOpenShort('short')
+        #self.checkCompleteOpenShort('open')
         pass
 
 def main():

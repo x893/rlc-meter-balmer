@@ -56,7 +56,6 @@ class FormDrawData(QtGui.QMainWindow):
 		self.gtype_combo_box.addItem(u'DFI (corrected)', QtCore.QVariant('dfic'))
 		self.gtype_combo_box.addItem(u'DFI (uncorrected)', QtCore.QVariant('dfi'))
 		self.gtype_combo_box.addItem(u'Re+Im (Raw)', QtCore.QVariant('ReImRaw'))
-		self.gtype_combo_box.addItem(u'Re+Im (OnlyGainCorrector)', QtCore.QVariant('ReImRawG'))
 		
 		self.gtype_combo_box.currentIndexChanged.connect(self.OnSelectGraph)
 		right_vbox.addWidget(self.gtype_combo_box)
@@ -130,22 +129,16 @@ class FormDrawData(QtGui.QMainWindow):
 		fiI_data = []
 
 		if gtype=="ReImRaw":
-			corr_gain = None
 			corr = None
-		elif gtype=="ReImRawG":
-			corr_gain = jplot.GainCorrector()
-			corr = None #jplot.Corrector(corr_gain)
 		else:
-			corr_gain = jplot.GainCorrector()
-			#corr_gain = None
-			corr = jplot.Corrector(corr_gain)
+			corr = jplot.Corrector()
 
 		for jf in jfreq:
 			if corr:
 				res = corr.calculateJson(jf)
 				Zx = res['Zx']
 			else:
-				res = jplot.calculateJson(jf, gain_corrector=corr_gain)
+				res = jplot.calculateJson(jf)
 				Zx = res['R']
 
 			F = res['F']
@@ -250,7 +243,7 @@ class FormDrawData(QtGui.QMainWindow):
 			if gtype=="ReImCorrect" or gtype=="ImCorrect":
 				ax.plot (f_data, im_corr, '-', color="blue")
 
-		if gtype=="ReImRaw" or gtype=="ReImRawG":
+		if gtype=="ReImRaw":
 			ax.set_ylabel("Om")
 			ax.plot (f_data, re_data, '-', color="red")
 			ax.plot (f_data, im_data, '-', color="blue")
@@ -274,8 +267,7 @@ class FormMeasure(QtGui.QMainWindow):
 
 		self.th = threading.Thread(target=self.UsbThread)
 		self.th.start()
-		self.corr_gain = jplot.GainCorrector()
-		self.corr = jplot.Corrector(self.corr_gain)
+		self.corr = jplot.Corrector()
 		pass
 
 	def createMainFrame(self):
