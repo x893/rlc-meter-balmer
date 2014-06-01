@@ -1731,11 +1731,11 @@ design rules under a new name.</description>
 <element name="R20" library="rcl" package="R0603" value="56k" x="31.75" y="24.765" rot="R180"/>
 <element name="C11" library="rcl" package="C0603" value="100n" x="26.035" y="36.195" rot="R180"/>
 <element name="C12" library="rcl" package="C0805" value="10mk" x="26.035" y="38.735" rot="R180"/>
-<element name="R21" library="rcl" package="R0603" value="1.2k" x="39.37" y="31.115" rot="R180"/>
+<element name="R21" library="rcl" package="R0603" value="120" x="39.37" y="31.115" rot="R180"/>
 <element name="U$4" library="balmer" package="SO8" value="MCP6S21" x="43.18" y="17.78"/>
 <element name="C14" library="rcl" package="C0603" value="1mk" x="36.195" y="16.51"/>
 <element name="R23" library="rcl" package="R0603" value="56k" x="43.18" y="12.065" rot="R180"/>
-<element name="R24" library="rcl" package="R0603" value="1.2k" x="47.625" y="17.78" rot="R180"/>
+<element name="R24" library="rcl" package="R0603" value="120" x="47.625" y="17.78" rot="R180"/>
 <element name="R25" library="rcl" package="R0603" value="18k" x="24.765" y="15.875" rot="R270"/>
 <element name="R26" library="rcl" package="R0603" value="1k" x="11.1125" y="20.32" rot="R180"/>
 <element name="C16" library="rcl" package="C0603" value="100n" x="26.035" y="28.575"/>
@@ -1779,7 +1779,7 @@ design rules under a new name.</description>
 <element name="R22" library="rcl" package="R0603" value="12k" x="18.7325" y="41.275" rot="R180"/>
 <element name="IC7" library="linear" package="SO08" value="LM258" x="33.655" y="5.715"/>
 <element name="R7" library="rcl" package="R0603" value="47k" x="29.21" y="3.175" rot="R90"/>
-<element name="R30" library="rcl" package="R0603" value="56k" x="26.9875" y="6.6675" rot="R90"/>
+<element name="R30" library="rcl" package="R0603" value="47k" x="26.9875" y="6.6675" rot="R90"/>
 <element name="R31" library="rcl" package="R0805" value="22" x="39.37" y="5.08" rot="R180"/>
 <element name="C8" library="rcl" package="C0805" value="10mk" x="43.18" y="3.81" rot="R90"/>
 <element name="C17" library="rcl" package="C0805" value="47n" x="39.37" y="2.54"/>
@@ -2572,7 +2572,7 @@ design rules under a new name.</description>
 <contactref element="C18" pad="2"/>
 <wire x1="46.99" y1="4.125" x2="46.99" y2="6.3525" width="0.4064" layer="1"/>
 </signal>
-<signal name="+2.2V1">
+<signal name="+2.5V3">
 <contactref element="IC7" pad="1"/>
 <contactref element="R31" pad="2"/>
 <contactref element="C17" pad="1"/>
@@ -2595,7 +2595,7 @@ design rules under a new name.</description>
 <wire x1="34.925" y1="24.765" x2="35.56" y2="25.4" width="0.4064" layer="1"/>
 <wire x1="38.42" y1="2.54" x2="38.42" y2="5.08" width="0.4064" layer="1"/>
 </signal>
-<signal name="+2.2V2">
+<signal name="+2.5V4">
 <contactref element="IC7" pad="6"/>
 <contactref element="IC7" pad="7"/>
 <contactref element="R32" pad="2"/>

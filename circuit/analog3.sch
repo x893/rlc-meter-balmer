@@ -8263,14 +8263,14 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="GND10" library="supply1" deviceset="GNDA" device=""/>
 <part name="P+6" library="supply1" deviceset="VCC" device=""/>
 <part name="GND11" library="supply1" deviceset="GNDA" device=""/>
-<part name="R21" library="rcl" deviceset="R-EU_" device="R0603" value="1.2k"/>
+<part name="R21" library="rcl" deviceset="R-EU_" device="R0603" value="120"/>
 <part name="GND14" library="supply1" deviceset="GNDA" device=""/>
 <part name="GND12" library="supply1" deviceset="GNDA" device=""/>
 <part name="U$4" library="balmer" deviceset="MCP6S21" device=""/>
 <part name="C14" library="rcl" deviceset="C-EU" device="C0603" value="1mk"/>
 <part name="R23" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
 <part name="GND15" library="supply1" deviceset="GNDA" device=""/>
-<part name="R24" library="rcl" deviceset="R-EU_" device="R0603" value="1.2k"/>
+<part name="R24" library="rcl" deviceset="R-EU_" device="R0603" value="120"/>
 <part name="R25" library="rcl" deviceset="R-EU_" device="R0603" value="18k"/>
 <part name="R26" library="rcl" deviceset="R-EU_" device="R0603" value="1k"/>
 <part name="C16" library="rcl" deviceset="C-EU" device="C0603" value="100n"/>
@@ -8305,7 +8305,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <part name="R22" library="rcl" deviceset="R-EU_" device="R0603" value="12k"/>
 <part name="IC7" library="linear" deviceset="LM358" device="D" value="LM258"/>
 <part name="R7" library="rcl" deviceset="R-EU_" device="R0603" value="47k"/>
-<part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="56k"/>
+<part name="R30" library="rcl" deviceset="R-EU_" device="R0603" value="47k"/>
 <part name="GND17" library="supply1" deviceset="GNDA" device=""/>
 <part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="22"/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0805" value="10mk"/>
@@ -9235,7 +9235,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <pinref part="C18" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="+2.2V1" class="0">
+<net name="+2.5V3" class="0">
 <segment>
 <pinref part="IC7" gate="A" pin="OUT"/>
 <wire x1="43.18" y1="68.58" x2="43.18" y2="76.2" width="0.1524" layer="91"/>
@@ -9264,7 +9264,7 @@ Source: http://cache.national.com/ds/LM/LM158.pdf</description>
 <junction x="91.44" y="12.7"/>
 </segment>
 </net>
-<net name="+2.2V2" class="0">
+<net name="+2.5V4" class="0">
 <segment>
 <pinref part="IC7" gate="B" pin="-IN"/>
 <wire x1="27.94" y1="45.72" x2="27.94" y2="40.64" width="0.1524" layer="91"/>
