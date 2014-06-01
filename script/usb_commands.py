@@ -526,7 +526,7 @@ def getMinMax(arr):
     return (xmin, xmax)
 
 
-def setGainAuto(predefinedRes=-1):
+def setGainAuto(predefinedRes=-1, maxAmplitude=None):
     idxV = 0
     idxI = 0
 
@@ -568,6 +568,10 @@ def setGainAuto(predefinedRes=-1):
     stopV = False
     stopI = False
 
+    imax = None
+    if maxAmplitude:
+        imax = maxAmplitude.getMaxGainI(resistorIdx, period)
+
     if resistorIdx==0:
         jV = jout['summary']['V']
         vmin = jV['min']
@@ -594,6 +598,9 @@ def setGainAuto(predefinedRes=-1):
     #print gainIdx
     for i in gainIdx:
         #print i, stopV, stopI
+        if imax!=None and i>imax:
+            stopI = True
+
         if not stopV:
             setSetGain(1, i)
         if not stopI:
@@ -769,7 +776,7 @@ def period10Khz_100KHz():
 
 def period100Khz_max():
     arr = []
-    for period in xrange(30*24, 15*24, -24):
+    for period in xrange(7*96, 1*96, -96):
         arr.append(period)
     return arr
 
@@ -797,12 +804,15 @@ def oneFreq(period, lowPass='auto', inAmplitude = None):
     return adcRequestLastComputeX()
 
 class ScanFreq:
-    def init(self, amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, IIndex=None, fileName='freq.json'):
+    def init(self, amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None,
+             VIndex=None, IIndex=None, fileName='freq.json',
+             maxAmplitude=None):
 
         self.resistorIndex = resistorIndex
         self.VIndex = VIndex
         self.IIndex = IIndex
         self.fileName = fileName
+        self.maxAmplitude = maxAmplitude
 
         #self.resistorIndex = 0
         #self.VIndex = 5
@@ -816,8 +826,9 @@ class ScanFreq:
         #PERIOD_ROUND = period50Hz_150Hz()
         #PERIOD_ROUND = period100Hz_1KHz()
         #self.PERIOD_ROUND = period1KHz_10KHz()
-        #PERIOD_ROUND = period10Khz_max()
-        self.PERIOD_ROUND = periodAll()
+        #self.PERIOD_ROUND = period10Khz_max()
+        self.PERIOD_ROUND = period100Khz_max()
+        #self.PERIOD_ROUND = periodAll()
         adcSynchro(self.PERIOD_ROUND[0], amplitude)
         self.current_value = 0
         time.sleep(0.2)
@@ -845,13 +856,18 @@ class ScanFreq:
 
         if self.VIndex is None:
             if self.resistorIndex is None:
-                setGainAuto()
+                setGainAuto(maxAmplitude=self.maxAmplitude)
             else:
-                setGainAuto(self.resistorIndex)
+                setGainAuto(self.resistorIndex, maxAmplitude=self.maxAmplitude)
         else:
+            if self.maxAmplitude:
+                imax = self.maxAmplitude.getMaxGainI(self.resistorIndex, period)
+            else:
+                imax = self.IIndex
+
             setResistor(self.resistorIndex)
             setSetGain(1, self.VIndex) #V
-            setSetGain(0, self.IIndex) #I
+            setSetGain(0, min(self.IIndex, imax)) #I
 
         time.sleep(0.01)
         jresult = adcRequestLastComputeX(10)
@@ -865,109 +881,6 @@ class ScanFreq:
         f = open(self.fileName, 'w')
         f.write(json.dumps(self.jout))
         f.close()
-
-def scanAmplitudes(period = 7200, saveTmp = False):
-    jout = {}
-
-    kmuls = getGainValuesX()
-    errors = []
-    error = {'zV': complex(1, 0), 'zI': complex(1, 0) }
-    errors.append(error)
-
-    for idx in xrange(len(kmuls)-1):
-        kmul = kmuls[idx+1]
-        #print "kmul=", kmul
-
-        for ix in xrange(2):
-            gain = idx+ix
-            amplitude = DEFAULT_DAC_AMPLITUDE/kmul
-            adcSynchro(period, inAmplitude=amplitude)
-
-            if period>=LOW_PASS_PERIOD:
-                setLowPass(True)
-            else:
-                setLowPass(False)
-
-            setResistor(0)
-            setSetGain(1, gain) #V
-            setSetGain(0, gain) #I
-            time.sleep(0.01)
-            jresult = adcRequestLastComputeX()
-            jattr = jresult["attr"]
-            period = jattr["period"]
-            clock = jattr["clock"]
-            ncycle = jattr["ncycle"]
-            gain_V = jattr["gain_V"]
-            gain_I = jattr["gain_I"]
-
-            if ix==0 and idx==0:
-                jout['period'] = period
-
-            zV = jplot.calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jresult['summary']['V'])
-            zI = jplot.calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jresult['summary']['I'])
-            zV *= jplot.toVolts/gain_V*kmul
-            zI *= jplot.toVolts/gain_I*kmul
-
-            #print 'zV=', zV
-            #print 'zI=', zI
-            #print jresult['summary']
-            if ix==0:
-                zV0 = zV
-                zI0 = zI
-            else:
-                zV1 = zV
-                zI1 = zI
-            pass
-        pass
-
-        error = {'zV': zV1/zV0, 'zI': zI1/zI0 }
-        errors.append(error)
-    pass
-
-    for i in xrange(len(errors)-1):
-        errors[i+1]['zV'] *= errors[i]['zV']
-        errors[i+1]['zI'] *= errors[i]['zI']
-
-    #for e in errors:
-    #    print e
-    jerrors = []
-    jout['errors'] = jerrors
-
-    for e in errors:
-        jerrors.append({
-            'zVre': e['zV'].real,
-            'zVim': e['zV'].imag,
-            'zIre': e['zI'].real,
-            'zIim': e['zI'].imag
-            })
-
-    if saveTmp:
-        f = open('amplitudes.json', 'w')
-        f.write(json.dumps(jout, indent=1))
-        f.close()
-    return jout
-
-def allAmplitudes():
-    jout = {}
-    jfreq = []
-
-    jout['freq'] = jfreq
-    PERIOD_ROUND = periodAll()
-    #PERIOD_ROUND = period100Hz_1KHz()[0:5]
-    adcSynchro(PERIOD_ROUND[0])
-    time.sleep(0.2)
-
-    for period in PERIOD_ROUND:
-        print "period=", period
-        jresult = scanAmplitudes(period)
-        jfreq.append(jresult)
-        pass
-
-    f = open('cor/amplitudes.json', 'w')
-    f.write(json.dumps(jout, indent=1))
-    f.close()
-
-
 
 def printEndpoint(e):
     print "Endpoint:"
@@ -1001,13 +914,8 @@ def initDevice():
     return True    
 
 def main():
-
-    initDevice()
-
-    #scanAmplitudes(384)
-    #scanAmplitudes(period = 24000, saveTmp = True)
-    #allAmplitudes()
-    #return
+    if not initDevice():
+        return
 
     if True:
         period = HARDWARE_CORRECTOR_PERIODS[3]

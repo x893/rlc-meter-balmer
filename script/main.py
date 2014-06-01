@@ -108,6 +108,7 @@ def getCorrName(resistorData, Rname):
 #R - имя резистора, который измеряется
 
 class FormScan(QtGui.QMainWindow):
+    signalComplete = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super(FormScan, self).__init__(parent)
@@ -116,20 +117,23 @@ class FormScan(QtGui.QMainWindow):
 
         self.setWindowTitle(TITLE)
         self.CreateMainFrame()
+        self.maxAmplitude = None
+
+        self.signalComplete.connect(self.ThClose)
         pass
 
-    def startDefault(self, parent_self=None, filename='freq.json'):
+    def startDefault(self, filename='freq.json'):
         self.scan_freq = usb_commands.ScanFreq()
         self.scan_freq.init(fileName=filename)
 
         self.progress_bar.setRange(0, self.scan_freq.count())
         self.progress_bar.setValue(0)
 
-        self.th = threading.Thread(target=FormScan.UsbThread, args=[self, parent_self])
+        self.th = threading.Thread(target=FormScan.UsbThread, args=[self])
         self.th.start()
         pass
 
-    def startCalibrateR(self, parent_self, R, resistorData, Rname):
+    def startCalibrateR(self, R, resistorData, Rname):
         '''
         resistorData - диапазоны на котором производится измерение
             [
@@ -142,8 +146,12 @@ class FormScan(QtGui.QMainWindow):
             ]
         Rindex - индекс резистора для getCorrName
         '''
-        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, parent_self, R, resistorData, Rname])
+        self.th = threading.Thread(target=FormScan.CalibrateThreadR, args=[self, R, resistorData, Rname])
         self.th.start()
+        pass
+
+    def setMaxAmplitude(self, maxAmplitude):
+        self.maxAmplitude = maxAmplitude
         pass
 
     def CreateMainFrame(self):
@@ -168,13 +176,17 @@ class FormScan(QtGui.QMainWindow):
         self.setCentralWidget(self.main_frame)
         pass
 
+    def ThClose(self):#close from anntoer thread
+        self.close()
+        pass
+
     def closeEvent(self, event):
         self.end_thread = True
         event.accept()
         pass
 
     @staticmethod
-    def UsbThread(self_ptr, parent_self):
+    def UsbThread(self_ptr):
         s = self_ptr
         while s.scan_freq.next():
             if s.end_thread:
@@ -184,13 +196,12 @@ class FormScan(QtGui.QMainWindow):
 
         s.SetInfo()
         s.scan_freq.save()
-        s.close()
-        if parent_self:
-            parent_self.OnCompleteProcess()
+        #s.close()
+        s.signalComplete.emit()
         pass
 
     @staticmethod
-    def CalibrateThreadR(self_ptr, parent_self, R, resistorDatas, Rname):
+    def CalibrateThreadR(self_ptr, R, resistorDatas, Rname):
         s = self_ptr
 
         for resistorData in resistorDatas:            
@@ -224,9 +235,8 @@ class FormScan(QtGui.QMainWindow):
             s.scan_freq.jout['R'] = R
             s.scan_freq.save()
 
-        s.close()
-        if parent_self:
-            parent_self.OnCompleteProcess()
+        #s.close()
+        s.signalComplete.emit()
         pass
 
     def SetInfo(self):
@@ -322,7 +332,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':7, 'div': 32},
             ])
 
-        self.AddLineOpenShort(vbox, u'Замкнутые щупы', 'short', [
+        self.AddLineShort(vbox, [
             {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
             {'resistorIndex': 0, 'VIndex':1, 'IIndex':0, 'div': 1},
             {'resistorIndex': 0, 'VIndex':2, 'IIndex':0, 'div': 1},
@@ -330,7 +340,15 @@ class FormCalibrationResistor(QtGui.QMainWindow):
             {'resistorIndex': 0, 'VIndex':6, 'IIndex':0, 'div': 1},
             {'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 1},
             ])
-        #self.AddLineOpenShort(vbox, u'Открытые щупы', 'open')
+
+        self.AddLineOpen(vbox, [
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':2, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':4, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':6, 'div': 1},
+            {'resistorIndex': 3, 'VIndex':0, 'IIndex':7, 'div': 1},
+            ])
 
         button_close = QtGui.QPushButton(u'Записать в FLASH')
         button_close.clicked.connect(self.OnWriteFlash)
@@ -373,13 +391,33 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.lines.append(line)
         pass
 
-    def AddLineOpenShort(self, vbox, title, name, data):
+    def AddLineShort(self, vbox, data):
+        title = u'Замкнутые щупы'
+        name = 'short'
         line = { 'data': data, 'name': name }        
         hbox = QtGui.QHBoxLayout()
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(lambda: self.processOpenShort(line))
+        button.clicked.connect(lambda: self.processShort(line))
+        hbox.addWidget(button)
+        label = QtGui.QLabel(u'XXX')
+        line['label'] = label
+        hbox.addWidget(label)
+        vbox.addLayout(hbox)
+
+        self.lines.append(line)
+        pass
+
+    def AddLineOpen(self, vbox, data):
+        title = u'Открытые щупы'
+        name = 'open'
+        line = { 'data': data, 'name': name }        
+        hbox = QtGui.QHBoxLayout()
+        label1 = QtGui.QLabel(title)
+        hbox.addWidget(label1)
+        button = QtGui.QPushButton(u'Пуск.')
+        button.clicked.connect(lambda: self.processOpen(line))
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')
         line['label'] = label
@@ -392,29 +430,41 @@ class FormCalibrationResistor(QtGui.QMainWindow):
     def process(self, line):
         R = float(line['edit'].text())
         form = FormScan(self)
-        form.startCalibrateR(self, R, line['data'], line['name'])
+        form.signalComplete.connect(elf.OnCompleteProcess)
+        form.startCalibrateR(R, line['data'], line['name'])
         form.show()
         pass
-    def processOpenShort(self, line):
+
+    def processShort(self, line):
         R = 0
         form = FormScan(self)
-        form.startCalibrateR(self, R, line['data'], line['name'])
+        form.signalComplete.connect(elf.OnCompleteProcess)
+        form.startCalibrateR(R, line['data'], line['name'])
         form.show()
 
+    def processOpen(self, line):
+        form = FormScan(self)
+        form.signalComplete.connect(lambda:self.OnCompleteOpenPass(line))
+        form.startDefault(filename='cor/R3AUTO_open.json')
+        form.show()
+
+    def OnCompleteOpenPass(self, line):
+        print "OnCompleteOpenPass"
+        R = 1e9
+        form = FormScan(self)
+        form.setMaxAmplitude(jplot.MaxAmplitude())
+        form.signalComplete.connect(lambda:self.OnCompleteProcess())
+        form.startCalibrateR(R, line['data'], line['name'])
+        form.show()
+
+
     def OnCompleteProcess(self):
+        print "OnCompleteProcess"
         self.checkComplete()
         pass
 
-    def OnCalibrateOpenShort(self, name):
-        filename = 'cor/K_'+name+'.json'
-        form = FormScan(self)
-        form.startDefault(parent_self=self, filename=filename)
-        form.show()
-        pass
-
     def OnWriteFlash(self):
-        gain_corrector = jplot.GainCorrector()
-        corrector = jplot.Corrector(gain_corrector)
+        corrector = jplot.Corrector()
         usb_commands.FlashCorrector(corrector)
         QtGui.QMessageBox.about(self, TITLE, u"Запись корректирующих коэффициэнтов окончена.")
         pass

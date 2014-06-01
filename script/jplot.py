@@ -148,7 +148,7 @@ def plotRaw(fileName, IV, average = False):
 def calcFast(period, clock, ncycle, sdata):
 	return complex(sdata["sin"], sdata["cos"])
 
-def calculateJson(jout, gain_corrector = None):
+def calculateJson(jout):
 	jattr = jout["attr"]
 	period = jattr["period"]
 	clock = jattr["clock"]
@@ -158,25 +158,22 @@ def calculateJson(jout, gain_corrector = None):
 
 	F = clock/float(period) #frequency, herz
 
-	if gain_corrector:
-		(zV, zI)=gain_corrector.calcComplex(period=period, clock=clock, ncycle=ncycle, jout=jout)
+	gain_V = jattr["gain_V"]
+	gain_I = jattr["gain_I"]
+	if 'summary' in jout:
+		zV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
+		zI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
+		zV *= toVolts/gain_V
+		zI *= toVolts/gain_I
+		(ampV, fiV) = cmath.polar(zV)
+		(ampI, fiI) = cmath.polar(zI)
 	else:
-		gain_V = jattr["gain_V"]
-		gain_I = jattr["gain_I"]
-		if 'summary' in jout:
-			zV = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['V'])
-			zI = calcFast(period=period, clock=clock, ncycle=ncycle, sdata=jout['summary']['I'])
-			zV *= toVolts/gain_V
-			zI *= toVolts/gain_I
-			(ampV, fiV) = cmath.polar(zV)
-			(ampI, fiI) = cmath.polar(zI)
-		else:
-			resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
-			resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
-			zV = cmath.rect(resultV['amplitude'], resultV['fi'])
-			zI = cmath.rect(resultI['amplitude'], resultI['fi'])
-			zV *= toVolts/gain_V
-			zI *= toVolts/gain_I
+		resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
+		resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
+		zV = cmath.rect(resultV['amplitude'], resultV['fi'])
+		zI = cmath.rect(resultI['amplitude'], resultI['fi'])
+		zV *= toVolts/gain_V
+		zI *= toVolts/gain_I
 
 	R = (zV/zI)*resistor
 
@@ -245,8 +242,7 @@ class Corrector2x:
 		return Zx
 
 class CorrectorOpen:
-	def __init__(self, gain_corrector = None):
-		self.gain_corrector = gain_corrector
+	def __init__(self):
 		self.load()
 		pass
 	def load(self):
@@ -261,12 +257,12 @@ class CorrectorOpen:
 
 		jfreq_open = json_open['freq']
 		for jf in jfreq_open:
-			res = calculateJson(jf, self.gain_corrector)
+			res = calculateJson(jf)
 			data[res['period']] = { 'open': res }
 
 		jfreq_load = json_load['freq']
 		for jf in jfreq_load:
-			res = calculateJson(jf, self.gain_corrector)
+			res = calculateJson(jf)
 			data[res['period']]['load'] = res
 
 		self.data = data
@@ -285,12 +281,6 @@ class CorrectorOpen:
 		Zxm = R
 		#Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
 		Zx = Zstd*(1/Zstdm-1/Zom)/(1/Zxm-1/Zom)
-		if period==96 and False:
-			print "Zsm=", Zsm
-			print "Zstdm=", Zstdm
-			print "Zstd=", Zstd
-			print "Zxm=", Zxm
-			print "Zx=", Zx
 		return Zx
 
 class CorrectorShort:
@@ -333,12 +323,6 @@ class CorrectorShort:
 		Zstd = complex(self.R100, 0)
 		Zxm = R
 		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
-		if period==720000 and False:
-			print "Zsm=", Zsm
-			print "Zstdm=", Zstdm
-			print "Zstd=", Zstd
-			print "Zxm=", Zxm
-			print "Zx=", Zx
 		return Zx
 
 class Corrector:
@@ -346,7 +330,6 @@ class Corrector:
 		self.load()
 		pass
 	def load(self):
-		#self.corr_short1Om = CorrectorShort(gain_corrector=None, load_filename="cor/R0V7I0_1Om.json")
 		self.corr_short = CorrectorShort()
 		self.corr = []
 		self.corr.append(Corrector2x(0))
@@ -366,18 +349,31 @@ class Corrector:
 
 	def calculateJson(self, jf):
 		res = calculateJson(jf)
-
-		#if jf['attr']['gain_index_V']==7:
-		#	#сопротивление меньше 1 Ом
-		#	#не используем gain_corrector
-		#	#по хорошему надо бы использовать его для тока, но не будем, вроде на всем диапазоне gain_index_I=0
-		#	Zx = self.corr_short1Om.correct(res['R'], res['period'], res['F'])
-		#	res['Zx'] = Zx
-		#	return res
-
 		Zx = self.correct(res['R'], res['period'], res['F'], jf['attr'])
 		res['Zx'] = Zx
 		return res
+
+class MaxAmplitude:
+	'''
+	Для резистора 100 КОм для оpen щупов ограничиваем амплитуду сигнала.
+	'''
+	def __init__(self):
+		json_open = readJson("cor/R3AUTO_open.json")
+		data = {}
+
+		jfreq_open = json_open['freq']
+		for jf in jfreq_open:
+			attr = jf['attr']			
+			data[attr['period']] = { 'gain_index_I': attr['gain_index_I'] }
+
+		self.data = data
+
+		pass
+	def getMaxGainI(self, resistorIndex, period):
+		if resistorIndex!=3:
+			return 7
+		d = self.data[period]
+		return d['gain_index_I']
 
 def calculateLC(res, serial=True):
 	F = res['F']
