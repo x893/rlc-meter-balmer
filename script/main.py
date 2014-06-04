@@ -75,6 +75,7 @@ class FormMain(QtGui.QMainWindow):
         if not self.initDevice():
             return
         form = FormScan(self)
+        form.setMaxAmplitude(jplot.MaxAmplitude())
         form.startDefault()
         form.show()
         pass
@@ -220,7 +221,8 @@ class FormScan(QtGui.QMainWindow):
 
             s.scan_freq.init(resistorIndex=resistorData['resistorIndex'],
                             VIndex=VIndex, IIndex=IIndex,
-                            amplitude=amplitude, fileName=fileName)
+                            amplitude=amplitude, fileName=fileName,
+                            maxAmplitude=s.maxAmplitude)
 
             s.progress_bar.setRange(0, s.scan_freq.count())
             s.progress_bar.setValue(0)
@@ -417,7 +419,9 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(lambda: self.processOpen(line))
+        #button.clicked.connect(lambda: self.processOpen(line))
+        button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
+        
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')
         line['label'] = label
@@ -430,7 +434,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
     def process(self, line):
         R = float(line['edit'].text())
         form = FormScan(self)
-        form.signalComplete.connect(elf.OnCompleteProcess)
+        form.signalComplete.connect(self.OnCompleteProcess)
         form.startCalibrateR(R, line['data'], line['name'])
         form.show()
         pass
@@ -438,7 +442,7 @@ class FormCalibrationResistor(QtGui.QMainWindow):
     def processShort(self, line):
         R = 0
         form = FormScan(self)
-        form.signalComplete.connect(elf.OnCompleteProcess)
+        form.signalComplete.connect(self.OnCompleteProcess)
         form.startCalibrateR(R, line['data'], line['name'])
         form.show()
 
@@ -449,7 +453,6 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         form.show()
 
     def OnCompleteOpenPass(self, line):
-        print "OnCompleteOpenPass"
         R = 1e9
         form = FormScan(self)
         form.setMaxAmplitude(jplot.MaxAmplitude())
@@ -459,7 +462,6 @@ class FormCalibrationResistor(QtGui.QMainWindow):
 
 
     def OnCompleteProcess(self):
-        print "OnCompleteProcess"
         self.checkComplete()
         pass
 

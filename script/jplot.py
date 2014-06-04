@@ -246,33 +246,36 @@ class CorrectorOpen:
 		self.load()
 		pass
 	def load(self):
-		#json_open = readJson("cor/K_open.json")
-		#json_load = readJson("cor/D3_100KOm.json")
-		#json_open = readJson("cor/R0V0I0_open.json")
-		#json_load = readJson("cor/R0V0I0_100Om.json")
-		json_open = readJson("cor/R0V0I2_open.json")
-		json_load = readJson("cor/R0V0I2_100Om.json")
-
 		data = {}
+		for i in getGainOpenShortIdx():
+			prefix = 'cor/R3V0I'+str(i)+'_'
+			fname0 = prefix+'100KOm.json'
+			fname1 = prefix+'open.json'
+			json_min = readJson(fname0)
+			json_max = readJson(fname1)
 
-		jfreq_open = json_open['freq']
-		for jf in jfreq_open:
-			res = calculateJson(jf)
-			data[res['period']] = { 'open': res }
+			self.R = json_min['R']
 
-		jfreq_load = json_load['freq']
-		for jf in jfreq_load:
-			res = calculateJson(jf)
-			data[res['period']]['load'] = res
+			cur = {}
+			data[i] = cur
+			jfreq_min = json_min['freq']
+			for jf in jfreq_min:
+				res = calculateJson(jf)
+				cur[res['period']] = { 'load': res }
+
+			jfreq_max = json_max['freq']
+			for jf in jfreq_max:
+				res = calculateJson(jf)
+				cur[res['period']]['open'] = res
 
 		self.data = data
-		self.R = json_load['R']
 		#self.C = 0
 		self.C = 0.5e-12
 		pass
 
 	def correct(self, R, period, F, attr):
-		d = self.data[period]
+		gain_index_I = attr['gain_index_I']
+		d = self.data[gain_index_I][period]
 		Zom = d['open']['R']
 		Zstdm = d['load']['R']
 		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
@@ -288,13 +291,14 @@ class CorrectorShort:
 		self.load()
 		pass
 	def load(self):
-		#json_1Om = readJson("cor/R0V7I0_1Om.json")
-
 		data = {}
 		for i in getGainOpenShortIdx():
 			prefix = 'cor/R0V'+str(i)+'I0_'
 			fname0 = prefix+'short.json'
-			fname1 = prefix+'100Om.json'
+			if i==7:
+				fname1 = prefix+'1Om.json'
+			else:
+				fname1 = prefix+'100Om.json'
 			json_min = readJson(fname0)
 			json_max = readJson(fname1)
 
@@ -310,7 +314,8 @@ class CorrectorShort:
 			jfreq_max = json_max['freq']
 			for jf in jfreq_max:
 				res = calculateJson(jf)
-				cur[res['period']]['load'] = res
+				if res['period'] in cur:
+					cur[res['period']]['load'] = res
 
 		self.data = data
 		pass
@@ -335,15 +340,15 @@ class Corrector:
 		self.corr.append(Corrector2x(0))
 		self.corr.append(Corrector2x(1))
 		self.corr.append(Corrector2x(2))
-		#self.corr.append(CorrectorOpen())
+		self.corr.append(CorrectorOpen())
 		pass
 	def correct(self, R, period, F, attr):
 		resistor_index = attr['resistor_index']
 		if abs(R)<100:
 			return self.corr_short.correct(R, period, F, attr)
 		#return self.corr[resistor_index].correct(R, period, F, attr)
-		if resistor_index==3: #заглушка
-			return R
+		#if resistor_index==3: #заглушка
+		#	return R
 
 		return self.corr[resistor_index].correct(R, period, F, attr)
 
@@ -367,7 +372,6 @@ class MaxAmplitude:
 			data[attr['period']] = { 'gain_index_I': attr['gain_index_I'] }
 
 		self.data = data
-
 		pass
 	def getMaxGainI(self, resistorIndex, period):
 		if resistorIndex!=3:

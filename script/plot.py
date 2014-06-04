@@ -264,10 +264,12 @@ class FormMeasure(QtGui.QMainWindow):
 		self.serial = True
 		self.end_thread = False
 		self.createMainFrame()
+		
+		self.corr = jplot.Corrector()
+		self.maxAmplitude = jplot.MaxAmplitude()
 
 		self.th = threading.Thread(target=self.UsbThread)
 		self.th.start()
-		self.corr = jplot.Corrector()
 		pass
 
 	def createMainFrame(self):
@@ -338,7 +340,7 @@ class FormMeasure(QtGui.QMainWindow):
 	def UsbThread(self):
 		i = 0
 		while not self.end_thread:
-			jf = usb_commands.oneFreq(self.period)
+			jf = usb_commands.oneFreq(self.period, maxAmplitude=self.maxAmplitude)
 			res = self.corr.calculateJson(jf)
 			if self.end_thread:
 				return

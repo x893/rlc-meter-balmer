@@ -764,7 +764,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 1*96, -96):
+    for period in xrange(75*96, 3*96, -96):
         arr.append(period)
     return arr
 
@@ -774,9 +774,10 @@ def period10Khz_100KHz():
         arr.append(period)
     return arr
 
-def period100Khz_max():
+
+def period90Khz_max():
     arr = []
-    for period in xrange(7*96, 1*96, -96):
+    for period in xrange(10*96, 3*96, -96):
         arr.append(period)
     return arr
 
@@ -793,15 +794,21 @@ def allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, II
     sc.save()
     pass
 
-def oneFreq(period, lowPass='auto', inAmplitude = None):
+def oneFreq(period, lowPass='auto', inAmplitude = None, maxAmplitude=None, count=None):
     if lowPass=='auto':
         lowPass = (period>=LOW_PASS_PERIOD)
 
+    if count==None:
+        if period>=LOW_PASS_PERIOD:
+            count = 10
+        else:
+            count = 100
+
     adcSynchro(period, inAmplitude=inAmplitude)
     setLowPass(lowPass)
-    setGainAuto()
+    setGainAuto(maxAmplitude=maxAmplitude)
     time.sleep(0.01)
-    return adcRequestLastComputeX()
+    return adcRequestLastComputeX(count)
 
 class ScanFreq:
     def init(self, amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None,
@@ -827,8 +834,10 @@ class ScanFreq:
         #PERIOD_ROUND = period100Hz_1KHz()
         #self.PERIOD_ROUND = period1KHz_10KHz()
         #self.PERIOD_ROUND = period10Khz_max()
-        self.PERIOD_ROUND = period100Khz_max()
-        #self.PERIOD_ROUND = periodAll()
+        #self.PERIOD_ROUND = period100Khz_max()
+        #self.PERIOD_ROUND = period10Khz_max()
+        #self.PERIOD_ROUND = period90Khz_max()
+        self.PERIOD_ROUND = periodAll()
         adcSynchro(self.PERIOD_ROUND[0], amplitude)
         self.current_value = 0
         time.sleep(0.2)
@@ -840,8 +849,8 @@ class ScanFreq:
     def next(self):
         global currentLowPass
 
-        period = self.PERIOD_ROUND[self.current_value]
-        adcSynchro(period, amplitude)
+        possiblePeriod = self.PERIOD_ROUND[self.current_value]
+        adcSynchro(possiblePeriod, amplitude)
 
         oldLowPass = currentLowPass
         if period>=LOW_PASS_PERIOD: #3 KHz
@@ -871,7 +880,7 @@ class ScanFreq:
 
         time.sleep(0.01)
         jresult = adcRequestLastComputeX(10)
-        #jresult = adcRequestLastComputeX(100)
+        #jresult = adcRequestLastComputeX(10)
         #jresult = adcRequestLastComputeHardAuto(10)
         self.jfreq.append(jresult)
 
@@ -917,7 +926,7 @@ def main():
     if not initDevice():
         return
 
-    if True:
+    if False:
         period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 19968
         #period = 7488
@@ -950,7 +959,7 @@ def main():
     else:
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=0, VIndex=0, IIndex=2, fileName='freq_200Om.json')
-        allFreq(fileName='freq_200Om.json')
+        allFreq(fileName='freq_short_100.json')
     pass
 
 
