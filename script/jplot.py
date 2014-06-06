@@ -394,7 +394,7 @@ def calculateLC(res, serial=True):
 		else:
 			C = 0
 		#если сопротивление маленькое и индуктивность немного отрицательная, то таки считаем что это ошибка калибрации
-		if abs(Zx)<1 and L<0 and L>-20e-9:
+		if abs(Zx)<2 and L<0 and L>-100e-9:
 			isC = False
 
 	if not serial: #parrallel

@@ -879,9 +879,12 @@ class ScanFreq:
             setSetGain(0, min(self.IIndex, imax)) #I
 
         time.sleep(0.01)
-        jresult = adcRequestLastComputeX(10)
+        if period>=LOW_PASS_PERIOD:
+            count = 10
+        else:
+            count = 30
+        jresult = adcRequestLastComputeX(count)
         #jresult = adcRequestLastComputeX(10)
-        #jresult = adcRequestLastComputeHardAuto(10)
         self.jfreq.append(jresult)
 
         self.current_value += 1
