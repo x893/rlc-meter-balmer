@@ -346,10 +346,6 @@ class Corrector:
 		resistor_index = attr['resistor_index']
 		if abs(R)<100:
 			return self.corr_short.correct(R, period, F, attr)
-		#return self.corr[resistor_index].correct(R, period, F, attr)
-		#if resistor_index==3: #заглушка
-		#	return R
-
 		return self.corr[resistor_index].correct(R, period, F, attr)
 
 	def calculateJson(self, jf):

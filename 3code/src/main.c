@@ -9,6 +9,7 @@
 #include "corrector.h"
 #include "quadrature_encoder.h"
 #include "lcd_interface.h"
+#include "vbat.h"
 
 void InitLight();
 

@@ -92,14 +92,15 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		SendRVI();
 		break;
 	case 14://COMMAND_SET_GAIN_CORRECTOR_V
-		SetGainCorrectorV((float*)(commandBuffer+4));
 		break;
-	case 15://COMMAND_SET_GAIN_CORRECTOR_I
-		SetGainCorrectorI((float*)(commandBuffer+4));
+	case 15://COMMAND_SET_CORRECTOR2XR
+		USBAdd8(commandBuffer[1]);
+		SetCorrector2xR(commandBuffer[1], (float*)(commandBuffer+4));
 		break;
 	case 16://COMMAND_SET_CORRECTOR2X
 		USBAdd8(commandBuffer[1]);
-		SetCorrector2x(commandBuffer[1], (float*)(commandBuffer+4));
+		USBAdd8(commandBuffer[2]);
+		SetCorrector2x(commandBuffer[1], commandBuffer[2], (float*)(commandBuffer+4));
 		break;
 	case 17://COMMAND_SET_CORRECTOR_OPEN
 		SetCorrectorOpen((float*)(commandBuffer+4));

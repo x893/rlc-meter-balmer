@@ -27,8 +27,7 @@ COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 COMMAND_START_GAIN_AUTO = 12
 COMMAND_RVI_INDEXES = 13
-COMMAND_SET_GAIN_CORRECTOR_V = 14
-COMMAND_SET_GAIN_CORRECTOR_I = 15
+COMMAND_SET_CORRECTOR2XR = 15
 COMMAND_SET_CORRECTOR2X = 16
 COMMAND_SET_CORRECTOR_OPEN = 17
 COMMAND_SET_CORRECTOR_SHORT = 18
@@ -319,56 +318,33 @@ def adcRequestData():
 
     return (out1, out2)
 
-def setGainCottector(corrector, period, one=False):
-    if one:
-        v = [complex(1,0)]*7
-    else:
-        v = corrector.getCoeffV(period)
-    dwrite(struct.pack("=BBBBffffffffffffff", COMMAND_SET_GAIN_CORRECTOR_V, 0,0,0,
-        v[0].real, v[0].imag,
-        v[1].real, v[1].imag,
-        v[2].real, v[2].imag,
-        v[3].real, v[3].imag,
-        v[4].real, v[4].imag,
-        v[5].real, v[5].imag,
-        v[6].real, v[6].imag
-        ))
-    data = dread()
-    assert(data[0]==COMMAND_SET_GAIN_CORRECTOR_V)
-    if one:
-        i = [complex(1,0)]*7
-    else:
-        i = corrector.getCoeffI(period)
-    dwrite(struct.pack("=BBBBffffffffffffff", COMMAND_SET_GAIN_CORRECTOR_I, 0,0,0,
-        i[0].real, i[0].imag,
-        i[1].real, i[1].imag,
-        i[2].real, i[2].imag,
-        i[3].real, i[3].imag,
-        i[4].real, i[4].imag,
-        i[5].real, i[5].imag,
-        i[6].real, i[6].imag
-        ))
-    data = dread()
-    assert(data[0]==COMMAND_SET_GAIN_CORRECTOR_I)
-    pass
-
 def setCorrector2x(corrector, period):
-    for i in xrange(3):
-        #i == rezistorIdx
-        corr = corrector.corr[i]
-        d = corr.data[period]
+
+    for iresistor in xrange(3):
+        #iresistor == rezistorIdx
+        corr = corrector.corr[iresistor]
         Z1 = corr.Rmin
         Z2 = corr.Rmax
-        Zm1 = d['min']['R']
-        Zm2 = d['max']['R']
-        dwrite(struct.pack("=BBBBffffff", COMMAND_SET_CORRECTOR2X, i,0,0,
-            Zm1.real, Zm1.imag,
-            Zm2.real, Zm2.imag,
+
+        dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR2XR, iresistor,0,0,
             Z1, Z2
             ))
         data = dread()
-        assert(data[0]==COMMAND_SET_CORRECTOR2X)
-        assert(data[1]==i)
+        assert(data[0]==COMMAND_SET_CORRECTOR2XR)
+        assert(data[1]==iresistor)
+
+        for gain_index_I in getGainCentralIdx():
+            d = corr.data[gain_index_I][period]
+            Zm1 = d['min']['R']
+            Zm2 = d['max']['R']
+            dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR2X, iresistor, gain_index_I, 0,
+                Zm1.real, Zm1.imag,
+                Zm2.real, Zm2.imag
+                ))
+            data = dread()
+            assert(data[0]==COMMAND_SET_CORRECTOR2X)
+            assert(data[1]==iresistor)
+            assert(data[2]==gain_index_I)
     pass
 
 def setCorrectorOpen(corrector, period):
@@ -710,7 +686,7 @@ def adcSynchroJson(soft=True, corrector = None, count=10):
     if soft:
         jout = adcRequestLastComputeX(count)
     else:
-        jout = adcRequestLastComputeHardAuto(count, resistorIdx)
+        jout = adcRequestLastComputeHardAuto(count)
     f.write(json.dumps(jout))
     f.close()
 
@@ -929,8 +905,8 @@ def main():
     if not initDevice():
         return
 
-    if False:
-        period = HARDWARE_CORRECTOR_PERIODS[3]
+    if True:
+        period = HARDWARE_CORRECTOR_PERIODS[0]
         #period = 19968
         #period = 7488
         #period = 1*96
@@ -940,11 +916,16 @@ def main():
         #return
 
         #setCorrector(corrector, period)
+        setCorrector2x(corrector, period)
+        dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
+        data = dread()
+        assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
 
-        soft = True
-        setContinuousMode(False)
+        soft = False
         setSerial(True)
-        adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE/4)
+        #setContinuousMode(not soft)
+        setContinuousMode(False)
+        adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE)
         #adcSynchro(period, inAmplitude=0)
 
         if soft:
@@ -958,6 +939,7 @@ def main():
                 setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson(soft=soft, corrector=corrector)
+        #adcSynchroJson(soft=soft, corrector=None)
         #adcSynchroJson(soft=True, count=10)
     else:
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')

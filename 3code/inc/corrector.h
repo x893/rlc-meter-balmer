@@ -3,56 +3,63 @@
 
 #include "calc_rc.h"
 
-#define GAIN_CORRECTOR_VALUES_COUNT 7
-#define CORRECTOR2X_DIAPAZONS 3
+#define CORRECTOR2X_RESISTOR_COUNT 3
+#define CORRECTOR2X_GAIN_COUNT 3
+#define CORRECTOR_OPEN_SHORT_GAIN_COUNT 6
 #define PREDEFINED_PERIODS_COUNT 4
 
-typedef struct CoeffCorrectroeGain
-{
-	complexf ValuesV[GAIN_CORRECTOR_VALUES_COUNT];
-	complexf ValuesI[GAIN_CORRECTOR_VALUES_COUNT];
-} CoeffCorrectroeGain;
-
-typedef struct CoeffCorrector2x
+typedef struct Zm2x
 {
 	complexf Zm1;//measured minimal value
 	complexf Zm2;//measured mmaximal value
+} Zm2x;
+
+typedef struct ZmOpen
+{
+	complexf Zstdm;//measured load 100 КОм
+	complexf Zom;//measured open fixtures
+} ZmOpen;
+
+typedef struct ZmShort
+{
+	complexf Zstdm;//measured load
+	complexf Zsm;//measured short
+} ZmShort;
+
+typedef struct CoeffCorrector2x
+{
+	Zm2x Zm[CORRECTOR2X_GAIN_COUNT];
 	float Z1;//real minimal value
 	float Z2;//real maximal value
 } CoeffCorrector2x;
 
 typedef struct CoeffCorrectorOpen
 {
-	complexf Zstdm;//measured load 100 КОм
-	complexf Zom;//measured open fixtures
+	ZmOpen Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
 	float R;//precize 100 КОм real value
 	float C;//capacitance load
+	uint32_t maxGainIndex;
 } CoeffCorrectorOpen;
 
 typedef struct CoeffCorrectorShort
 {
-	complexf Zstdm;//measured load
-	complexf Zsm;//measured short
+	ZmShort Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
 	float R;//real load value
 } CoeffCorrectorShort;
 
-//sizeof(CoeffCorrector)==256
+//sizeof(CoeffCorrector)<512
 typedef struct CoeffCorrector
 {
 	uint32_t period;//period==0 - not filled
-	uint32_t pad;
-	CoeffCorrectroeGain gain;
-	CoeffCorrector2x x2x[CORRECTOR2X_DIAPAZONS];
+	CoeffCorrector2x x2x[CORRECTOR2X_RESISTOR_COUNT];
 	CoeffCorrectorOpen open;
-	CoeffCorrectorShort short100;
-	CoeffCorrectorShort short1;
+	CoeffCorrectorShort cshort;
 } CoeffCorrector;
 
 void CorrectorInit();
 
-void SetGainCorrectorV(float* data);
-void SetGainCorrectorI(float* data);
-void SetCorrector2x(uint8_t diapazon, float* data);
+void SetCorrector2x(uint8_t resistor, uint8_t gain, float* data);
+void SetCorrector2xR(uint8_t resistor, float* data);
 void SetCorrectorOpen(float* data);
 void SetCorrectorShort(bool is1Om, float* data);
 void SetCorrectorPeriod(uint32_t period);

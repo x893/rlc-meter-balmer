@@ -13,8 +13,8 @@
 #include "lcd_interface.h"
 #include "dac.h"
 
-#define goodMin 1500
-#define goodMax 3300
+#define goodMin 2200
+#define goodMax 4000
 #define goodDelta (goodMax-goodMin)
 
 
@@ -22,6 +22,16 @@ static STATES state = STATE_NOP;
 
 #define gainValuesCount 8
 uint8_t gainValues[gainValuesCount] = {1,2,4,5,8,10,16,32};
+
+const uint8_t gainIdxPtrCentral[] = {0,1,2};
+const uint8_t gainIdxCountCentral = 3;
+
+const uint8_t gainIdxPtrOpenShort[] = {0,1,2,4,6,7};
+const uint8_t gainIdxCountOpenShort = 6;
+
+const uint8_t* gainIdxPtr = NULL;
+uint8_t gainIdxCount = 0;
+
 
 uint8_t resistorIdx;
 uint8_t gainVoltageIdx;
@@ -49,6 +59,19 @@ void OnGainIndex();
 void OnMeasure();
 void OnMeasureStart();
 
+void SetGainCentralIdx()
+{
+	gainIdxPtr = gainIdxPtrCentral;
+	gainIdxCount = gainIdxCountCentral;
+}
+
+void SetGainOpenShortIdx()
+{
+	gainIdxPtr = gainIdxPtrOpenShort;
+	gainIdxCount = gainIdxCountOpenShort;
+}
+
+
 float getGainValue(uint8_t idx)
 {
     float mulPre = 3.74f;
@@ -72,7 +95,7 @@ float getResistorOm()
 {
 	float R = 100.0;
 	switch(resistorIdx) {
-	case 0: R = 100.0f; break;
+	case 0: R = 1e2f; break;
 	case 1: R = 1e3f; break;
 	case 2: R = 1e4f; break;
 	case 3: R = 1e5f; break;
@@ -83,6 +106,7 @@ float getResistorOm()
 
 void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
 {
+	SetGainCentralIdx();
 	//calculatedValues = false;
 	if(count==0)
 		count = 1;
@@ -196,6 +220,34 @@ void OnStartGainIndex(bool wait)
     gainIndexStopV = false;
     gainIndexStopI = false;
     gainIndexIterator = 0;
+    gainVoltageIdx = 0;
+    gainCurrentIdx = 0;
+
+    if(resistorIdx==0)
+    {
+		int vmin = g_data.ch_v.adc_min;
+		int vmax = g_data.ch_v.adc_max;
+		int imin = g_data.ch_i.adc_min;
+		int imax = g_data.ch_i.adc_max;
+        if((imax-imin) < (vmax-vmin))
+        {
+            gainIndexStopV = true;
+            SetGainCentralIdx();
+        } else
+        {
+            gainIndexStopI = true;
+            SetGainOpenShortIdx();
+        }
+    } else
+    if(resistorIdx==3)
+    {
+        gainIndexStopV = true;
+        SetGainOpenShortIdx();
+    } else
+    {
+        gainIndexStopV = true;
+        SetGainCentralIdx();
+    }
 
 	OnGainIndex();
 }
@@ -208,10 +260,11 @@ void OnGainIndex()
 	int imax = g_data.ch_i.adc_max;
 	if(debugRepaint)
 		printD = gainIndexIterator+100;
+	uint8_t gainIdx = gainIdxPtr[gainIndexIterator];
 
 	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{
-		gainVoltageIdx = gainIndexIterator;
+		gainVoltageIdx = gainIdx;
 	} else
 	{
 		MCPSetGain(true, gainVoltageIdx);
@@ -220,7 +273,7 @@ void OnGainIndex()
 
 	if(!gainIndexStopI && imax<goodMax && imin>goodMin)
 	{
-		gainCurrentIdx = gainIndexIterator;
+		gainCurrentIdx = gainIdx;
 	} else
 	{
 		MCPSetGain(false, gainCurrentIdx);
@@ -228,7 +281,7 @@ void OnGainIndex()
 	}
 
 	gainIndexIterator++;
-	if(gainIndexIterator>=gainValuesCount)
+	if(gainIndexIterator>=gainIdxCount)
 	{
 		MCPSetGain(true, gainVoltageIdx);
 		MCPSetGain(false, gainCurrentIdx);
@@ -236,9 +289,9 @@ void OnGainIndex()
 	} else
 	{
 		if(!gainIndexStopV)
-			MCPSetGain(true, gainIndexIterator);
+			MCPSetGain(true, gainIdx);
 		if(!gainIndexStopI)
-			MCPSetGain(false, gainIndexIterator);
+			MCPSetGain(false, gainIdx);
 		state = STATE_GAIN_INDEX_WAIT;
 	}
 
