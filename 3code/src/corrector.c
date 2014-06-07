@@ -20,6 +20,7 @@ complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* c);
 void CorrectorLoadData();
 
 static CoeffCorrector coeff;
+extern int printD;
 
 void CorrectorInit()
 {
@@ -109,8 +110,7 @@ complexf Corrector2x(complexf Zxm, CoeffCorrector2x* cr)
 	Zm2x* c = NULL;
 	if(gainCurrentIdx>=CORRECTOR2X_GAIN_COUNT)
 		return 0;
-	c = cr->Zm+gainCurrentIdx;
-
+	c = cr->Zm+gainCurrentIdx;	
 	complexf A = (cr->Z2-cr->Z1)/(c->Zm2-c->Zm1);
 	complexf B = (cr->Z1*c->Zm2-cr->Z2*c->Zm1)/(c->Zm2-c->Zm1);
 	complexf Zx = A*Zxm+B;
@@ -124,7 +124,6 @@ complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* cr)
 	if(idx<0)
 		return 0;
 	ZmOpen* c = cr->Zm+idx;
-	
 
 	complexf Ystd = 1.0f/cr->R + 2.0f*pi*F*cr->C*I;
 	complexf Zstd = 1.0f/Ystd;

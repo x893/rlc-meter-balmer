@@ -357,17 +357,19 @@ def setCorrectorOpen(corrector, period, maxAmplitude):
     data = dread()
     assert(data[0]==COMMAND_SET_CORRECTOR_OPENR)
 
-    for gain_index_I in getGainOpenShortIdx():
+    for gain_idx in xrange(len(getGainOpenShortIdx())):
+        gain_index_I = getGainOpenShortIdx()[gain_idx]
         d = corr.data[gain_index_I][period]
         Zstdm = d['load']['R']
+        print "Zstdm=", Zstdm
         Zom = d['open']['R']
-        dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR_OPEN, gain_index_I, 0, 0,
+        dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR_OPEN, gain_idx, 0, 0,
             Zstdm.real, Zstdm.imag,
             Zom.real, Zom.imag
             ))
         data = dread()
         assert(data[0]==COMMAND_SET_CORRECTOR_OPEN)
-        assert(data[1]==gain_index_I)
+        assert(data[1]==gain_idx)
     pass
 
 def setCorrectorShort(corrector, period):
@@ -933,7 +935,7 @@ def main():
         assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
 
         soft = False
-        setSerial(True)
+        setSerial(False)
         #setContinuousMode(not soft)
         setContinuousMode(False)
         adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE)
