@@ -111,9 +111,6 @@ void TIM7_IRQHandler(void)
             OnButtonPressed();   
         }
         g_lastButtonState = buttonState;
-        //printD++;
-        //if(printD%50==0)
-        //    LcdRepaint();
         uint16_t encValue = QuadEncValue();
         if(encValue!=g_lastEncValue)
         {

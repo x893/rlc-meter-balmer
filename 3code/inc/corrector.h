@@ -60,7 +60,9 @@ void CorrectorInit();
 
 void SetCorrector2x(uint8_t resistor, uint8_t gain, float* data);
 void SetCorrector2xR(uint8_t resistor, float* data);
-void SetCorrectorOpen(float* data);
+void SetCorrectorOpen(uint8_t gain, float* data);
+void SetCorrectorOpenR(uint8_t maxGainIndex, float* data);
+
 void SetCorrectorShort(bool is1Om, float* data);
 void SetCorrectorPeriod(uint32_t period);
 

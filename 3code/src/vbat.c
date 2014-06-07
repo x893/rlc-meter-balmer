@@ -2,8 +2,6 @@
 #include "systick.h"
 #include "pcd8544.h"
 
-extern int printD;
-
 void VBatInit()
 {
 	ADC_InitTypeDef       ADC_InitStructure;

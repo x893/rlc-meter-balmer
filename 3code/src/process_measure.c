@@ -46,7 +46,7 @@ uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
 
 bool bContinuousMode = false;
-static bool debugRepaint = false;
+static bool debugRepaint = true;
 
 extern int printD;
 
@@ -181,13 +181,6 @@ void OnStartGainAuto()
 		SetResistor(resistorIdx);
 		state = STATE_RESISTOR_INDEX_WAIT;
 	}
-
-
-	if(debugRepaint)
-	{
-		printD = 123;
-		LcdRepaint();
-	}
 }
 
 void OnResistorIndex()
@@ -202,12 +195,6 @@ void OnResistorIndex()
 		state = STATE_RESISTOR_INDEX_WAIT;
 		resistorIdx++;
 		SetResistor(resistorIdx);
-	}
-
-	if(debugRepaint)
-	{
-		printD = di;
-		LcdRepaint();
 	}
 }
 
@@ -258,9 +245,10 @@ void OnGainIndex()
 	int vmax = g_data.ch_v.adc_max;
 	int imin = g_data.ch_i.adc_min;
 	int imax = g_data.ch_i.adc_max;
-	if(debugRepaint)
-		printD = gainIndexIterator+100;
+
 	uint8_t gainIdx = gainIdxPtr[gainIndexIterator];
+	if(debugRepaint)
+		printD = gainIdx*100+gainIndexIterator;
 
 	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{
@@ -288,6 +276,7 @@ void OnGainIndex()
 		OnMeasureStart();//state = STATE_NOP;
 	} else
 	{
+		gainIdx = gainIdxPtr[gainIndexIterator];
 		if(!gainIndexStopV)
 			MCPSetGain(true, gainIdx);
 		if(!gainIndexStopI)
@@ -357,15 +346,12 @@ void OnMeasure()
 			float d = cabs(oldLastZx-lastZx)/cabs(lastZx);
 			if(d>1)
 				d = 1;
-			printD = d*99;
 			if(d<5e-2f)
 			{
 				int vmin = g_data.ch_v.adc_min;
 				int vmax = g_data.ch_v.adc_max;
 				int imin = g_data.ch_i.adc_min;
 				int imax = g_data.ch_i.adc_max;
-
-				printD += 1000;
 
 				if(vmax<goodMax && vmin>goodMin && imax<goodMax && imin>goodMin)
 				{

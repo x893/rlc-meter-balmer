@@ -21,9 +21,6 @@ void CorrectorLoadData();
 
 static CoeffCorrector coeff;
 
-extern int printD;
-
-
 void CorrectorInit()
 {
 	coeff.period = 0;
@@ -79,15 +76,21 @@ void SetCorrector2xR(uint8_t resistor, float* data)
 	coeff.x2x[resistor].Z2 = data[1];
 }
 
-void SetCorrectorOpen(float* data)
+void SetCorrectorOpen(uint8_t gain, float* data)
 {
-/*
-	CoeffCorrectorOpen* c = &coeff.open;
+	if(gain>=CORRECTOR_OPEN_SHORT_GAIN_COUNT)
+		return;
+	ZmOpen* c = coeff.open.Zm+gain;
 	c->Zstdm = data[0]+data[1]*I;
 	c->Zom = data[2]+data[3]*I;
-	c->R = data[4];
-	c->C = data[5];
-*/
+}
+
+void SetCorrectorOpenR(uint8_t maxGainIndex, float* data)
+{
+	CoeffCorrectorOpen* c = &coeff.open;
+	c->R = data[0];
+	c->C = data[1];
+	c->maxGainIndex = maxGainIndex;
 }
 
 void SetCorrectorShort(bool is1Om, float* data)
@@ -116,7 +119,6 @@ complexf Corrector2x(complexf Zxm, CoeffCorrector2x* cr)
 
 complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* cr)
 {
-	return 0;
 	float F = DacFrequency();
 	int idx = gainValidIdx[gainCurrentIdx];
 	if(idx<0)
@@ -199,11 +201,9 @@ void CorrectorLoadData()
 
 	if(cfound==NULL)
 	{
-		//printD = 44;
 		coeff.period = 0;
 		return;
 	}
 
 	coeff = *cfound;
-	//printD = 23;
 }

@@ -27,8 +27,9 @@ COMMAND_DATA_COMPLETE = 10
 COMMAND_SET_LOW_PASS = 11
 COMMAND_START_GAIN_AUTO = 12
 COMMAND_RVI_INDEXES = 13
-COMMAND_SET_CORRECTOR2XR = 15
-COMMAND_SET_CORRECTOR2X = 16
+COMMAND_SET_CORRECTOR2XR = 14
+COMMAND_SET_CORRECTOR2X = 15
+COMMAND_SET_CORRECTOR_OPENR = 16
 COMMAND_SET_CORRECTOR_OPEN = 17
 COMMAND_SET_CORRECTOR_SHORT = 18
 COMMAND_SET_CORRECTOR_PERIOD = 19
@@ -347,18 +348,26 @@ def setCorrector2x(corrector, period):
             assert(data[2]==gain_index_I)
     pass
 
-def setCorrectorOpen(corrector, period):
+def setCorrectorOpen(corrector, period, maxAmplitude):
     corr = corrector.corr[3]
-    d = corr.data[period]
-    Zom = d['open']['R']
-    Zstdm = d['load']['R']
-    dwrite(struct.pack("=BBBBffffff", COMMAND_SET_CORRECTOR_OPEN, 0,0,0,
-        Zstdm.real, Zstdm.imag,
-        Zom.real, Zom.imag,
+    amp = maxAmplitude.getMaxGainI(resistorIndex=3, period=period)
+    dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR_OPENR, amp,0,0,
         corr.R, corr.C
         ))
     data = dread()
-    assert(data[0]==COMMAND_SET_CORRECTOR_OPEN)
+    assert(data[0]==COMMAND_SET_CORRECTOR_OPENR)
+
+    for gain_index_I in getGainOpenShortIdx():
+        d = corr.data[gain_index_I][period]
+        Zstdm = d['load']['R']
+        Zom = d['open']['R']
+        dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR_OPEN, gain_index_I, 0, 0,
+            Zstdm.real, Zstdm.imag,
+            Zom.real, Zom.imag
+            ))
+        data = dread()
+        assert(data[0]==COMMAND_SET_CORRECTOR_OPEN)
+        assert(data[1]==gain_index_I)
     pass
 
 def setCorrectorShort(corrector, period):
@@ -381,10 +390,10 @@ def setCorrectorShort(corrector, period):
         assert(data[1]==i)
     pass
 
-def setCorrector(corrector, period):
+def setCorrector(corrector, period, maxAmplitude):
     setGainCottector(corrector.gain_corrector, period, one=False)
     setCorrector2x(corrector, period)
-    setCorrectorOpen(corrector, period)
+    setCorrectorOpen(corrector, period, maxAmplitude)
     setCorrectorShort(corrector, period)
 
     dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
@@ -592,10 +601,10 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
         #print "gainI=", i
         #print " vmin="+str(vmin)
         #print " vmax="+str(vmax)
-        #print " imin="+str(imin)
-        #print " imax="+str(imax)
+        print " imin="+str(imin)
+        print " imax="+str(imax)
         #print " DV="+str(vmax-vmin)
-        #print " DI="+str(imax-imin)
+        print " DI="+str(imax-imin)
 
         if not stopV and vmax<goodMax and vmin>goodMin:
             idxV = i
@@ -906,17 +915,19 @@ def main():
         return
 
     if True:
-        period = HARDWARE_CORRECTOR_PERIODS[0]
+        period = HARDWARE_CORRECTOR_PERIODS[1]
         #period = 19968
         #period = 7488
         #period = 1*96
         #period = periodToFreqency(5000)
         corrector = jplot.Corrector()
+        maxAmplitude = jplot.MaxAmplitude()
         #FlashCorrector(corrector)
         #return
 
         #setCorrector(corrector, period)
         setCorrector2x(corrector, period)
+        setCorrectorOpen(corrector, period, maxAmplitude=maxAmplitude)
         dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
         data = dread()
         assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)

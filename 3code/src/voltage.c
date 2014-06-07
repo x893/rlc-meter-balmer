@@ -91,19 +91,21 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 	case 13://COMMAND_RVI_INDEXES
 		SendRVI();
 		break;
-	case 14://COMMAND_SET_GAIN_CORRECTOR_V
-		break;
-	case 15://COMMAND_SET_CORRECTOR2XR
+	case 14://COMMAND_SET_CORRECTOR2XR
 		USBAdd8(commandBuffer[1]);
 		SetCorrector2xR(commandBuffer[1], (float*)(commandBuffer+4));
 		break;
-	case 16://COMMAND_SET_CORRECTOR2X
+	case 15://COMMAND_SET_CORRECTOR2X
 		USBAdd8(commandBuffer[1]);
 		USBAdd8(commandBuffer[2]);
 		SetCorrector2x(commandBuffer[1], commandBuffer[2], (float*)(commandBuffer+4));
 		break;
+	case 16://COMMAND_SET_CORRECTOR_OPENR
+		SetCorrectorOpenR(commandBuffer[1], (float*)(commandBuffer+4));
+		break;
 	case 17://COMMAND_SET_CORRECTOR_OPEN
-		SetCorrectorOpen((float*)(commandBuffer+4));
+		USBAdd8(commandBuffer[1]);
+		SetCorrectorOpen(commandBuffer[1], (float*)(commandBuffer+4));
 		break;
 	case 18://COMMAND_SET_CORRECTOR_SHORT
 		USBAdd8(commandBuffer[1]);
