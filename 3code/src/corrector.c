@@ -35,7 +35,7 @@ void SetCorrectorPeriod(uint32_t period)
 
 complexf Corrector(complexf Zxm)
 {
-	//CorrectorLoadData();//Temp test
+	CorrectorLoadData();
 
 	if(coeff.period==0)
 		return Zxm;
@@ -94,14 +94,20 @@ void SetCorrectorOpenR(uint8_t maxGainIndex, float* data)
 	c->maxGainIndex = maxGainIndex;
 }
 
-void SetCorrectorShort(bool is1Om, float* data)
+void SetCorrectorShort(uint8_t gain, float* data)
 {
-/*
-	CoeffCorrectorShort* c = is1Om?&coeff.short1:&coeff.short100;
-	c->Zstdm = data[0]+data[1]*I;
-	c->Zsm = data[2]+data[3]*I;
-	c->R = data[4];
-*/
+	if(gain>=CORRECTOR_OPEN_SHORT_GAIN_COUNT)
+		return;
+	ZmShort* c = coeff.cshort.Zm+gain;
+	c->Zsm = data[0]+data[1]*I;
+	c->Zstdm = data[2]+data[3]*I;
+}
+
+void SetCorrectorShortR(float* data)
+{
+	CoeffCorrectorShort* c = &coeff.cshort;
+	c->R100 = data[0];
+	c->R1 = data[1];
 }
 
 
@@ -133,12 +139,11 @@ complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* cr)
 
 complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* cr)
 {
-	return 0;
 	int idx = gainValidIdx[gainVoltageIdx];
 	if(idx<0)
 		return 0;
 	ZmShort* c = cr->Zm+idx;
-	complexf Zstd = cr->R;
+	complexf Zstd = gainVoltageIdx==7 ? cr->R1 : cr->R100;
 	complexf Zx = Zstd/(c->Zstdm-c->Zsm)*(Zxm-c->Zsm);
 	return Zx;	
 }
@@ -151,6 +156,11 @@ bool CorrectorFlashClear()
 	ok = (FLASH_ErasePage(FLASH_START_ARRAY)==FLASH_COMPLETE);
 	FLASH_Lock();
 	return ok;
+}
+
+uint32_t round256(uint32_t c)
+{
+	return ((c+255)/256)*256;
 }
 
 bool CorrectorFlashCurrentData()
@@ -170,11 +180,11 @@ bool CorrectorFlashCurrentData()
 	if(!found)
 		return false;
 
-	uint32_t offset = index*sizeof(CoeffCorrector);
+	uint32_t offset = index*round256(sizeof(CoeffCorrector));
 
 	FLASH_Unlock();
 
-	for(int i=0; i<256; i+=4)
+	for(int i=0; i<sizeof(CoeffCorrector); i+=4)
 	{
 		FLASH_ProgramWord(i+offset+FLASH_START_ARRAY, ((uint32_t*)&coeff)[i/4]);
 	}
@@ -190,7 +200,7 @@ void CorrectorLoadData()
 		return;
 	for(int i=0; i<PREDEFINED_PERIODS_COUNT; i++)
 	{
-		CoeffCorrector* c = (CoeffCorrector*)(i*sizeof(CoeffCorrector)+FLASH_START_ARRAY);
+		CoeffCorrector* c = (CoeffCorrector*)(i*round256(sizeof(CoeffCorrector))+FLASH_START_ARRAY);
 		if(DacPeriod()==c->period)
 		{
 			cfound = c;

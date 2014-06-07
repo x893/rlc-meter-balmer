@@ -13,8 +13,8 @@
 #include "lcd_interface.h"
 #include "dac.h"
 
-#define goodMin 2200
-#define goodMax 4000
+#define goodMin 2700
+#define goodMax 3700
 #define goodDelta (goodMax-goodMin)
 
 

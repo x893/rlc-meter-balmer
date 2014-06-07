@@ -107,24 +107,27 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		USBAdd8(commandBuffer[1]);
 		SetCorrectorOpen(commandBuffer[1], (float*)(commandBuffer+4));
 		break;
-	case 18://COMMAND_SET_CORRECTOR_SHORT
-		USBAdd8(commandBuffer[1]);
-		SetCorrectorShort(commandBuffer[1]?true:false, (float*)(commandBuffer+4));
+	case 18://COMMAND_SET_CORRECTOR_SHORTR
+		SetCorrectorShortR((float*)(commandBuffer+4));
 		break;
-	case 19://COMMAND_SET_CORRECTOR_PERIOD
+	case 19://COMMAND_SET_CORRECTOR_SHORT
+		USBAdd8(commandBuffer[1]);
+		SetCorrectorShort(commandBuffer[1], (float*)(commandBuffer+4));
+		break;
+	case 20://COMMAND_SET_CORRECTOR_PERIOD
 		SetCorrectorPeriod(*(uint32_t*)(commandBuffer+4));
 		break;
-	case 20://COMMAND_CORRECTOR_FLASH_CLEAR
+	case 21://COMMAND_CORRECTOR_FLASH_CLEAR
 		USBAdd8(CorrectorFlashClear());
 		break;
-	case 21://COMMAND_FLASH_CURRENT_DATA
+	case 22://COMMAND_FLASH_CURRENT_DATA
 		USBAdd8(CorrectorFlashCurrentData());
 		break;
-	case 22://COMMAND_SET_SERIAL
+	case 23://COMMAND_SET_SERIAL
 		isSerial = commandBuffer[1]?true:false;
 		LcdRepaint();
 		break;
-	case 23://COMMAND_SET_CONTINUOUS_MODE
+	case 24://COMMAND_SET_CONTINUOUS_MODE
 		bContinuousMode = commandBuffer[1]?true:false;
 		break;
 	}

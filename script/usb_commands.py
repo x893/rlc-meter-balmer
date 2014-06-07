@@ -31,12 +31,13 @@ COMMAND_SET_CORRECTOR2XR = 14
 COMMAND_SET_CORRECTOR2X = 15
 COMMAND_SET_CORRECTOR_OPENR = 16
 COMMAND_SET_CORRECTOR_OPEN = 17
-COMMAND_SET_CORRECTOR_SHORT = 18
-COMMAND_SET_CORRECTOR_PERIOD = 19
-COMMAND_CORRECTOR_FLASH_CLEAR = 20
-COMMAND_FLASH_CURRENT_DATA = 21
-COMMAND_SET_SERIAL = 22
-COMMAND_SET_CONTINUOUS_MODE = 23
+COMMAND_SET_CORRECTOR_SHORTR = 18
+COMMAND_SET_CORRECTOR_SHORT = 19
+COMMAND_SET_CORRECTOR_PERIOD = 20
+COMMAND_CORRECTOR_FLASH_CLEAR = 21
+COMMAND_FLASH_CURRENT_DATA = 22
+COMMAND_SET_SERIAL = 23
+COMMAND_SET_CONTINUOUS_MODE = 24
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
@@ -361,7 +362,6 @@ def setCorrectorOpen(corrector, period, maxAmplitude):
         gain_index_I = getGainOpenShortIdx()[gain_idx]
         d = corr.data[gain_index_I][period]
         Zstdm = d['load']['R']
-        print "Zstdm=", Zstdm
         Zom = d['open']['R']
         dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR_OPEN, gain_idx, 0, 0,
             Zstdm.real, Zstdm.imag,
@@ -373,27 +373,28 @@ def setCorrectorOpen(corrector, period, maxAmplitude):
     pass
 
 def setCorrectorShort(corrector, period):
-    for i in xrange(2):
-        if i==1:
-            corr = corrector.corr_short1Om
-        else:
-            corr = corrector.corr_short
+    corr = corrector.corr_short
+    dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR_SHORTR, 0,0,0,
+        corr.R100, corr.R1
+        ))
+    data = dread()
+    assert(data[0]==COMMAND_SET_CORRECTOR_SHORTR)
 
-        d = corr.data[period]
+    for gain_idx in xrange(len(getGainOpenShortIdx())):
+        gain_index_I = getGainOpenShortIdx()[gain_idx]
+        d = corr.data[gain_index_I][period]
         Zsm = d['short']['R']
         Zstdm = d['load']['R']
-        dwrite(struct.pack("=BBBBfffff", COMMAND_SET_CORRECTOR_SHORT, i,0,0,
-            Zstdm.real, Zstdm.imag,
+        dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR_SHORT, gain_idx, 0, 0,
             Zsm.real, Zsm.imag,
-            corr.R
+            Zstdm.real, Zstdm.imag
             ))
         data = dread()
         assert(data[0]==COMMAND_SET_CORRECTOR_SHORT)
-        assert(data[1]==i)
+        assert(data[1]==gain_idx)
     pass
 
 def setCorrector(corrector, period, maxAmplitude):
-    setGainCottector(corrector.gain_corrector, period, one=False)
     setCorrector2x(corrector, period)
     setCorrectorOpen(corrector, period, maxAmplitude)
     setCorrectorShort(corrector, period)
@@ -403,14 +404,14 @@ def setCorrector(corrector, period, maxAmplitude):
     assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
     pass
 
-def FlashCorrector(corrector):
+def FlashCorrector(corrector, maxAmplitude):
     dwrite([COMMAND_CORRECTOR_FLASH_CLEAR])
     data = dread()
     assert(data[0]==COMMAND_CORRECTOR_FLASH_CLEAR)
     print "flash clear code=", data[1]
 
     for period in HARDWARE_CORRECTOR_PERIODS:
-        setCorrector(corrector, period)
+        setCorrector(corrector, period, maxAmplitude)
         dwrite([COMMAND_FLASH_CURRENT_DATA])
         data = dread()
         assert(data[0]==COMMAND_FLASH_CURRENT_DATA)
@@ -517,8 +518,8 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
     idxV = 0
     idxI = 0
 
-    goodMin = 2200
-    goodMax = 4000
+    goodMin = 2700
+    goodMax = 3700
     #goodMax = 3300
 
     goodDelta = goodMax-goodMin
@@ -603,10 +604,10 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
         #print "gainI=", i
         #print " vmin="+str(vmin)
         #print " vmax="+str(vmax)
-        print " imin="+str(imin)
-        print " imax="+str(imax)
+        #print " imin="+str(imin)
+        #print " imax="+str(imax)
         #print " DV="+str(vmax-vmin)
-        print " DI="+str(imax-imin)
+        #print " DI="+str(imax-imin)
 
         if not stopV and vmax<goodMax and vmin>goodMin:
             idxV = i
@@ -917,27 +918,32 @@ def main():
         return
 
     if True:
-        period = HARDWARE_CORRECTOR_PERIODS[1]
+        period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 19968
         #period = 7488
         #period = 1*96
-        #period = periodToFreqency(5000)
-        corrector = jplot.Corrector()
-        maxAmplitude = jplot.MaxAmplitude()
+        #period = periodToFreqency(6300)
+
+        if False:
+            corrector = None
+            maxAmplitude = None
+        else:
+            corrector = jplot.Corrector()
+            maxAmplitude = jplot.MaxAmplitude()
         #FlashCorrector(corrector)
         #return
 
-        #setCorrector(corrector, period)
-        setCorrector2x(corrector, period)
-        setCorrectorOpen(corrector, period, maxAmplitude=maxAmplitude)
-        dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
-        data = dread()
-        assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
+        #if corrector:
+        #    setCorrector(corrector, period, maxAmplitude)
+        #setCorrector2x(corrector, period)
+        #setCorrectorOpen(corrector, period, maxAmplitude=maxAmplitude)
+        #dwrite(struct.pack("=BBBBI", COMMAND_SET_CORRECTOR_PERIOD, 0,0,0, period))
+        #data = dread()
+        #assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
 
         soft = False
         setSerial(False)
-        #setContinuousMode(not soft)
-        setContinuousMode(False)
+        setContinuousMode(True)
         adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE)
         #adcSynchro(period, inAmplitude=0)
 
@@ -952,7 +958,6 @@ def main():
                 setSetGain(0, 0) #I
         time.sleep(0.1)
         adcSynchroJson(soft=soft, corrector=corrector)
-        #adcSynchroJson(soft=soft, corrector=None)
         #adcSynchroJson(soft=True, count=10)
     else:
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')

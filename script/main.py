@@ -467,7 +467,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
 
     def OnWriteFlash(self):
         corrector = jplot.Corrector()
-        usb_commands.FlashCorrector(corrector)
+        maxAmplitude = jplot.MaxAmplitude()
+        usb_commands.FlashCorrector(corrector, maxAmplitude)
         QtGui.QMessageBox.about(self, TITLE, u"Запись корректирующих коэффициэнтов окончена.")
         pass
 

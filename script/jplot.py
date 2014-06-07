@@ -302,7 +302,10 @@ class CorrectorShort:
 			json_min = readJson(fname0)
 			json_max = readJson(fname1)
 
-			self.R100 = json_max['R']
+			if i==7:
+				self.R1 = json_max['R']
+			else:
+				self.R100 = json_max['R']
 
 			cur = {}
 			data[i] = cur
@@ -325,7 +328,10 @@ class CorrectorShort:
 		d = self.data[gain_index_V][period]
 		Zsm = d['short']['R']
 		Zstdm = d['load']['R']
-		Zstd = complex(self.R100, 0)
+		if gain_index_V==7:
+			Zstd = complex(self.R1, 0)
+		else:
+			Zstd = complex(self.R100, 0)
 		Zxm = R
 		Zx = Zstd/(Zstdm-Zsm)*(Zxm-Zsm)
 		return Zx
@@ -487,8 +493,8 @@ def main():
 		fileName = sys.argv[1]
 
 	#plot(fileName)
-	#plotRaw(fileName, "I", average=False)
-	plotIV(fileName, average=True)
+	plotRaw(fileName, "I", average=True)
+	#plotIV(fileName, average=True)
 	#plotIV_2()
 
 if __name__ == "__main__":
