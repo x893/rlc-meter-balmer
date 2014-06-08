@@ -41,7 +41,7 @@ COMMAND_SET_CONTINUOUS_MODE = 24
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
-HARDWARE_CORRECTOR_PERIODS = [720000, 72000, 7200, 768]
+HARDWARE_CORRECTOR_PERIODS = [720000, 72000, 7200, 768, 288]
 
 
 
@@ -443,7 +443,7 @@ def adcRequestLastCompute():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
 
-    for i in xrange(0,10):
+    for i in xrange(0,20):
         time.sleep(0.01)
         dwrite([COMMAND_DATA_COMPLETE]);
         data = dread()
@@ -520,7 +520,6 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
 
     goodMin = 2700
     goodMax = 3700
-    #goodMax = 3300
 
     goodDelta = goodMax-goodMin
 
@@ -718,17 +717,9 @@ def adcSynchroJson(soft=True, corrector = None, count=10):
     pass
 
 
-def period100Hz_300Hz():
+def period10Hz_100Hz():
     arr = []
-    for freq in xrange(100, 300, 1):
-        period = 72000000/freq
-        period = (period/96)*96;
-        arr.append(period)
-    return arr
-
-def period50Hz_150Hz():
-    arr = []
-    for freq in xrange(50, 150, 1):
+    for freq in xrange(10, 100, 10):
         period = 72000000/freq
         period = (period/96)*96;
         arr.append(period)
@@ -752,7 +743,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 3*96, -96):
+    for period in xrange(75*96, 1*96, -96):
         arr.append(period)
     return arr
 
@@ -817,9 +808,7 @@ class ScanFreq:
         self.jfreq = []
 
         self.jout['freq'] = self.jfreq
-        #PERIOD_ROUND = period100Hz_300Hz()
-        #PERIOD_ROUND = period50Hz_150Hz()
-        #PERIOD_ROUND = period100Hz_1KHz()
+        #self.PERIOD_ROUND = period10Hz_100Hz()+period100Hz_1KHz()
         #self.PERIOD_ROUND = period1KHz_10KHz()
         #self.PERIOD_ROUND = period10Khz_max()
         #self.PERIOD_ROUND = period100Khz_max()
@@ -917,14 +906,14 @@ def main():
     if not initDevice():
         return
 
-    if True:
-        period = HARDWARE_CORRECTOR_PERIODS[3]
+    if False:
+        #period = HARDWARE_CORRECTOR_PERIODS[3]
         #period = 19968
         #period = 7488
         #period = 1*96
-        #period = periodToFreqency(6300)
+        period = periodToFreqency(10)
 
-        if False:
+        if True:
             corrector = None
             maxAmplitude = None
         else:
@@ -941,9 +930,9 @@ def main():
         #data = dread()
         #assert(data[0]==COMMAND_SET_CORRECTOR_PERIOD)
 
-        soft = False
+        soft = True
         setSerial(False)
-        setContinuousMode(True)
+        setContinuousMode(False)
         adcSynchro(period, inAmplitude=DEFAULT_DAC_AMPLITUDE)
         #adcSynchro(period, inAmplitude=0)
 

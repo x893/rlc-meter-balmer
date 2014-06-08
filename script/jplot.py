@@ -127,20 +127,28 @@ def plotRaw(fileName, IV, average = False):
 
 	if IV=='I':
 		ylabel = "Current"
-	else:
+		ax.set_ylabel(ylabel)
+	elif IV=='V':
 		ylabel = "Voltage"
+		ax.set_ylabel(ylabel)
 
-	ax.set_ylabel(ylabel)
+
 	per_second = timePerSample(jout)
 	dx = 1.0/per_second
-	#ax.set_title(data['title'])
-	ydata = jout['data'][IV]
-	if average:
-		ydata = averagePeriod(ydata, ncycle)
 
-	timeList = makeTimeList(ydata, 0, dx)
+	if IV=='I' or IV=='IV':
+		ydata = jout['data']['I']
+		if average:
+			ydata = averagePeriod(ydata, ncycle)
+		timeList = makeTimeList(ydata, 0, dx)
+		ax.plot (timeList, ydata, '-', color='blue')
 
-	ax.plot (timeList, ydata, '-')
+	if IV=='V' or IV=='IV':
+		ydata = jout['data']['V']
+		if average:
+			ydata = averagePeriod(ydata, ncycle)
+		timeList = makeTimeList(ydata, 0, dx)
+		ax.plot (timeList, ydata, '-', color='red')
 
 	# !!! Покажем окно с нарисованным графиком
 	plt.show()
@@ -230,6 +238,9 @@ class Corrector2x:
 
 	def correct(self, R, period, F, attr):
 		gain_index_I = attr['gain_index_I']
+		if not (period in self.data[gain_index_I]):
+			return R
+			
 		d = self.data[gain_index_I][period]
 		Z1 = complex(self.Rmin, 0)
 		Z2 = complex(self.Rmax, 0)
@@ -275,6 +286,9 @@ class CorrectorOpen:
 
 	def correct(self, R, period, F, attr):
 		gain_index_I = attr['gain_index_I']
+		if not (period in self.data[gain_index_I]):
+			return R
+
 		d = self.data[gain_index_I][period]
 		Zom = d['open']['R']
 		Zstdm = d['load']['R']
@@ -325,6 +339,8 @@ class CorrectorShort:
 
 	def correct(self, R, period, F, attr):
 		gain_index_V = attr['gain_index_V']
+		if not (period in self.data[gain_index_V]):
+			return R
 		d = self.data[gain_index_V][period]
 		Zsm = d['short']['R']
 		Zstdm = d['load']['R']
@@ -493,8 +509,8 @@ def main():
 		fileName = sys.argv[1]
 
 	#plot(fileName)
-	plotRaw(fileName, "I", average=True)
-	#plotIV(fileName, average=True)
+	plotRaw(fileName, "IV", average=True)
+	#plotIV(fileName, average=False)
 	#plotIV_2()
 
 if __name__ == "__main__":

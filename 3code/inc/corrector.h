@@ -6,7 +6,7 @@
 #define CORRECTOR2X_RESISTOR_COUNT 3
 #define CORRECTOR2X_GAIN_COUNT 3
 #define CORRECTOR_OPEN_SHORT_GAIN_COUNT 6
-#define PREDEFINED_PERIODS_COUNT 4
+#define PREDEFINED_PERIODS_COUNT 5
 
 typedef struct Zm2x
 {
@@ -81,5 +81,10 @@ bool CorrectorFlashClear();
 
 //Записать текущие константы в нужный кусок flash.
 bool CorrectorFlashCurrentData();
+
+//Прочитать корректирующие коэффициэнты, соответствующие DacPeriod()
+void CorrectorLoadData();
+
+CoeffCorrector* GetCorrector();
 
 #endif//_CORRECTOR_H_

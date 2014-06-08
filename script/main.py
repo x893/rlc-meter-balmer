@@ -419,8 +419,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        #button.clicked.connect(lambda: self.processOpen(line))
-        button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
+        button.clicked.connect(lambda: self.processOpen(line))
+        #button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
         
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')

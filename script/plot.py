@@ -149,7 +149,7 @@ class FormDrawData(QtGui.QMainWindow):
 			re_data.append(res['R'].real)
 			#im_data.append(math.fabs(res['R'].imag))
 			im_data.append(res['R'].imag)
-			#re_error.append(jf['summary']['V']['square_error'])
+			re_error.append(jf['summary']['V']['square_error'])
 			im_error.append(jf['summary']['I']['square_error'])
 
 			gain_I = jf['attr']["gain_I"]
@@ -158,7 +158,6 @@ class FormDrawData(QtGui.QMainWindow):
 			#im_error.append(math.sqrt(jf['summary']['I']['sin']**2+jf['summary']['I']['cos']**2)/gain_I)
 			#re_error.append(gain_V)
 			#im_error.append(gain_I)
-			re_error.append(gain_I)
 
 			im_sin.append(jf['summary']['I']['sin']/gain_I)
 			im_cos.append(jf['summary']['I']['cos']/gain_I)

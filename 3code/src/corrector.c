@@ -11,7 +11,7 @@ period= 72000 freq= 1000
 period= 7200 freq= 10000
 period= 768 freq=  93750 
 */
-const uint32_t predefinedPeriods[PREDEFINED_PERIODS_COUNT] = {720000, 72000, 7200, 768};
+const uint32_t predefinedPeriods[PREDEFINED_PERIODS_COUNT] = {720000, 72000, 7200, 768, 288};
 const signed char gainValidIdx[] = {0, 1, 2, -1, 3, -1, 4, 5};
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
@@ -22,9 +22,15 @@ void CorrectorLoadData();
 static CoeffCorrector coeff;
 extern int printD;
 
+CoeffCorrector* GetCorrector()
+{
+	return &coeff;
+}
+
 void CorrectorInit()
 {
 	coeff.period = 0;
+	coeff.open.maxGainIndex = 7;
 }
 
 void SetCorrectorPeriod(uint32_t period)
@@ -210,7 +216,7 @@ void CorrectorLoadData()
 
 	if(cfound==NULL)
 	{
-		coeff.period = 0;
+		CorrectorInit();
 		return;
 	}
 

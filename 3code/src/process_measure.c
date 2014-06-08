@@ -12,6 +12,7 @@
 #include "mcp6s21.h"
 #include "lcd_interface.h"
 #include "dac.h"
+#include "corrector.h"
 
 #define goodMin 2700
 #define goodMax 3700
@@ -46,7 +47,7 @@ uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
 
 bool bContinuousMode = false;
-static bool debugRepaint = false;
+static bool debugRepaint = true;
 
 extern int printD;
 
@@ -163,6 +164,8 @@ void OnStartGainAuto()
 		LcdRepaint();
 	}
 
+	CorrectorLoadData();
+
 	resistorIdx = 0;
 	gainVoltageIdx = 0;
 	gainCurrentIdx = 0;
@@ -247,8 +250,18 @@ void OnGainIndex()
 	int imax = g_data.ch_i.adc_max;
 
 	uint8_t gainIdx = gainIdxPtr[gainIndexIterator];
-	if(debugRepaint)
-		printD = gainIdx*100+gainIndexIterator;
+
+	CoeffCorrector* corr = GetCorrector();
+	if(resistorIdx==3 && gainIdx>corr->open.maxGainIndex)
+	{
+		gainIndexStopI = true;
+		if(debugRepaint)
+			printD = 135;
+	} else
+	{
+		if(debugRepaint)
+			printD = 246;
+	}
 
 	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{
