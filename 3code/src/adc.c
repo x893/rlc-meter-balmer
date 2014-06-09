@@ -4,7 +4,7 @@
 #include <math.h>
 #include "adc.h"
 #include "dac.h"
-#include "voltage.h"
+#include "usb_commands.h"
 #include "usb_desc.h"
 #include "systick.h"
 #include "calc_rc.h"

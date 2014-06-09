@@ -2,7 +2,7 @@
 // 2013-2014
 
 #include "hw_config.h"
-#include "voltage.h"
+#include "usb_commands.h"
 #include "calc_rc.h"
 #include "mcp6s21.h"
 #include "lcd_interface.h"

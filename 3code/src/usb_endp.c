@@ -3,7 +3,7 @@
 
 #include "usb_lib.h"
 #include "usb_istr.h"
-#include "voltage.h"
+#include "usb_commands.h"
 #include "adc.h"
 
 #include <string.h>
