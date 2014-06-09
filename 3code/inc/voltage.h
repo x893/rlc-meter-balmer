@@ -1,5 +1,5 @@
-
-
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
 
 void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize);
 

@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #include "systick.h"
 
 static uint32_t delay_fac_us = 0;

@@ -1,10 +1,5 @@
-//
-//  complex.cpp
-//  RLC Meter
-//
-//  Created by Balmer on 13.04.14.
-//
-//
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
 
 #include "hw_config.h"
 #include <math.h>

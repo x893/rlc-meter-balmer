@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #include "pcd8544.h"
 #include "hw_pcd8544.h"
 #include "systick.h"
