@@ -1,14 +1,15 @@
-// balmer@inbox.ru 2013 RLC Meter
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
 #include "hw_config.h"
 #include <math.h>
 #include "adc.h"
 #include "dac.h"
-#include "voltage.h"
+#include "usb_commands.h"
 #include "usb_desc.h"
 #include "systick.h"
 #include "calc_rc.h"
 
-#include "lcd_interface.h"//test code
+#include "lcd_interface.h"
 
 
 /*

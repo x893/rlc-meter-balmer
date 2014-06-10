@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _DAC_H_
 #define _DAC_H_
 

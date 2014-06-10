@@ -1,15 +1,10 @@
-//
-//  complex.cpp
-//  RLC Meter
-//
-//  Created by Balmer on 13.04.14.
-//
-//
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
 
 #include "hw_config.h"
 #include <math.h>
 #include <stdbool.h>
-#include "voltage.h"
+#include "usb_commands.h"
 #include "calc_rc.h"
 #include "mcp6s21.h"
 #include "lcd_interface.h"

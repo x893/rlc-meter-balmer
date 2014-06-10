@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _FORMAT_PRINT_H_
 #define _FORMAT_PRINT_H_
 

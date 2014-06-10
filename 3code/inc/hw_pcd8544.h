@@ -1,7 +1,9 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _HW_PCD8544_H_
 #define _HW_PCD8544_H_
 
-//#include "stm32f30x.h"
 #include <stdbool.h>
 #include <stdint.h>
 //LCD Hardware routines

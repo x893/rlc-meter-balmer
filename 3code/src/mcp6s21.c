@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #include "hw_config.h"
 
 void SPI1_send(uint16_t data);

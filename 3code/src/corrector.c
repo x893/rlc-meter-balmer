@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #include "hw_config.h"
 #include <complex.h>
 #include <stm32f30x_flash.h>
