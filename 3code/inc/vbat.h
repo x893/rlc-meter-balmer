@@ -1,0 +1,3 @@
+
+void VBatInit();
+void VBatQuant();
