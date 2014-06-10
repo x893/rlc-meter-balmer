@@ -24,13 +24,13 @@ DEPS += \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
 	output/base/src/systick.d \
+	output/base/src/usb_commands.d \
 	output/base/src/usb_desc.d \
 	output/base/src/usb_endp.d \
 	output/base/src/usb_istr.d \
 	output/base/src/usb_prop.d \
 	output/base/src/usb_pwr.d \
 	output/base/src/vbat.d \
-	output/base/src/voltage.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_init.d \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_int.d \
@@ -71,13 +71,13 @@ OBJS += \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
 	output/base/src/systick.o \
+	output/base/src/usb_commands.o \
 	output/base/src/usb_desc.o \
 	output/base/src/usb_endp.o \
 	output/base/src/usb_istr.o \
 	output/base/src/usb_prop.o \
 	output/base/src/usb_pwr.o \
 	output/base/src/vbat.o \
-	output/base/src/voltage.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_init.o \
 	output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_int.o \
@@ -177,6 +177,10 @@ output/base/src/systick.o: ./src/systick.c
 	@echo 'Building target: systick.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
+output/base/src/usb_commands.o: ./src/usb_commands.c
+	@echo 'Building target: usb_commands.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
 output/base/src/usb_desc.o: ./src/usb_desc.c
 	@echo 'Building target: usb_desc.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
@@ -199,10 +203,6 @@ output/base/src/usb_pwr.o: ./src/usb_pwr.c
 
 output/base/src/vbat.o: ./src/vbat.c
 	@echo 'Building target: vbat.c'
-	@$(CC) $(C_FLAGS) -o "$@" "$<"
-
-output/base/src/voltage.o: ./src/voltage.c
-	@echo 'Building target: voltage.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/Libraries/STM32_USB-FS-Device_Driver/src/usb_core.o: ./Libraries/STM32_USB-FS-Device_Driver/src/usb_core.c
