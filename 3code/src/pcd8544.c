@@ -65,9 +65,12 @@
  *
  * Contributor : 
  * + Jakub Lasinski
+ 
+	Convert to ARM code.
+	balmer@inbox.ru RLC Meter 303
+	2013-2014
  */
 
-//#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include "pcd8544.h"

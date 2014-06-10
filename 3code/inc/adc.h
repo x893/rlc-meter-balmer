@@ -1,6 +1,8 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _ADC_H_
 #define _ADC_H_
-// balmer@inbox.ru 2013 RLC Meter
 
 #define RESULT_BUFFER_SIZE 3000
 

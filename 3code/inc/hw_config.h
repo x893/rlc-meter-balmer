@@ -1,4 +1,5 @@
-// balmer@inbox.ru 2013 RLC Meter
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
 
 #ifndef __HW_CONFIG_H
 #define __HW_CONFIG_H

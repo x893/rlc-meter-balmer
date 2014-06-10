@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _CORRECTOR_H_
 #define _CORRECTOR_H_
 

@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef _CALC_RC_H_
 #define _CALC_RC_H_
 

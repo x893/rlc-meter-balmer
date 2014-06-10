@@ -1,3 +1,6 @@
+// balmer@inbox.ru RLC Meter 303
+// 2013-2014
+
 #ifndef __SYSTICK_H
 #define __SYSTICK_H 
 
