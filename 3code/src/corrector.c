@@ -14,7 +14,7 @@ period= 72000 freq= 1000
 period= 7200 freq= 10000
 period= 768 freq=  93750 
 */
-const uint32_t predefinedPeriods[PREDEFINED_PERIODS_COUNT] = {720000, 72000, 7200, 768, 288};
+const uint32_t predefinedPeriods[PREDEFINED_PERIODS_COUNT] = {720000, 72000, 7200, 768, 384};
 const signed char gainValidIdx[] = {0, 1, 2, -1, 3, -1, 4, 5};
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
@@ -174,10 +174,12 @@ complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* cr)
 
 bool CorrectorFlashClear()
 {
-	//Clear 2 Kb flash 
+	//Clear 4 Kb flash 
 	bool ok;
 	FLASH_Unlock();
 	ok = (FLASH_ErasePage(FLASH_START_ARRAY)==FLASH_COMPLETE);
+	if(ok)
+		ok = (FLASH_ErasePage(FLASH_START_ARRAY+2048)==FLASH_COMPLETE);
 	FLASH_Lock();
 	return ok;
 }
