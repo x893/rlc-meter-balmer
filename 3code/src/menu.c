@@ -22,7 +22,7 @@ typedef enum MenuEnum {
 	MENU_F_1KHz,
 	MENU_F_10KHz,
 	MENU_F_93_75KHz,
-	MENU_F_250KHz,
+	MENU_F_187_5KHz,
 	MENU_SP_RETURN,
 	MENU_SP_SERIAL,
 	MENU_SP_PARALLEL,
@@ -50,7 +50,7 @@ static MenuElem g_f_menu[]={
 	{"1 KHz", MENU_F_1KHz},
 	{"10 KHz", MENU_F_10KHz},
 	{"93.75 KHz", MENU_F_93_75KHz},
-	{"250 KHz", MENU_F_250KHz},
+	{"187.5 KHz", MENU_F_187_5KHz},
 };
 
 static MenuElem g_sp_menu[]={
@@ -148,8 +148,8 @@ void OnButtonPressed()
 		MenuSetF(768);
 		g_last_f_command = command;
 		break;
-	case MENU_F_250KHz:
-		MenuSetF(288);
+	case MENU_F_187_5KHz:
+		MenuSetF(384);
 		g_last_f_command = command;
 		break;
 	case MENU_SP_SERIAL:
@@ -201,7 +201,10 @@ void MenuRepaint()
 
 	if(g_menu_pos<g_menu_size)
 	{
-		LcdSingleBar( 4, (ystart+g_menu_pos)*font_height+1, font_height+1, 6*12+4, PIXEL_XOR );
+		if(g_menu_pos<5)
+			LcdSingleBar( 4, (ystart+g_menu_pos)*font_height+1, font_height+1, 6*12+4, PIXEL_XOR );
+		else
+			LcdSingleBar( 4, (ystart+g_menu_pos)*font_height, font_height, 6*12+4, PIXEL_XOR );
 	}
 }
 

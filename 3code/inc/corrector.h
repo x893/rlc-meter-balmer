@@ -11,15 +11,9 @@
 #define CORRECTOR_OPEN_SHORT_GAIN_COUNT 6
 #define PREDEFINED_PERIODS_COUNT 5
 
-typedef struct Zm2x
-{
-	complexf Zm1;//measured minimal value
-	complexf Zm2;//measured mmaximal value
-} Zm2x;
-
 typedef struct ZmOpen
 {
-	complexf Zstdm;//measured load 100 КОм
+	complexf Zstdm;//measured load
 	complexf Zom;//measured open fixtures
 } ZmOpen;
 
@@ -31,15 +25,15 @@ typedef struct ZmShort
 
 typedef struct CoeffCorrector2x
 {
-	Zm2x Zm[CORRECTOR2X_GAIN_COUNT];
-	float Z1;//real minimal value
-	float Z2;//real maximal value
+	ZmOpen Zm[CORRECTOR2X_GAIN_COUNT];
+	float R[CORRECTOR2X_GAIN_COUNT];//real load value
+	float C[CORRECTOR2X_GAIN_COUNT];
 } CoeffCorrector2x;
 
 typedef struct CoeffCorrectorOpen
 {
 	ZmOpen Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
-	float R;//precize 100 КОм real value
+	float R;//precize real value
 	float C;//capacitance load
 	uint32_t maxGainIndex;
 } CoeffCorrectorOpen;

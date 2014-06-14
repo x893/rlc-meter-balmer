@@ -23,22 +23,22 @@ def getGainOpenShortIdx():
 def formatR(R):
 	RA = math.fabs(R)
 	if RA<1e-2:
-		return '{:3.2f} mOm'.format(R*1e3)
+		return '{:3.3f} mOm'.format(R*1e3)
 	if RA<1:
-		return '{:3.1f} mOm'.format(R*1e3)
+		return '{:3.2f} mOm'.format(R*1e3)
 	if RA<1e1:
-		return '{:3.2f} Om'.format(R)
+		return '{:3.3f} Om'.format(R)
 	if RA<1e3:
-		return '{:3.1f} Om'.format(R)
+		return '{:3.2f} Om'.format(R)
 	if RA<8e3:
 		return '{:3.3f} KOm'.format(R*1e-3)
 	if RA<2e4:
 		return '{:3.2f} KOm'.format(R*1e-3)
 	if RA<1e6:
-		return '{:3.1f} KOm'.format(R*1e-3)
+		return '{:3.2f} KOm'.format(R*1e-3)
 	if RA<1e7:
-		return '{:3.2f} MOm'.format(R*1e-6)
-	return '{:3.1f} MOm'.format(R*1e-6)
+		return '{:3.3f} MOm'.format(R*1e-6)
+	return '{:3.2f} MOm'.format(R*1e-6)
 
 def formatC(C):
 	CA = math.fabs(C)
@@ -240,7 +240,7 @@ class Corrector2x:
 		gain_index_I = attr['gain_index_I']
 		if not (period in self.data[gain_index_I]):
 			return R
-			
+
 		d = self.data[gain_index_I][period]
 		Z1 = complex(self.Rmin, 0)
 		Z2 = complex(self.Rmax, 0)
@@ -253,19 +253,35 @@ class Corrector2x:
 		return Zx
 
 class CorrectorOpen:
-	def __init__(self):
-		self.load()
+	def __init__(self, diapazon):
+		self.load(diapazon)
 		pass
-	def load(self):
+	def load(self, diapazon):
 		data = {}
-		for i in getGainOpenShortIdx():
-			prefix = 'cor/R3V0I'+str(i)+'_'
-			fname0 = prefix+'100KOm.json'
+		if diapazon==0:
+			name0 = ['100Om', '100Om', '1KOm']
+			rangeI = getGainCentralIdx()
+		elif diapazon==1:
+			name0 = ['1KOm', '1KOm', '10KOm']
+			rangeI = getGainCentralIdx()
+		elif diapazon==2:
+			name0 = ['10KOm', '10KOm', '100KOm']
+			rangeI = getGainCentralIdx()
+		elif diapazon==3:
+			name0 = ['100KOm']*6
+			rangeI = getGainOpenShortIdx()
+		self.R = {}
+
+		for idx in xrange(len(rangeI)):
+			i = rangeI[idx]
+			prefix = 'cor/R'+str(diapazon)+'V0I'+str(i)+'_'
+			fname0 = prefix+name0[idx]+'.json'
 			fname1 = prefix+'open.json'
+
 			json_min = readJson(fname0)
 			json_max = readJson(fname1)
 
-			self.R = json_min['R']
+			self.R[i] = json_min['R']
 
 			cur = {}
 			data[i] = cur
@@ -281,22 +297,23 @@ class CorrectorOpen:
 
 		self.data = data
 		#self.C = 0
-		self.C = 0.5e-12
+		self.C = 0.15e-12
 		pass
 
 	def correct(self, R, period, F, attr):
 		gain_index_I = attr['gain_index_I']
+		if period==192:#quick fix
+			return R
 		if not (period in self.data[gain_index_I]):
 			return R
 
 		d = self.data[gain_index_I][period]
 		Zom = d['open']['R']
 		Zstdm = d['load']['R']
-		Ystd = complex(1.0/self.R, 2*math.pi*F*self.C)
+		Ystd = complex(1.0/self.R[gain_index_I], 2*math.pi*F*self.C)
 		Zstd = 1/Ystd
 		#Zstd = complex(self.R, 0)
 		Zxm = R
-		#Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom)
 		Zx = Zstd*(1/Zstdm-1/Zom)/(1/Zxm-1/Zom)
 		return Zx
 
@@ -359,14 +376,27 @@ class Corrector:
 	def load(self):
 		self.corr_short = CorrectorShort()
 		self.corr = []
-		self.corr.append(Corrector2x(0))
-		self.corr.append(Corrector2x(1))
-		self.corr.append(Corrector2x(2))
-		self.corr.append(CorrectorOpen())
+		#self.corr.append(Corrector2x(0))
+		#self.corr.append(Corrector2x(1))
+		#self.corr.append(Corrector2x(2))
+		#self.corr.append(CorrectorOpen(3))
+		for diapazon in xrange(4):
+			self.corr.append(CorrectorOpen(diapazon))
 		pass
 	def correct(self, R, period, F, attr):
 		resistor_index = attr['resistor_index']
-		if abs(R)<100:
+		is_short = False
+		gain_index_V = attr['gain_index_V']
+		gain_index_I = attr['gain_index_I']
+		#return self.corr[3].correct(R, period, F, attr)
+		if gain_index_V>0:
+			is_short = True
+		elif gain_index_I>0:
+			is_short = False
+		else:
+			is_short = abs(R)<100
+
+		if is_short:
 			return self.corr_short.correct(R, period, F, attr)
 		return self.corr[resistor_index].correct(R, period, F, attr)
 

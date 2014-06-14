@@ -41,7 +41,7 @@ COMMAND_SET_CONTINUOUS_MODE = 24
 
 LOW_PASS_PERIOD = 24000 #3 KHz
 
-HARDWARE_CORRECTOR_PERIODS = [720000, 72000, 7200, 768, 288]
+HARDWARE_CORRECTOR_PERIODS = [720000, 72000, 7200, 768, 384]
 
 
 
@@ -325,23 +325,24 @@ def setCorrector2x(corrector, period):
     for iresistor in xrange(3):
         #iresistor == rezistorIdx
         corr = corrector.corr[iresistor]
-        Z1 = corr.Rmin
-        Z2 = corr.Rmax
-
-        dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR2XR, iresistor,0,0,
-            Z1, Z2
-            ))
-        data = dread()
-        assert(data[0]==COMMAND_SET_CORRECTOR2XR)
-        assert(data[1]==iresistor)
+        #Z1 = corr.Rmin
+        #Z2 = corr.Rmax
+        #dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR2XR, iresistor,0,0,
+        #    Z1, Z2
+        #    ))
+        #data = dread()
+        #assert(data[0]==COMMAND_SET_CORRECTOR2XR)
+        #assert(data[1]==iresistor)
 
         for gain_index_I in getGainCentralIdx():
             d = corr.data[gain_index_I][period]
-            Zm1 = d['min']['R']
-            Zm2 = d['max']['R']
-            dwrite(struct.pack("=BBBBffff", COMMAND_SET_CORRECTOR2X, iresistor, gain_index_I, 0,
-                Zm1.real, Zm1.imag,
-                Zm2.real, Zm2.imag
+            Zstdm = d['load']['R']
+            Zom = d['open']['R']
+
+            dwrite(struct.pack("=BBBBffffff", COMMAND_SET_CORRECTOR2X, iresistor, gain_index_I, 0,
+                Zstdm.real, Zstdm.imag,
+                Zom.real, Zom.imag, 
+                corr.R[gain_index_I], corr.C
                 ))
             data = dread()
             assert(data[0]==COMMAND_SET_CORRECTOR2X)
@@ -353,7 +354,7 @@ def setCorrectorOpen(corrector, period, maxAmplitude):
     corr = corrector.corr[3]
     amp = maxAmplitude.getMaxGainI(resistorIndex=3, period=period)
     dwrite(struct.pack("=BBBBff", COMMAND_SET_CORRECTOR_OPENR, amp,0,0,
-        corr.R, corr.C
+        corr.R[0], corr.C
         ))
     data = dread()
     assert(data[0]==COMMAND_SET_CORRECTOR_OPENR)
@@ -743,7 +744,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 1*96, -96):
+    for period in xrange(75*96, 2*96, -96):
         arr.append(period)
     return arr
 
@@ -762,7 +763,7 @@ def period90Khz_max():
 
 def periodAll():
     return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
-    #return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_100KHz()+period100Khz_max()
+    #return HARDWARE_CORRECTOR_PERIODS
 
 def allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, IIndex=None, fileName='freq.json'):
     sc = ScanFreq()
@@ -770,6 +771,7 @@ def allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, II
     while sc.next():
         print "f=", periodToFreqency(period), "p=", period
         pass
+    print "f=", periodToFreqency(period), "p=", period
     sc.save()
     pass
 
@@ -950,8 +952,8 @@ def main():
         #adcSynchroJson(soft=True, count=10)
     else:
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')
-        #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=0, VIndex=0, IIndex=2, fileName='freq_200Om.json')
-        allFreq(fileName='freq_short_100.json')
+        allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=0, VIndex=0, IIndex=0, fileName='cor/R0V0I0_open.json')
+        #allFreq(fileName='freq_short_100.json')
     pass
 
 

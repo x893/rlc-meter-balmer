@@ -88,6 +88,8 @@ class FormMain(QtGui.QMainWindow):
 
     def OnGraphOpen(self):
         fileName = QtGui.QFileDialog.getOpenFileName(filter='freq json (*.json)', caption=TITLE+' - Open freq.json')
+        if len(fileName)==0:
+            return
         form = plot.FormDrawData(TITLE, self)
         form.setData(fileName)
         form.show()
@@ -344,12 +346,25 @@ class FormCalibrationResistor(QtGui.QMainWindow):
             ])
 
         self.AddLineOpen(vbox, [
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 1},
+
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 1},
+
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 1},
+            {'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 1},
+
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':0, 'div': 1},
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':1, 'div': 1},
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':2, 'div': 1},
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':4, 'div': 1},
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':6, 'div': 1},
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':7, 'div': 1},
+
             ])
 
         button_close = QtGui.QPushButton(u'Записать в FLASH')
@@ -419,8 +434,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        button.clicked.connect(lambda: self.processOpen(line))
-        #button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
+        #button.clicked.connect(lambda: self.processOpen(line))
+        button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
         
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')
