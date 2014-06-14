@@ -268,6 +268,7 @@ FormatValue:;
 			*aBuffer++ = '.';
 			*aBuffer++ = '0'+(char)(value%10);
 		} else
+		if(aValue>=9)
 		{
 			value = (int)(aValue*100+0.5f);
 			char c = (value/1000);
@@ -275,6 +276,15 @@ FormatValue:;
 				*aBuffer++ = '0'+c;
 			*aBuffer++ = '0'+(value/100)%10;
 			*aBuffer++ = '.';
+			*aBuffer++ = '0'+(char)((value/10)%10);
+			*aBuffer++ = '0'+(char)(value%10);
+		} else
+		{
+			value = (int)(aValue*1000+0.5f);
+			char c = (value/1000);
+			*aBuffer++ = '0'+c;
+			*aBuffer++ = '.';
+			*aBuffer++ = '0'+(value/100)%10;
 			*aBuffer++ = '0'+(char)((value/10)%10);
 			*aBuffer++ = '0'+(char)(value%10);
 		}
