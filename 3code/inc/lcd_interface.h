@@ -8,6 +8,7 @@ void LcdRepaint();
 void printInt(int32_t value, uint8_t font);
 
 extern int printD;
+extern float printGradus;
 
 extern float Rre;
 extern float Rim;

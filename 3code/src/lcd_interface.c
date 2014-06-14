@@ -11,6 +11,7 @@
 #include "vbat.h"
 
 int printD = 0; //debug
+float printGradus = -1000;
 
 float Rre = 0;
 float Rim = 0;
@@ -49,6 +50,21 @@ void printLcdFrequency()
     }
 
     printF(f);
+}
+
+void printLcdGradus()
+{
+    float f = printGradus;
+    LcdStr(FONT_1X, "D=");
+    if(f>-100 && f<+100)
+    {
+        printIntFixed(round(f*10), FONT_1X, 2, 1);
+        LcdStr(FONT_1X, "{");
+        return;
+    } else
+    {
+        LcdStr(FONT_1X, "---");
+    }
 }
 
 void LcdRepaint()
@@ -98,8 +114,9 @@ void LcdRepaint()
     VBatQuant();
 
     LcdGotoXYFont(1,6);
-    LcdStr(FONT_1X, "D=");
-    printInt(printD, FONT_1X);
+    //LcdStr(FONT_1X, "D="); printInt(printD, FONT_1X);
+    printLcdGradus();
+
     LcdGotoXYFont(9,6);
     LcdStr(FONT_1X, "R");
     printInt(resistorIdx, FONT_1X);
