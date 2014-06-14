@@ -35,6 +35,7 @@ void OnCalculate()
 
 	Rre = creal(Zx);
 	Rim = cimag(Zx);
+	printGradus = carg(Zx)*180.0/3.14159f;
 
 	float F = DacFrequency();
 

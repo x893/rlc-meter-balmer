@@ -172,8 +172,12 @@ static const byte FontLookup [][5] =
     { 0x3C, 0x40, 0x30, 0x40, 0x3C },   /* w */
     { 0x44, 0x28, 0x10, 0x28, 0x44 },   /* x */
     { 0x0C, 0x50, 0x50, 0x50, 0x3C },   /* y */
-    { 0x44, 0x64, 0x54, 0x4C, 0x44 }    /* z */
+    { 0x44, 0x64, 0x54, 0x4C, 0x44 },   /* z */
+    { 0x07, 0x05, 0x07, 0x00, 0x00 }    /* { -> GRADUS */
 };
+
+#define CHAR_MIN 0x20
+#define CHAR_COUNT (sizeof(FontLookup)/sizeof(FontLookup[0]))
 
 
 // Send two byte
@@ -302,7 +306,7 @@ byte LcdChr ( LcdFontSize size, char chr )
     int  tmpIdx;
     byte ch = (byte)chr;
 
-    if ( (ch < 0x20) || (ch > 0x7b) )
+    if ( (ch < CHAR_MIN) || (ch >= (CHAR_MIN+CHAR_COUNT)) )
     {
         /* Convert to a printable character. */
         ch = 92;

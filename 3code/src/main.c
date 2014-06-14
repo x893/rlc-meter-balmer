@@ -25,6 +25,21 @@ void USB_Config(void)
   //while (bDeviceState != CONFIGURED) {}
 }
 
+void LcdHello()
+{
+  LcdClear();
+  LcdGotoXYFont(3,3);
+  LcdStr(FONT_2X, "RLC");
+
+  LcdGotoXYFont(9, 3);
+  LcdStr(FONT_1X, "meter");
+
+  LcdGotoXYFont(3, 5);
+  LcdStr(FONT_1X, "BALMER 303{");
+
+  LcdUpdate();
+}
+
 int main(void)
 {
   delay_init();
@@ -35,12 +50,6 @@ int main(void)
   InitLight();
 
   VBatInit();
-  
-  LcdClear();
-  LcdGotoXYFont(1,1);
-  LcdStr(FONT_1X, "Hello!");
-  LcdUpdate();
-
 
   USB_Config();
 
@@ -49,6 +58,8 @@ int main(void)
 
   MCPInit();
   QuadEncInit();
+
+  LcdHello();
 
   while (1)
   {
