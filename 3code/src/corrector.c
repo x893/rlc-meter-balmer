@@ -49,7 +49,19 @@ complexf Corrector(complexf Zxm)
 	if(coeff.period==0)
 		return Zxm;
 
-	if(cabs(Zxm)<100)
+	bool is_short = false;
+	if(gainVoltageIdx>0)
+	{
+		is_short = true;
+	}else if(gainCurrentIdx>0)
+	{
+		is_short = false;
+	} else
+	{
+		is_short = cabs(Zxm)<100;
+	}
+
+	if(is_short)
 	{
 		return CorrectorShort(Zxm, &coeff.cshort);	
 	}
@@ -72,18 +84,18 @@ void SetCorrector2x(uint8_t resistor, uint8_t gain, float* data)
 	if(resistor>=CORRECTOR2X_RESISTOR_COUNT || gain>=CORRECTOR2X_GAIN_COUNT)
 		return;
 
-	Zm2x* c = coeff.x2x[resistor].Zm+gain;
-	c->Zm1 = data[0]+data[1]*I;
-	c->Zm2 = data[2]+data[3]*I;
+	CoeffCorrector2x* cr = coeff.x2x + resistor;
+	ZmOpen* c = cr->Zm+gain;
+	c->Zstdm = data[0]+data[1]*I;
+	c->Zom = data[2]+data[3]*I;
+	cr->R[gain] = data[4];
+	cr->C[gain] = data[5];
 }
 
 void SetCorrector2xR(uint8_t resistor, float* data)
 {
 	if(resistor>=CORRECTOR2X_RESISTOR_COUNT)
 		return;
-
-	coeff.x2x[resistor].Z1 = data[0];
-	coeff.x2x[resistor].Z2 = data[1];
 }
 
 void SetCorrectorOpen(uint8_t gain, float* data)
@@ -120,30 +132,33 @@ void SetCorrectorShortR(float* data)
 }
 
 
+complexf CorrectorOpenX(complexf Zxm, float Rstd, float Cstd, complexf Zstdm, complexf Zom)
+{
+	float F = DacFrequency();
+	complexf Ystd = 1.0f/Rstd + 2.0f*pi*F*Cstd*I;
+	complexf Zstd = 1.0f/Ystd;
+	complexf Zx = Zstd*(1/Zstdm-1/Zom)*Zxm/(1-Zxm/Zom);
+	return Zx;
+}
+
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* cr)
 {
-	Zm2x* c = NULL;
 	if(gainCurrentIdx>=CORRECTOR2X_GAIN_COUNT)
 		return 0;
-	c = cr->Zm+gainCurrentIdx;	
-	complexf A = (cr->Z2-cr->Z1)/(c->Zm2-c->Zm1);
-	complexf B = (cr->Z1*c->Zm2-cr->Z2*c->Zm1)/(c->Zm2-c->Zm1);
-	complexf Zx = A*Zxm+B;
-	return Zx;
+	ZmOpen* c = cr->Zm+gainCurrentIdx;
+	float Rstd = cr->R[gainCurrentIdx];
+	float Cstd = cr->C[gainCurrentIdx];
+	return CorrectorOpenX(Zxm, Rstd, Cstd, c->Zstdm, c->Zom);
 }
 
 complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* cr)
 {
-	float F = DacFrequency();
 	int idx = gainValidIdx[gainCurrentIdx];
 	if(idx<0)
 		return 0;
 	ZmOpen* c = cr->Zm+idx;
 
-	complexf Ystd = 1.0f/cr->R + 2.0f*pi*F*cr->C*I;
-	complexf Zstd = 1.0f/Ystd;
-	complexf Zx = Zstd*(1/c->Zstdm-1/c->Zom)*Zxm/(1-Zxm/c->Zom);
-	return Zx;
+	return CorrectorOpenX(Zxm, cr->R, cr->C, c->Zstdm, c->Zom);
 }
 
 complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* cr)

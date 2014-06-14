@@ -56,6 +56,8 @@ class FormDrawData(QtGui.QMainWindow):
 		self.gtype_combo_box.addItem(u'DFI (corrected)', QtCore.QVariant('dfic'))
 		self.gtype_combo_box.addItem(u'DFI (uncorrected)', QtCore.QVariant('dfi'))
 		self.gtype_combo_box.addItem(u'Re+Im (Raw)', QtCore.QVariant('ReImRaw'))
+		self.gtype_combo_box.addItem(u'Amplithude I V', QtCore.QVariant('ampIV'))
+		
 		
 		self.gtype_combo_box.currentIndexChanged.connect(self.OnSelectGraph)
 		right_vbox.addWidget(self.gtype_combo_box)
@@ -123,8 +125,8 @@ class FormDrawData(QtGui.QMainWindow):
 		arr_L = []
 		arr_C = []
 
-		im_sin = []
-		im_cos = []
+		amp_I = []
+		amp_V = []
 		fiV_data = []
 		fiI_data = []
 
@@ -158,9 +160,11 @@ class FormDrawData(QtGui.QMainWindow):
 			#im_error.append(math.sqrt(jf['summary']['I']['sin']**2+jf['summary']['I']['cos']**2)/gain_I)
 			#re_error.append(gain_V)
 			#im_error.append(gain_I)
+			#re_error.append(jf['attr']["gain_index_V"])
+			#im_error.append(jf['attr']["gain_index_I"])
 
-			im_sin.append(jf['summary']['I']['sin']/gain_I)
-			im_cos.append(jf['summary']['I']['cos']/gain_I)
+			amp_I.append(abs(complex(jf['summary']['I']['sin']/gain_I, jf['summary']['I']['cos']/gain_I)))
+			amp_V.append(abs(complex(jf['summary']['V']['sin']/gain_V, jf['summary']['V']['cos']/gain_V)))
 
 			if gtype=='dfic':
 				dfi_data.append(cmath.phase(Zx)*180/math.pi)
@@ -226,8 +230,6 @@ class FormDrawData(QtGui.QMainWindow):
 		#ax.set_ylabel("Om")
 		#ax.plot (f_data, fiV_data, '-', color="red")
 		#ax.plot (f_data, fiI_data, '-', color="blue")
-		#ax.plot (f_data, im_sin, '.', color="red")
-		#ax.plot (f_data, im_cos, '.-', color="blue")
 
 		if gtype=="dfi" or gtype=="dfic":
 			ax.plot (f_data, dfi_data, '-', color="green")
@@ -255,6 +257,11 @@ class FormDrawData(QtGui.QMainWindow):
 		if gtype=="L":
 			ax.set_ylabel("uH")
 			ax.plot (f_data, arr_L, '-', color="red")
+
+		if gtype=="ampIV":
+			ax.set_ylabel("Amplithude I V")
+			ax.plot (f_data, amp_V, '-', color="red")
+			ax.plot (f_data, amp_I, '-', color="blue")
 		pass
 
 class FormMeasure(QtGui.QMainWindow):
@@ -362,6 +369,7 @@ class FormMeasure(QtGui.QMainWindow):
 			txt = "Rre=" + jplot.formatR(1/Yx.real)
 			txt += "\nRim=" + jplot.formatR(-1/Yx.imag)
 
+		txt += "\nD=" + '{:3.2f} grad'.format(cmath.phase(Zx)*180.0/math.pi)
 
 		if isC:
 			txt += "\nC=" + jplot.formatC(C)
