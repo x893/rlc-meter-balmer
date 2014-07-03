@@ -302,17 +302,22 @@ def adcSynchro(inPeriod, inAmplitude = None):
     data = dread()
     #print data
     (period, clock, ncycle) = struct.unpack_from('=III', data, 1)
-    #print "period=",period, "freq=", clock/period
+    #print "period=",period, "freq=", clock/period, "ncycle=", ncycle
     # " cycle_x4=", period/(24.0*4)
     time.sleep(0.1)
 
 def adcRequestData():
     dwrite([COMMAND_REQUEST_DATA]);
     dread()
-    time.sleep(0.1)
-    dwrite([COMMAND_DATA_COMPLETE]);
-    data = dread()
-    complete = struct.unpack_from('=B', data, 1)[0]
+
+    for i in xrange(0,50):
+        time.sleep(0.01)
+        dwrite([COMMAND_DATA_COMPLETE]);
+        data = dread()
+        complete = struct.unpack_from('=B', data, 1)[0]
+        if complete==1:
+            break
+
     if complete!=1:
         print "complete error = ", complete
 
@@ -521,6 +526,8 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
 
     goodMin = 2700
     goodMax = 3700
+    #goodMin = 2300
+    #goodMax = 3850
 
     goodDelta = goodMax-goodMin
 
@@ -602,8 +609,7 @@ def setGainAuto(predefinedRes=-1, maxAmplitude=None):
         imin = jI['min']
         imax = jI['max']
         #print "gainI=", i
-        #print " vmin="+str(vmin)
-        #print " vmax="+str(vmax)
+        print " vmin="+str(vmin), " vmax="+str(vmax)
         #print " imin="+str(imin)
         #print " imax="+str(imax)
         #print " DV="+str(vmax-vmin)
@@ -679,15 +685,38 @@ def getAttr():
     return jattr
 
 def adcSynchroJson(soft=True, corrector = None, count=10):
-    (out1, out2) = adcRequestData()
-    jout = {}
     jdata = {}
+
+    if count<2:
+        (out1, out2) = adcRequestData()
+        jdata["V"] = arrByteToShort(out1)
+        jdata["I"] = arrByteToShort(out2)
+    else:
+        (out1x, out2x) = adcRequestData()
+        out1xh = arrByteToShort(out1x)
+        out2xh = arrByteToShort(out2x)
+        out1 = [ float(out1xh[i]) for i in xrange(len(out1xh))]
+        out2 = [ float(out2xh[i]) for i in xrange(len(out2xh))]
+        for i in xrange(1, count):
+            (out1x, out2x) = adcRequestData()
+            out1xh = arrByteToShort(out1x)
+            out2xh = arrByteToShort(out2x)
+            for j in xrange(len(out1)):
+                out1[j] += out1xh[j]
+                out2[j] += out2xh[j]
+
+        for j in xrange(len(out1)):
+            out1[j] /= float(count)
+            out2[j] /= float(count)
+        jdata["V"] = out1
+        jdata["I"] = out2
+
+
+    jout = {}
 
     jout["attr"] = getAttr()
     jout["data"] = jdata
 
-    jdata["V"] = arrByteToShort(out1)
-    jdata["I"] = arrByteToShort(out2)
 
     f = open('out.json', 'w')
     f.write(json.dumps(jout))
@@ -744,7 +773,7 @@ def period1KHz_10KHz():
 
 def period10Khz_max():
     arr = []
-    for period in xrange(75*96, 2*96, -96):
+    for period in xrange(75*96, 1*96, -96):
         arr.append(period)
     return arr
 
@@ -757,7 +786,7 @@ def period10Khz_100KHz():
 
 def period90Khz_max():
     arr = []
-    for period in xrange(10*96, 3*96, -96):
+    for period in xrange(10*96, 2*96, -96):
         arr.append(period)
     return arr
 
@@ -779,9 +808,10 @@ def oneFreq(period, lowPass='auto', inAmplitude = None, maxAmplitude=None, count
     if lowPass=='auto':
         lowPass = (period>=LOW_PASS_PERIOD)
 
+    print "period=", period
     if count==None:
         if period>=LOW_PASS_PERIOD:
-            count = 10
+            count = 20
         else:
             count = 100
 
@@ -908,12 +938,11 @@ def main():
     if not initDevice():
         return
 
-    if False:
-        #period = HARDWARE_CORRECTOR_PERIODS[3]
-        #period = 19968
-        #period = 7488
-        #period = 1*96
-        period = periodToFreqency(10)
+    if True:
+        #period = HARDWARE_CORRECTOR_PERIODS[1]
+        period = 3*96
+        #period = periodToFreqency(3864)
+        #period = periodToFreqency(10)
 
         if True:
             corrector = None
@@ -940,7 +969,7 @@ def main():
 
         if soft:
             setLowPass(False)
-            if True:
+            if False:
                 setGainAuto()
                 #setGainAuto(predefinedRes=3)
             else:
@@ -948,8 +977,8 @@ def main():
                 setSetGain(1, 0) #V
                 setSetGain(0, 0) #I
         time.sleep(0.1)
-        adcSynchroJson(soft=soft, corrector=corrector)
-        #adcSynchroJson(soft=True, count=10)
+        #adcSynchroJson(soft=soft, corrector=corrector, count=10)
+        adcSynchroJson(soft=True, count=1)
     else:
         #allFreq(amplitude=DEFAULT_DAC_AMPLITUDE/2, resistorIndex=0, VIndex=0, IIndex=1, fileName='cor/R0V0I1_100Om.json')
         allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=0, VIndex=0, IIndex=0, fileName='cor/R0V0I0_open.json')

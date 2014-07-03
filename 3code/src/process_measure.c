@@ -42,7 +42,7 @@ uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
 
 bool bContinuousMode = false;
-static bool debugRepaint = true;
+static bool debugRepaint = false;
 
 extern int printD;
 

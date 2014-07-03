@@ -40,7 +40,21 @@ uint32_t DacSampleTicks(void)
 {
 	return g_dac_period/SinusBufferSize;
 }
-
+/*
+static void DacSquareCalculate()
+{
+	for(int i=0; i<SinusBufferSize; i++)
+	{
+		float s;
+		if(i<(SinusBufferSize/2))
+			s = -1;
+		else
+			s = +1;
+		g_sinusBufferFloat[i] = s;
+		g_sinusBuffer[i] = (uint16_t) lround(s*g_dac_amplitude)+DAC_ZERO;
+	}
+}
+*/
 void DacSinusCalculate()
 {
 	float mul = 2*pi/SinusBufferSize;
