@@ -143,6 +143,9 @@ class FormDrawData(QtGui.QMainWindow):
 				res = jplot.calculateJson(jf)
 				Zx = res['R']
 
+			#if res['period']<3*96:#quick fix
+			#	continue
+
 			F = res['F']
 			f_data.append(F)
 
@@ -163,13 +166,17 @@ class FormDrawData(QtGui.QMainWindow):
 			#re_error.append(jf['attr']["gain_index_V"])
 			#im_error.append(jf['attr']["gain_index_I"])
 
-			amp_I.append(abs(complex(jf['summary']['I']['sin']/gain_I, jf['summary']['I']['cos']/gain_I)))
-			amp_V.append(abs(complex(jf['summary']['V']['sin']/gain_V, jf['summary']['V']['cos']/gain_V)))
+			#amp_I.append(abs(complex(jf['summary']['I']['sin']/gain_I, jf['summary']['I']['cos']/gain_I)))
+			#amp_V.append(abs(complex(jf['summary']['V']['sin']/gain_V, jf['summary']['V']['cos']/gain_V)))
+			amp_I.append(abs(complex(jf['summary']['I']['sin'], jf['summary']['I']['cos'])))
+			amp_V.append(abs(complex(jf['summary']['V']['sin'], jf['summary']['V']['cos'])))
+
 
 			if gtype=='dfic':
 				dfi_data.append(cmath.phase(Zx)*180/math.pi)
 			if gtype=='dfi':
 				dfi_data.append(cmath.phase(res['R'])*180/math.pi)
+				#dfi_data.append((cmath.phase(res['R'])-cmath.phase(Zx))*180/math.pi) #dfi error
 			
 			fiV_data.append(res['fiV'])
 			fiI_data.append(res['fiI'])
@@ -348,7 +355,12 @@ class FormMeasure(QtGui.QMainWindow):
 		i = 0
 		while not self.end_thread:
 			jf = usb_commands.oneFreq(self.period, maxAmplitude=self.maxAmplitude)
-			res = self.corr.calculateJson(jf)
+			if self.corr:
+				res = self.corr.calculateJson(jf)
+			else:
+				res = jplot.calculateJson(jf)
+				res['Zx'] = res['R']
+
 			if self.end_thread:
 				return
 			self.SetInfo(res)

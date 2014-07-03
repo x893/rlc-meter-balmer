@@ -4,7 +4,8 @@
 #ifndef _ADC_H_
 #define _ADC_H_
 
-#define RESULT_BUFFER_SIZE 3000
+#define RESULT_BUFFER_SIZE 2000
+//#define RESULT_BUFFER_SIZE 3000
 
 typedef struct {
 	uint16_t adc_min;

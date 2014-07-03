@@ -197,6 +197,7 @@ static void AdcStartPre34()
 	DMA_SetCurrDataCounter(DMA2_Channel2, 0);
 
 	uint8_t sample_ticks = DacSampleTicks()<72?ADC_SampleTime_7Cycles5:ADC_SampleTime_19Cycles5;
+	//uint8_t sample_ticks = ADC_SampleTime_601Cycles5;
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_1/*PB1*/, 1, sample_ticks);
 	ADC_RegularChannelConfig(ADC4, ADC_Channel_1/*PE14*/, 1, sample_ticks);
 

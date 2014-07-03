@@ -117,42 +117,6 @@ def averagePeriod(data, ncycle):
 		adata[i] /= num
 	return adata
 
-def plotRaw(fileName, IV, average = False):
-	fig, ax = plt.subplots()
-	jout = readJson(fileName)
-	jattr = jout["attr"]
-	ncycle = jattr['ncycle']
-
-	ax.set_xlabel("Time")
-
-	if IV=='I':
-		ylabel = "Current"
-		ax.set_ylabel(ylabel)
-	elif IV=='V':
-		ylabel = "Voltage"
-		ax.set_ylabel(ylabel)
-
-
-	per_second = timePerSample(jout)
-	dx = 1.0/per_second
-
-	if IV=='I' or IV=='IV':
-		ydata = jout['data']['I']
-		if average:
-			ydata = averagePeriod(ydata, ncycle)
-		timeList = makeTimeList(ydata, 0, dx)
-		ax.plot (timeList, ydata, '-', color='blue')
-
-	if IV=='V' or IV=='IV':
-		ydata = jout['data']['V']
-		if average:
-			ydata = averagePeriod(ydata, ncycle)
-		timeList = makeTimeList(ydata, 0, dx)
-		ax.plot (timeList, ydata, '-', color='red')
-
-	# !!! Покажем окно с нарисованным графиком
-	plt.show()
-
 def calcFast(period, clock, ncycle, sdata):
 	return complex(sdata["sin"], sdata["cos"])
 
@@ -296,14 +260,12 @@ class CorrectorOpen:
 				cur[res['period']]['open'] = res
 
 		self.data = data
-		#self.C = 0
-		self.C = 0.15e-12
+		#self.C = 0.15e-12
+		self.C = 0.08e-12
 		pass
 
 	def correct(self, R, period, F, attr):
 		gain_index_I = attr['gain_index_I']
-		if period==192:#quick fix
-			return R
 		if not (period in self.data[gain_index_I]):
 			return R
 
@@ -526,22 +488,143 @@ def plotIV(fileName, average = False):
 	plt.show()
 	pass
 
-def plotIV_2():
-	average = True
-	fig, ax = plt.subplots()
-	plotIVInternal(ax, "0pF_100KHz.json", average)
-	plotIVInternal(ax, "1_5pF_100KHz.json", average)
-	plt.show()
+def calculateSinCos(jout):
+	jattr = jout["attr"]
+	period = jattr["period"]
+	clock = jattr["clock"]
+	ncycle = jattr["ncycle"]
+
+	resultV = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['V'])
+	resultI = smath.calcAll(period=period, clock=clock, ncycle=ncycle, data=jout['data']['I'])
+
+	return (resultV, resultI)
+
+def plotRawInternal(ydata, ncycle, color, average, ax, dx, error, result):
+	if average:
+		ydata = averagePeriod(ydata, ncycle)
+	timeList = makeTimeList(ydata, 0, dx)
+
+	if error:
+		csin = result["csin"]
+		ccos = result["ccos"]
+		c0 = result["c0"]
+		for i in xrange(len(timeList)):
+			fi = 2*math.pi*i/ncycle
+			v = math.sin(fi)*csin+math.cos(fi)*ccos+c0
+			ydata[i] -= v
+			#ydata[i] -= c0
+
+	ax.plot (timeList, ydata, '-', color=color)
 	pass
+
+def plotRaw(fileName, IV, average = False, error=False):
+
+	fig, ax = plt.subplots()
+	jout = readJson(fileName)
+	jattr = jout["attr"]
+	ncycle = jattr['ncycle']
+
+	(resultV, resultI) = calculateSinCos(jout)
+	print 'resultV=', resultV
+	print 'resultI=', resultI
+	print 'dfi=', (resultV['fi']-resultI['fi'])*180/math.pi, 'grad'
+	print 'ncycle=', ncycle
+
+
+	ax.set_xlabel("Time")
+
+	if IV=='I':
+		ylabel = "Current"
+		ax.set_ylabel(ylabel)
+	elif IV=='V':
+		ylabel = "Voltage"
+		ax.set_ylabel(ylabel)
+
+	per_second = timePerSample(jout)
+	dx = 1.0/per_second
+
+	if IV=='I' or IV=='IV':
+		ydata = jout['data']['I']
+		plotRawInternal(ydata, ncycle, 'blue', average, ax, dx, error, resultI)
+
+	if IV=='V' or IV=='IV':
+		ydata = jout['data']['V']
+		plotRawInternal(ydata, ncycle, 'red', average, ax, dx, error, resultV)
+
+	# !!! Покажем окно с нарисованным графиком
+	plt.show()
+
+def fftNormalize(data):
+	N = len(data)
+	normfact = 1.4142135623730951 / N
+	data = normfact * np.fft.fft(data)
+	return data[:N // 2]
+
+def plotFftInternal(ydata, ncycle, color, average, ax, dx, result):
+	if average:
+		ydata = averagePeriod(ydata, ncycle)
+
+	csin = result["csin"]
+	ccos = result["ccos"]
+	c0 = result["c0"]
+	for i in xrange(len(ydata)):
+		fi = 2*math.pi*i/ncycle
+		ydata[i] -= c0
+
+	#yfft = np.fft.fft(ydata)
+	yfft = fftNormalize(ydata)
+	yfft = abs(yfft)
+	for i in xrange(len(yfft)):
+		if yfft[i]<1e-10:
+			yfft[i] = 1e-10
+	yfft = 20*np.log10(yfft)
+
+	timeList = makeTimeList(yfft, 0, dx)
+
+	ax.plot (timeList, yfft, '.', color=color)
+	pass
+
+def plotFft(fileName, IV, average = False):
+
+	fig, ax = plt.subplots()
+	jout = readJson(fileName)
+	jattr = jout["attr"]
+	ncycle = jattr['ncycle']
+
+	(resultV, resultI) = calculateSinCos(jout)
+	print 'resultV=', resultV
+	print 'resultI=', resultI	
+
+
+	ax.set_xlabel("Hz")
+	ax.set_xscale('log')
+
+	ax.set_ylabel('dB')
+
+	dx = float(jattr["clock"])/(jattr["period"])
+
+	dx *= len(jout['data']['I'])/float(jattr["ncycle"])
+
+	if IV=='I' or IV=='IV':
+		ydata = jout['data']['I']
+		plotFftInternal(ydata, ncycle, 'blue', average, ax, dx, resultI)
+
+	if IV=='V' or IV=='IV':
+		ydata = jout['data']['V']
+		plotFftInternal(ydata, ncycle, 'red', average, ax, dx, resultV)
+
+	# !!! Покажем окно с нарисованным графиком
+	plt.show()
 
 def main():
 	if len(sys.argv)>=2:
 		fileName = sys.argv[1]
 
 	#plot(fileName)
-	plotRaw(fileName, "IV", average=True)
-	#plotIV(fileName, average=False)
-	#plotIV_2()
+	#plotRaw(fileName, "IV", average=False, error=True)
+	plotRaw(fileName, "IV", average=False, error=False)
+	#plotFft(fileName, "IV", average=False)
+	#plotIV(fileName, average=True)
 
 if __name__ == "__main__":
 	main()
