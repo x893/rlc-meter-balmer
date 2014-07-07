@@ -24,6 +24,10 @@ endif
 C_DEFINES+= -DHSE_VALUE=8000000
 C_DEFINES+= -std=c99
 
+#use 3 buttons to interface
+#comment this if use encoder
+#C_DEFINES+= -DDEF_INTERFACE_BUTTONS
+
 C_FLAGS+= -Wall -c -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -MMD $(C_INCLIDES) $(C_DEFINES) 
 #C_FLAGS+= -g -Wa,-adhls #asm listing
 
