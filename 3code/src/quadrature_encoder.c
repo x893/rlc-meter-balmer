@@ -152,12 +152,12 @@ void TIM7_IRQHandler(void)
 #ifdef DEF_INTERFACE_BUTTONS
         bool buttonStateA = (GPIO_ReadInputDataBit(Codeur_GPIO, Codeur_A)==0);
         if(buttonStateA && !g_lastButtonStateA)
-            OnWeel(-1);   
+            OnWeel(+1);   
         g_lastButtonStateA = buttonStateA;
 
         bool buttonStateB = (GPIO_ReadInputDataBit(Codeur_GPIO, Codeur_B)==0);
         if(buttonStateB && !g_lastButtonStateB)
-            OnWeel(+1);   
+            OnWeel(-1);   
         g_lastButtonStateB = buttonStateB;
 #else
         uint16_t encValue = QuadEncValue();
