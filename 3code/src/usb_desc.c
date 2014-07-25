@@ -93,27 +93,30 @@ const uint8_t Joystick_ConfigDescriptor[JOYSTICK_SIZ_CONFIG_DESC] =
     0x32,         /*MaxPower 100 mA: this current is used for detecting Vbus*/
 
     /************** Descriptor of Joystick Mouse interface ****************/
-    /* 09 */
-    0x09,         /*bLength: Interface Descriptor size*/
-    USB_INTERFACE_DESCRIPTOR_TYPE,/*bDescriptorType: Interface descriptor type*/
-    0x00,         /*bInterfaceNumber: Number of Interface*/
-    0x00,         /*bAlternateSetting: Alternate setting*/
-    0x02,         /*bNumEndpoints*/
-    0x00,//unknown interface // 0x03,         /*bInterfaceClass: HID*/
-    0x01,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
-    0x02,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
-    0,            /*iInterface: Index of string descriptor*/
+    // 09
+
+    0x09,         //bLength: Interface Descriptor size
+    USB_INTERFACE_DESCRIPTOR_TYPE,//bDescriptorType: Interface descriptor type
+    0x00,         //bInterfaceNumber: Number of Interface
+    0x00,         //bAlternateSetting: Alternate setting
+    0x02,         //bNumEndpoints
+    0xFF, //Vendor specific //0x00,//unknown interface // 0x03,         //bInterfaceClass: HID
+    0x00, //not used if 0xFF        //bInterfaceSubClass : 1=BOOT, 0=no boot
+    0x00, //not used if 0xFF        //nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
+    0,            //iInterface: Index of string descriptor
     /******************** Descriptor of Joystick Mouse HID ********************/
     /* 18 */
-    0x09,         /*bLength: HID Descriptor size*/
-    HID_DESCRIPTOR_TYPE, /*bDescriptorType: HID*/
-    0x00,         /*bcdHID: HID Class Spec release number*/
+/*
+    0x09,         //bLength: HID Descriptor size
+    HID_DESCRIPTOR_TYPE, //bDescriptorType: HID
+    0x00,         //bcdHID: HID Class Spec release number
     0x01,
-    0x00,         /*bCountryCode: Hardware target country*/
-    0x01,         /*bNumDescriptors: Number of HID class descriptors to follow*/
-    0x22,         /*bDescriptorType*/
-    JOYSTICK_SIZ_REPORT_DESC,/*wItemLength: Total length of Report descriptor*/
+    0x00,         //bCountryCode: Hardware target country
+    0x01,         //bNumDescriptors: Number of HID class descriptors to follow
+    0x22,         //bDescriptorType
+    JOYSTICK_SIZ_REPORT_DESC,//wItemLength: Total length of Report descriptor
     0x00,
+*/
     /* 27 */
     // Endpoint 1 IN descriptor
     0x07,          /*bLength: Endpoint Descriptor size*/

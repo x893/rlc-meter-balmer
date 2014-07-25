@@ -238,6 +238,7 @@ RESULT Joystick_Data_Setup(uint8_t RequestNo)
   uint8_t *(*CopyRoutine)(uint16_t);
 
   CopyRoutine = NULL;
+/*
   if ((RequestNo == GET_DESCRIPTOR)
       && (Type_Recipient == (STANDARD_REQUEST | INTERFACE_RECIPIENT))
       && (pInformation->USBwIndex0 == 0))
@@ -252,15 +253,13 @@ RESULT Joystick_Data_Setup(uint8_t RequestNo)
       CopyRoutine = Joystick_GetHIDDescriptor;
     }
 
-  } /* End of GET_DESCRIPTOR */
-
-  /*** GET_PROTOCOL ***/
+  }
   else if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
            && RequestNo == GET_PROTOCOL)
   {
     CopyRoutine = Joystick_GetProtocolValue;
   }
-
+*/
 
   if (CopyRoutine == NULL)
   {
