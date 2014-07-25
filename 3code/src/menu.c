@@ -17,18 +17,24 @@ typedef enum MenuEnum {
 	MENU_MAIN_SER_PAR,
 	MENU_MAIN_VIEW_PARAM, //Какой из параметров отображается.
 	MENU_MAIN_TOGGLE_LIGHT, //Подсветка дисплея
-	MENU_F_RETURN,
+	MENU_MAIN_CORRECTION,
+	MENU_RETURN,
 	MENU_F_100Hz,
 	MENU_F_1KHz,
 	MENU_F_10KHz,
 	MENU_F_93_75KHz,
 	MENU_F_187_5KHz,
-	MENU_SP_RETURN,
 	MENU_SP_SERIAL,
 	MENU_SP_PARALLEL,
-	MENU_V_RETURN,
 	MENU_V_RIM,
 	MENU_V_LC,
+	MENU_CORRECTION_SHORT,
+	MENU_CORRECTION_100_Om,
+	MENU_CORRECTION_1_KOm,
+	MENU_CORRECTION_10_KOm,
+	MENU_CORRECTION_100_KOm,
+	MENU_CORRECTION_OPEN,
+	MENU_CORRECTION_SAVE,
 } MenuEnum;
 
 typedef struct MenuElem {
@@ -42,10 +48,11 @@ static MenuElem g_main_menu[]={
 	{"SER/PAR", MENU_MAIN_SER_PAR},
 	{"View", MENU_MAIN_VIEW_PARAM},
 	{"Toggle Light", MENU_MAIN_TOGGLE_LIGHT},
+	{"Correction", MENU_MAIN_CORRECTION},
 };
 
 static MenuElem g_f_menu[]={
-	{"..", MENU_F_RETURN},
+	{"..", MENU_RETURN},
 	{"100 Hz", MENU_F_100Hz},
 	{"1 KHz", MENU_F_1KHz},
 	{"10 KHz", MENU_F_10KHz},
@@ -54,15 +61,26 @@ static MenuElem g_f_menu[]={
 };
 
 static MenuElem g_sp_menu[]={
-	{"..", MENU_SP_RETURN},
+	{"..", MENU_RETURN},
 	{"SERIAL", MENU_SP_SERIAL},
 	{"PARALLEL", MENU_SP_PARALLEL},
 };
 
 static MenuElem g_v_menu[]={
-	{"..", MENU_V_RETURN},
+	{"..", MENU_RETURN},
 	{"R.imag", MENU_V_RIM},
 	{"L/C", MENU_V_LC},
+};
+
+static MenuElem g_correction_menu[]={
+	{"..", MENU_RETURN},
+	{"short", MENU_CORRECTION_SHORT},
+	{"open", MENU_CORRECTION_OPEN},
+	{"100 Om", MENU_CORRECTION_100_Om},
+	{"1 KOm", MENU_CORRECTION_1_KOm},
+	{"10 KOm", MENU_CORRECTION_10_KOm},
+	{"100 KOm", MENU_CORRECTION_100_KOm},
+	{"SAVE", MENU_CORRECTION_SAVE},
 };
 
 static MenuElem* g_cur_menu = NULL;
@@ -126,9 +144,11 @@ void OnButtonPressed()
 		ToggleLight();
 		MENU_CLEAR();
 		break;
-	case MENU_F_RETURN:
-	case MENU_SP_RETURN:
-	case MENU_V_RETURN:
+	case MENU_MAIN_CORRECTION:
+		g_last_main_command = command;
+		MENU_START(g_correction_menu);
+		break;
+	case MENU_RETURN:
 		MENU_START(g_main_menu);
 		MenuSetPos(g_last_main_command);
 		break;
@@ -164,6 +184,13 @@ void OnButtonPressed()
 	case MENU_V_LC:
 		MenuSetPrinRim(false);
 		break;
+	case MENU_CORRECTION_SHORT:
+	case MENU_CORRECTION_100_Om:
+	case MENU_CORRECTION_1_KOm:
+	case MENU_CORRECTION_10_KOm:
+	case MENU_CORRECTION_100_KOm:
+	case MENU_CORRECTION_OPEN:
+		break;
 	}
 }
 
@@ -189,22 +216,46 @@ void MenuRepaint()
 {
 	if(g_menu_size==0 || g_cur_menu==NULL)
 		return;
-	const byte height = 6;
-	const byte font_height = 8;
-	byte ystart = (height-g_menu_size)/2+1;
-	for(uint8_t i=0; i<g_menu_size; i++)
+	const uint8_t height = 6;
+	const uint8_t font_height = 8;
+	uint8_t ystart = 1;
+
+	if(g_menu_size<height)
 	{
-		LcdGotoXYFont( 2, ystart+i );
+		ystart = (height-g_menu_size)/2+1;
+	}
+
+	uint8_t istart = 0;
+	uint8_t iend = g_menu_size;
+	if(g_menu_size>=height)
+	{
+		if(g_menu_pos<height)
+		{
+			iend = height;
+		} else
+		{
+			istart = g_menu_pos-height+1;
+			iend = g_menu_pos+1;
+			if(iend>g_menu_size)
+				iend = g_menu_size;
+		}
+	}
+
+
+	for(uint8_t i=istart; i<iend; i++)
+	{
+		LcdGotoXYFont( 2, ystart+i-istart );
 		LcdStr(FONT_1X, g_cur_menu[i].text);
 
 	}
 
-	if(g_menu_pos<g_menu_size)
+	uint8_t higlight_pos = ystart+g_menu_pos-istart;
+	if(higlight_pos<=height)
 	{
-		if(g_menu_pos<5)
-			LcdSingleBar( 4, (ystart+g_menu_pos)*font_height+1, font_height+1, 6*12+4, PIXEL_XOR );
+		if(higlight_pos<5)
+			LcdSingleBar( 4, higlight_pos*font_height+1, font_height+1, 6*12+4, PIXEL_XOR );
 		else
-			LcdSingleBar( 4, (ystart+g_menu_pos)*font_height, font_height, 6*12+4, PIXEL_XOR );
+			LcdSingleBar( 4, higlight_pos*font_height, font_height, 6*12+4, PIXEL_XOR );
 	}
 }
 
