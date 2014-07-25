@@ -8,6 +8,7 @@
 #include "dac.h"
 #include "adc.h"
 #include "process_measure.h"
+#include "number_edit.h"
 
 #define SIZEOF(x) (sizeof(x)/sizeof(x[0]))
 
@@ -104,12 +105,19 @@ void MenuSetF(uint32_t period);
 void MenuSetSerial(bool ser);
 void MenuSetPos(MenuEnum pos);
 void MenuSetPrinRim(bool pr);
-
 void ToggleLight();
+void MenuOnCommand(MenuEnum command);
 
 void OnButtonPressed()
 {
 	g_update = true;
+	if(NumberEditStarted())
+	{
+		NumberEditOnButtonPressed();
+		return;
+	}
+
+
 	if(g_cur_menu==NULL)
 	{
 		MENU_START(g_main_menu);
@@ -120,6 +128,42 @@ void OnButtonPressed()
 	if(g_menu_pos>=g_menu_size)
 		return;
 	MenuEnum command = g_cur_menu[g_menu_pos].command;
+	MenuOnCommand(command);
+}
+
+void OnWeel(int16_t delta)
+{
+	if(NumberEditStarted())
+	{
+		NumberEditOnWeel(delta);
+	    g_update = true;
+		return;
+	}
+
+	if(g_cur_menu==NULL)
+		return;
+
+	g_menu_pos = (g_menu_pos+g_menu_size+delta)%g_menu_size;
+    g_update = true;
+}
+
+void OnTimer()
+{
+	if(NumberEditCompleted())
+	{
+		NumberEditEnd();
+		g_update = true;
+	}
+
+	if(g_update)
+	{
+		LcdRepaint();
+		g_update = false;		
+	}
+}
+
+void MenuOnCommand(MenuEnum command)
+{
 	switch(command)
 	{
 	case MENU_MAIN_RETURN:
@@ -184,36 +228,42 @@ void OnButtonPressed()
 	case MENU_V_LC:
 		MenuSetPrinRim(false);
 		break;
-	case MENU_CORRECTION_SHORT:
 	case MENU_CORRECTION_100_Om:
-	case MENU_CORRECTION_1_KOm:
-	case MENU_CORRECTION_10_KOm:
-	case MENU_CORRECTION_100_KOm:
-	case MENU_CORRECTION_OPEN:
+		NumberEditSetText("Value 100 Om");
+		NumberEditSetValue(1e2, -1, 1);
+		NumberEditStart();
 		break;
-	}
-}
-
-void OnWeel(int16_t delta)
-{
-	if(g_cur_menu==NULL)
-		return;
-
-	g_menu_pos = (g_menu_pos+g_menu_size+delta)%g_menu_size;
-    g_update = true;
-}
-
-void OnTimer()
-{
-	if(g_update)
-	{
-		LcdRepaint();
-		g_update = false;		
+	case MENU_CORRECTION_1_KOm:
+		NumberEditSetText("Value 1 KOm");
+		NumberEditSetValue(1e3, 0, 2);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_10_KOm:
+		NumberEditSetText("Value 10 KOm");
+		NumberEditSetValue(1e4, 1, 3);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_100_KOm:
+		NumberEditSetText("Value 100 KOm");
+		NumberEditSetValue(1e5, 2, 4);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_SHORT:
+	case MENU_CORRECTION_OPEN:
+		break;	
+	case MENU_CORRECTION_SAVE:
+		break;
 	}
 }
 
 void MenuRepaint()
 {
+	if(NumberEditStarted())
+	{
+		NumberEditRepaint();
+		return;
+	}
+
 	if(g_menu_size==0 || g_cur_menu==NULL)
 		return;
 	const uint8_t height = 6;

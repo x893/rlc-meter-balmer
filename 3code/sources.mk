@@ -18,6 +18,7 @@ DEPS += \
 	output/base/src/main.d \
 	output/base/src/mcp6s21.d \
 	output/base/src/menu.d \
+	output/base/src/number_edit.d \
 	output/base/src/pcd8544.d \
 	output/base/src/process_measure.d \
 	output/base/src/quadrature_encoder.d \
@@ -65,6 +66,7 @@ OBJS += \
 	output/base/src/main.o \
 	output/base/src/mcp6s21.o \
 	output/base/src/menu.o \
+	output/base/src/number_edit.o \
 	output/base/src/pcd8544.o \
 	output/base/src/process_measure.o \
 	output/base/src/quadrature_encoder.o \
@@ -151,6 +153,10 @@ output/base/src/mcp6s21.o: ./src/mcp6s21.c
 
 output/base/src/menu.o: ./src/menu.c
 	@echo 'Building target: menu.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/number_edit.o: ./src/number_edit.c
+	@echo 'Building target: number_edit.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/pcd8544.o: ./src/pcd8544.c
