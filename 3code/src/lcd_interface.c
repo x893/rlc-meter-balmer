@@ -9,6 +9,7 @@
 #include "dac.h"
 #include "menu.h"
 #include "vbat.h"
+#include "corrector.h"
 
 int printD = 0; //debug
 float printGradus = -1000;
@@ -124,6 +125,11 @@ void LcdRepaint()
     printInt(gainVoltageIdx, FONT_1X);  
     LcdStr(FONT_1X, "I");
     printInt(gainCurrentIdx, FONT_1X);
+
+    if(GetCorrector()->period==0)
+    {
+        LcdSingleBar( 0, 8, 9, 6*7, PIXEL_XOR );
+    }
 
     LcdUpdate();
 }

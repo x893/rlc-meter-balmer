@@ -26,8 +26,8 @@ typedef struct ZmShort
 typedef struct CoeffCorrector2x
 {
 	ZmOpen Zm[CORRECTOR2X_GAIN_COUNT];
-	float R[CORRECTOR2X_GAIN_COUNT];//real load value
-	float C[CORRECTOR2X_GAIN_COUNT];
+	float R;//real load value
+	float C;
 } CoeffCorrector2x;
 
 typedef struct CoeffCorrectorOpen
@@ -53,8 +53,6 @@ typedef struct CoeffCorrector
 	CoeffCorrectorOpen open;
 	CoeffCorrectorShort cshort;
 } CoeffCorrector;
-
-void CorrectorInit();
 
 void SetCorrector2x(uint8_t resistor, uint8_t gain, float* data);
 void SetCorrector2xR(uint8_t resistor, float* data);
@@ -83,5 +81,7 @@ bool CorrectorFlashCurrentData();
 void CorrectorLoadData();
 
 CoeffCorrector* GetCorrector();
+
+void ClearCorrector();
 
 #endif//_CORRECTOR_H_
