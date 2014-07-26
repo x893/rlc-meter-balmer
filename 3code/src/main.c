@@ -45,7 +45,6 @@ int main(void)
   delay_init();
   Set_System();
 
-  CorrectorInit();
   LcdInit();
   InitLight();
 
@@ -61,6 +60,7 @@ int main(void)
 
   LcdHello();
 
+  ClearCorrector();
   while (1)
   {
     AdcQuant();

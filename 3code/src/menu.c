@@ -14,13 +14,14 @@
 #define SIZEOF(x) (sizeof(x)/sizeof(x[0]))
 
 typedef enum MenuEnum {
-	MENU_MAIN_RETURN,
+	MENU_NONE = 0, //Несуществующий пункт меню
+	MENU_MAIN_RETURN, //Выход из main menu
 	MENU_MAIN_FREQUENCY,
 	MENU_MAIN_SER_PAR,
 	MENU_MAIN_VIEW_PARAM, //Какой из параметров отображается.
 	MENU_MAIN_TOGGLE_LIGHT, //Подсветка дисплея
 	MENU_MAIN_CORRECTION,
-	MENU_RETURN,
+	MENU_RETURN, //Возврат в main menu
 	MENU_F_100Hz,
 	MENU_F_1KHz,
 	MENU_F_10KHz,
@@ -98,6 +99,7 @@ static char* message_line2 = NULL;
 
 static MenuEnum g_last_main_command = MENU_MAIN_FREQUENCY;
 static MenuEnum g_last_f_command = MENU_F_100Hz;
+static MenuEnum g_last_correction_command = MENU_NONE;
 
 #define MENU_START(menu) \
 	g_cur_menu = menu; \
@@ -115,6 +117,7 @@ void MenuSetPrinRim(bool pr);
 void ToggleLight();
 void MenuOnCommand(MenuEnum command);
 void MenuClearFlash();
+void MenuOnCorrection(MenuEnum command);
 
 void OnButtonPressed()
 {
@@ -185,6 +188,8 @@ void MenuOnCommand(MenuEnum command)
 {
 	switch(command)
 	{
+	case MENU_NONE:
+		break;
 	case MENU_MAIN_RETURN:
 		MENU_CLEAR();
 		break;
@@ -248,38 +253,15 @@ void MenuOnCommand(MenuEnum command)
 		MenuSetPrinRim(false);
 		break;
 	case MENU_CORRECTION_1_Om:
-		NumberEditSetText("Value 1 Om");
-		NumberEditSetValue(1e2, -3, -1);
-		NumberEditStart();
-		break;	
 	case MENU_CORRECTION_100_Om:
-		NumberEditSetText("Value 100 Om");
-		NumberEditSetValue(1e2, -1, 1);
-		NumberEditStart();
-		break;
 	case MENU_CORRECTION_1_KOm:
-		NumberEditSetText("Value 1 KOm");
-		NumberEditSetValue(1e3, 0, 2);
-		NumberEditStart();
-		break;
 	case MENU_CORRECTION_10_KOm:
-		NumberEditSetText("Value 10 KOm");
-		NumberEditSetValue(1e4, 1, 3);
-		NumberEditStart();
-		break;
 	case MENU_CORRECTION_100_KOm:
-		NumberEditSetText("Value 100 KOm");
-		NumberEditSetValue(1e5, 2, 4);
-		NumberEditStart();
-		break;
 	case MENU_CORRECTION_SHORT:
 	case MENU_CORRECTION_OPEN:
-		break;	
 	case MENU_CORRECTION_SAVE:
-		MessageBox("SAVE COMPLETE");
-		break;
 	case MENU_CORRECTION_CLEAR:
-		MenuClearFlash();
+		MenuOnCorrection(command);
 		break;
 	}
 }
@@ -405,4 +387,58 @@ void MenuClearFlash()
 		MessageBox("CLEAR COMPLETE");
 	else
 		MessageBox("CLEAR FAIL");
+}
+
+void MenuOnCorrection(MenuEnum command)
+{
+	g_last_correction_command = command;
+	CoeffCorrector* corr = GetCorrector();
+	if(corr->period==0)
+	{
+		ClearCorrector();
+		corr->period = DacPeriod();
+	}
+
+	switch(command)
+	{
+	case MENU_CORRECTION_1_Om:
+		NumberEditSetText("Value 1 Om");
+		NumberEditSetValue(corr->cshort.R1,
+			-3, -1);
+		NumberEditStart();
+		break;	
+	case MENU_CORRECTION_100_Om:
+		NumberEditSetText("Value 100 Om");
+		NumberEditSetValue(corr->cshort.R100,
+			-1, 1);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_1_KOm:
+		NumberEditSetText("Value 1 KOm");
+		NumberEditSetValue(corr->x2x[1].R,
+			0, 2);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_10_KOm:
+		NumberEditSetText("Value 10 KOm");
+		NumberEditSetValue(corr->x2x[2].R, 1, 3);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_100_KOm:
+		NumberEditSetText("Value 100 KOm");
+		NumberEditSetValue(corr->open.R, 2, 4);
+		NumberEditStart();
+		break;
+	case MENU_CORRECTION_SHORT:
+	case MENU_CORRECTION_OPEN:
+		break;	
+	case MENU_CORRECTION_SAVE:
+		MessageBox("SAVE COMPLETE");
+		break;
+	case MENU_CORRECTION_CLEAR:
+		MenuClearFlash();
+		break;
+
+	default:;
+	}
 }
