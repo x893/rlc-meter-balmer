@@ -9,6 +9,7 @@
 #include "adc.h"
 #include "process_measure.h"
 #include "number_edit.h"
+#include "corrector.h"
 
 #define SIZEOF(x) (sizeof(x)/sizeof(x[0]))
 
@@ -30,12 +31,14 @@ typedef enum MenuEnum {
 	MENU_V_RIM,
 	MENU_V_LC,
 	MENU_CORRECTION_SHORT,
+	MENU_CORRECTION_1_Om,
 	MENU_CORRECTION_100_Om,
 	MENU_CORRECTION_1_KOm,
 	MENU_CORRECTION_10_KOm,
 	MENU_CORRECTION_100_KOm,
 	MENU_CORRECTION_OPEN,
 	MENU_CORRECTION_SAVE,
+	MENU_CORRECTION_CLEAR,
 } MenuEnum;
 
 typedef struct MenuElem {
@@ -77,17 +80,21 @@ static MenuElem g_correction_menu[]={
 	{"..", MENU_RETURN},
 	{"short", MENU_CORRECTION_SHORT},
 	{"open", MENU_CORRECTION_OPEN},
+	{"1 Om", MENU_CORRECTION_1_Om},
 	{"100 Om", MENU_CORRECTION_100_Om},
 	{"1 KOm", MENU_CORRECTION_1_KOm},
 	{"10 KOm", MENU_CORRECTION_10_KOm},
 	{"100 KOm", MENU_CORRECTION_100_KOm},
 	{"SAVE", MENU_CORRECTION_SAVE},
+	{"CLEAR ALL", MENU_CORRECTION_CLEAR},
 };
 
 static MenuElem* g_cur_menu = NULL;
 static uint8_t g_menu_size = 0;
 static uint8_t g_menu_pos = 0;
 static bool g_update = false;
+static char* message_line1 = NULL;
+static char* message_line2 = NULL;
 
 static MenuEnum g_last_main_command = MENU_MAIN_FREQUENCY;
 static MenuEnum g_last_f_command = MENU_F_100Hz;
@@ -107,6 +114,7 @@ void MenuSetPos(MenuEnum pos);
 void MenuSetPrinRim(bool pr);
 void ToggleLight();
 void MenuOnCommand(MenuEnum command);
+void MenuClearFlash();
 
 void OnButtonPressed()
 {
@@ -114,6 +122,12 @@ void OnButtonPressed()
 	if(NumberEditStarted())
 	{
 		NumberEditOnButtonPressed();
+		return;
+	}
+
+	if(message_line1)
+	{//MessageBox suport
+		message_line1 = NULL;
 		return;
 	}
 
@@ -137,6 +151,11 @@ void OnWeel(int16_t delta)
 	{
 		NumberEditOnWeel(delta);
 	    g_update = true;
+		return;
+	}
+
+	if(message_line1)
+	{//MessageBox suport
 		return;
 	}
 
@@ -228,6 +247,11 @@ void MenuOnCommand(MenuEnum command)
 	case MENU_V_LC:
 		MenuSetPrinRim(false);
 		break;
+	case MENU_CORRECTION_1_Om:
+		NumberEditSetText("Value 1 Om");
+		NumberEditSetValue(1e2, -3, -1);
+		NumberEditStart();
+		break;	
 	case MENU_CORRECTION_100_Om:
 		NumberEditSetText("Value 100 Om");
 		NumberEditSetValue(1e2, -1, 1);
@@ -252,6 +276,10 @@ void MenuOnCommand(MenuEnum command)
 	case MENU_CORRECTION_OPEN:
 		break;	
 	case MENU_CORRECTION_SAVE:
+		MessageBox("SAVE COMPLETE");
+		break;
+	case MENU_CORRECTION_CLEAR:
+		MenuClearFlash();
 		break;
 	}
 }
@@ -261,6 +289,18 @@ void MenuRepaint()
 	if(NumberEditStarted())
 	{
 		NumberEditRepaint();
+		return;
+	}
+
+	if(message_line1)
+	{//MessageBox suport
+		LcdGotoXYFont( 1, 3 );
+		LcdStr(FONT_1X, message_line1);
+		if(message_line2)
+		{
+			LcdGotoXYFont( 1, 4 );
+			LcdStr(FONT_1X, message_line2);
+		}
 		return;
 	}
 
@@ -296,7 +336,6 @@ void MenuRepaint()
 	{
 		LcdGotoXYFont( 2, ystart+i-istart );
 		LcdStr(FONT_1X, g_cur_menu[i].text);
-
 	}
 
 	uint8_t higlight_pos = ystart+g_menu_pos-istart;
@@ -346,4 +385,24 @@ void MenuSetPrinRim(bool pr)
 {
 	printRim = pr;
 	MENU_CLEAR();
+}
+
+void MessageBox(char* line1)
+{
+	message_line1 = line1;
+	message_line2 = NULL;
+}
+
+void MessageBox2(char* line1, char* line2)
+{
+	message_line1 = line1;
+	message_line2 = line2;
+}
+
+void MenuClearFlash()
+{
+	if(CorrectorFlashClear())
+		MessageBox("CLEAR COMPLETE");
+	else
+		MessageBox("CLEAR FAIL");
 }
