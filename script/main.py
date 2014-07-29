@@ -294,38 +294,38 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         self.AddLine(vbox, u'100 Ом', '100Om', 1e2, [
             {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
             {'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 2},
-            {'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 4},
+            #{'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 4},
 
             {'resistorIndex': 0, 'VIndex':1, 'IIndex':0, 'div': 2},
             {'resistorIndex': 0, 'VIndex':2, 'IIndex':0, 'div': 4},
             {'resistorIndex': 0, 'VIndex':4, 'IIndex':0, 'div': 8},
             {'resistorIndex': 0, 'VIndex':6, 'IIndex':0, 'div': 16},
-            {'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 32},
+            #{'resistorIndex': 0, 'VIndex':7, 'IIndex':0, 'div': 32},
             ])
 
         self.AddLine(vbox, u'1 KОм', '1KOm', 1e3, [
-            {'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
-            {'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 1},
+            #{'resistorIndex': 0, 'VIndex':0, 'IIndex':0, 'div': 1},
+            #{'resistorIndex': 0, 'VIndex':0, 'IIndex':1, 'div': 1},
             {'resistorIndex': 0, 'VIndex':0, 'IIndex':2, 'div': 1},
 
             {'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
             {'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 2},
-            {'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 4},
+            #{'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 4},
             ])
 
         self.AddLine(vbox, u'10 KОм', '10KOm', 1e4, [
-            {'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
-            {'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 1},
+            #{'resistorIndex': 1, 'VIndex':0, 'IIndex':0, 'div': 1},
+            #{'resistorIndex': 1, 'VIndex':0, 'IIndex':1, 'div': 1},
             {'resistorIndex': 1, 'VIndex':0, 'IIndex':2, 'div': 1},
 
             {'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
             {'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 2},
-            {'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 4},
+            #{'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 4},
             ])
 
         self.AddLine(vbox, u'100 KОм', '100KOm', 1e5, [
-            {'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
-            {'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 1},
+            #{'resistorIndex': 2, 'VIndex':0, 'IIndex':0, 'div': 1},
+            #{'resistorIndex': 2, 'VIndex':0, 'IIndex':1, 'div': 1},
             {'resistorIndex': 2, 'VIndex':0, 'IIndex':2, 'div': 1},
 
             {'resistorIndex': 3, 'VIndex':0, 'IIndex':0, 'div': 1},
@@ -434,8 +434,8 @@ class FormCalibrationResistor(QtGui.QMainWindow):
         label1 = QtGui.QLabel(title)
         hbox.addWidget(label1)
         button = QtGui.QPushButton(u'Пуск.')
-        #button.clicked.connect(lambda: self.processOpen(line))
-        button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
+        button.clicked.connect(lambda: self.processOpen(line))
+        #button.clicked.connect(lambda: self.OnCompleteOpenPass(line))
         
         hbox.addWidget(button)
         label = QtGui.QLabel(u'XXX')

@@ -11,7 +11,7 @@ typedef complex float complexf;
 #include "adc.h"
 #include "process_measure.h"
 
-void OnCalculate();
+void OnCalculate(bool useCorrector);
 
 extern complexf lastZx;
 extern bool lastZxFilled;

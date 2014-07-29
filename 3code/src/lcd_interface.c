@@ -116,7 +116,13 @@ void LcdRepaint()
 
     LcdGotoXYFont(1,6);
     //LcdStr(FONT_1X, "D="); printInt(printD, FONT_1X);
-    printLcdGradus();
+    if(bCalibration)
+    {
+        LcdStr(FONT_1X, "CAL");
+    }else
+    {
+        printLcdGradus();
+    }
 
     LcdGotoXYFont(9,6);
     LcdStr(FONT_1X, "R");

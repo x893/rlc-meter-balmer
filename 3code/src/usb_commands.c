@@ -88,7 +88,11 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		SetLowPassFilter(commandBuffer[1]?true:false);
 		break;
 	case 12://COMMAND_START_GAIN_AUTO
-		ProcessStartComputeX(commandBuffer[1]/*count*/, commandBuffer[2]/*predefinedResistorIdx*/);
+		ProcessStartComputeX(commandBuffer[1]/*count*/, commandBuffer[2]/*predefinedResistorIdx*/,
+			255/*predefinedGainVoltageIdx*/,
+			255/*uint8_t predefinedGainCurrentIdx*/,
+			true/*useCorrector*/
+			);
 		break;
 	case 13://COMMAND_RVI_INDEXES
 		SendRVI();

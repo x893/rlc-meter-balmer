@@ -88,8 +88,8 @@ void SetCorrector2x(uint8_t resistor, uint8_t gain, float* data)
 	ZmOpen* c = cr->Zm+gain;
 	c->Zstdm = data[0]+data[1]*I;
 	c->Zom = data[2]+data[3]*I;
-	cr->R = data[4];
-	cr->C = data[5];
+	cr->R[gain] = data[4];
+	cr->C[gain] = data[5];
 }
 
 void SetCorrector2xR(uint8_t resistor, float* data)
@@ -146,8 +146,8 @@ complexf Corrector2x(complexf Zxm, CoeffCorrector2x* cr)
 	if(gainCurrentIdx>=CORRECTOR2X_GAIN_COUNT)
 		return 0;
 	ZmOpen* c = cr->Zm+gainCurrentIdx;
-	float Rstd = cr->R;
-	float Cstd = cr->C;
+	float Rstd = cr->R[gainCurrentIdx];
+	float Cstd = cr->C[gainCurrentIdx];
 	return CorrectorOpenX(Zxm, Rstd, Cstd, c->Zstdm, c->Zom);
 }
 
@@ -264,27 +264,37 @@ void ClearCorrector()
 
 		Zm->Zsm = 0;
 	}
-	
+
 	for(int iresistor=0; iresistor<CORRECTOR2X_RESISTOR_COUNT; iresistor++)
 	{
 		CoeffCorrector2x* p = coeff.x2x + iresistor;
-		float R = 1;
+		float R0 = 1;
+		float R1 = 1;
 		if(iresistor==0)
-			R = 1e2;
+		{
+			R0 = 1e2;
+			R1 = 1e3;
+		}
 		else if(iresistor==1)
-			R = 1e3;
+		{
+			R0 = 1e3;
+			R1 = 1e4;
+		}
 		else
-			R = 1e4;
+		{
+			R0 = 1e4;
+			R1 = 1e5;
+		}
 
 		for(int igain=0; igain<CORRECTOR2X_GAIN_COUNT; igain++)
 		{
 			ZmOpen* Zm = p->Zm + igain;
-			Zm->Zstdm = R;
+			p->R[igain] = igain<2?R0:R1;
+			p->C[igain] = C;
+			Zm->Zstdm = p->R[igain];
 			Zm->Zom = 1e9;
 		}
 
-		p->R = R;
-		p->C = C;
 	}
 
 	coeff.open.R = 1e5;

@@ -118,6 +118,7 @@ void ToggleLight();
 void MenuOnCommand(MenuEnum command);
 void MenuClearFlash();
 void MenuOnCorrection(MenuEnum command);
+void OnCalibrationStart();
 
 void OnButtonPressed()
 {
@@ -332,7 +333,7 @@ void MenuRepaint()
 
 bool MenuIsOpen()
 {
-	return g_menu_size!=0 && g_cur_menu!=NULL;
+	return g_menu_size!=0 && g_cur_menu!=NULL && !bCalibration;
 }
 
 void MenuSetPos(MenuEnum command)
@@ -353,7 +354,12 @@ void MenuSetF(uint32_t period)
 {
 	bContinuousMode = true;
 	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE);
-	ProcessStartComputeX(10, 255);
+	ProcessStartComputeX(0/*count*/, 
+			255/*predefinedResistorIdx*/,
+			255/*predefinedGainVoltageIdx*/,
+			255/*uint8_t predefinedGainCurrentIdx*/,
+			true/*useCorrector*/
+		);
 	MENU_CLEAR();
 }
 
@@ -415,13 +421,12 @@ void MenuOnCorrection(MenuEnum command)
 		break;
 	case MENU_CORRECTION_1_KOm:
 		NumberEditSetText("Value 1 KOm");
-		NumberEditSetValue(corr->x2x[1].R,
-			0, 2);
+		NumberEditSetValue(corr->x2x[1].R[0], 0, 2);
 		NumberEditStart();
 		break;
 	case MENU_CORRECTION_10_KOm:
 		NumberEditSetText("Value 10 KOm");
-		NumberEditSetValue(corr->x2x[2].R, 1, 3);
+		NumberEditSetValue(corr->x2x[2].R[0], 1, 3);
 		NumberEditStart();
 		break;
 	case MENU_CORRECTION_100_KOm:
@@ -431,6 +436,7 @@ void MenuOnCorrection(MenuEnum command)
 		break;
 	case MENU_CORRECTION_SHORT:
 	case MENU_CORRECTION_OPEN:
+		OnCalibrationStart();
 		break;	
 	case MENU_CORRECTION_SAVE:
 		MessageBox("SAVE COMPLETE");
@@ -441,4 +447,22 @@ void MenuOnCorrection(MenuEnum command)
 
 	default:;
 	}
+}
+
+void OnCalibrationStart()
+{
+	uint32_t period = DacPeriod();
+	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE);
+	bCalibration = true;
+	ProcessStartComputeX(0/*count*/, 
+			0/*predefinedResistorIdx*/,
+			5/*predefinedGainVoltageIdx*/,
+			0/*predefinedGainCurrentIdx*/,
+			false/*useCorrector*/
+		);
+}
+
+void OnCalibrationComplete()
+{
+	bCalibration = false;
 }

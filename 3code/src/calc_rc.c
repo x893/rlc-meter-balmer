@@ -14,7 +14,7 @@
 complexf lastZx = 0;
 bool lastZxFilled = false;
 
-void OnCalculate()
+void OnCalculate(bool useCorrector)
 {
 	float gain_V = getGainValueV();
 	float gain_I = getGainValueI();
@@ -31,7 +31,8 @@ void OnCalculate()
 	calculatedValues = true;
 	lastZx = Zx;
 
-	Zx = Corrector(Zx);
+	if(useCorrector)
+		Zx = Corrector(Zx);
 
 	Rre = creal(Zx);
 	Rim = cimag(Zx);
