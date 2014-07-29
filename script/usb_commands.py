@@ -791,8 +791,8 @@ def period90Khz_max():
     return arr
 
 def periodAll():
-    return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
-    #return HARDWARE_CORRECTOR_PERIODS
+    #return period100Hz_1KHz()+period1KHz_10KHz()+period10Khz_max()
+    return HARDWARE_CORRECTOR_PERIODS
 
 def allFreq(amplitude=DEFAULT_DAC_AMPLITUDE, resistorIndex=None, VIndex=None, IIndex=None, fileName='freq.json'):
     sc = ScanFreq()

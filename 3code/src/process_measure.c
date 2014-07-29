@@ -8,6 +8,7 @@
 #include "lcd_interface.h"
 #include "dac.h"
 #include "corrector.h"
+#include "menu.h"
 
 #define goodMin 2700
 #define goodMax 3700
@@ -40,8 +41,15 @@ bool gainIndexStopI;
 uint8_t computeXCount;
 uint8_t computeXIterator;
 uint8_t predefinedResistorIdx;
+uint8_t predefinedGainVoltageIdx;
+uint8_t predefinedGainCurrentIdx;
+bool useCorrector;
+
+static uint8_t initWaitCount = 0;
 
 bool bContinuousMode = false;
+bool bCalibration = false;
+
 static bool debugRepaint = false;
 
 extern int printD;
@@ -50,10 +58,11 @@ static AdcSummaryData sum_data;
 
 void OnStartGainAuto();
 void OnResistorIndex();
-void OnStartGainIndex(bool wait);
+void OnStartGainIndex();
 void OnGainIndex();
 void OnMeasure();
 void OnMeasureStart();
+void OnInitWait();
 
 void SetGainCentralIdx()
 {
@@ -100,22 +109,30 @@ float getResistorOm()
 	return R;
 }
 
-void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_)
+void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_, 
+			uint8_t predefinedGainVoltageIdx_,
+			uint8_t predefinedGainCurrentIdx_,
+			bool useCorrector_
+			)
 {
 	SetGainCentralIdx();
 	//calculatedValues = false;
-	if(count==0)
-		count = 1;
 	computeXCount = count;
-	int F = (int)DacFrequency();
-	if(F<2000)
-		computeXCount = F/10;
-	else
-		computeXCount = F/30;
-	if(computeXCount<1)
-		computeXCount = 1;
+	if(count==0)
+	{
+		int F = (int)DacFrequency();
+		if(F<2000)
+			computeXCount = F/10;
+		else
+			computeXCount = F/30;
+		if(computeXCount<1)
+			computeXCount = 1;
+	}
 
 	predefinedResistorIdx = predefinedResistorIdx_;
+	predefinedGainVoltageIdx = predefinedGainVoltageIdx_;
+	predefinedGainCurrentIdx = predefinedGainCurrentIdx_;
+	useCorrector = useCorrector_;
 	OnStartGainAuto();
 	AdcUsbRequestData();
 }
@@ -130,6 +147,9 @@ void ProcessData()
 	switch(state)
 	{
 	case STATE_NOP:
+		return;
+	case STATE_INIT_WAIT:
+		OnInitWait();
 		return;
 	case STATE_RESISTOR_INDEX:
 		OnResistorIndex();
@@ -164,6 +184,13 @@ void OnStartGainAuto()
 	resistorIdx = 0;
 	gainVoltageIdx = 0;
 	gainCurrentIdx = 0;
+
+	if(predefinedGainVoltageIdx!=255 && predefinedGainCurrentIdx!=255)
+	{
+		gainVoltageIdx = predefinedGainVoltageIdx;
+		gainCurrentIdx = predefinedGainCurrentIdx;
+	}
+
 	MCPSetGain(true, gainVoltageIdx);
 	MCPSetGain(false, gainCurrentIdx);
 
@@ -173,10 +200,32 @@ void OnStartGainAuto()
 	{
 		resistorIdx = predefinedResistorIdx;
 		SetResistor(resistorIdx);
-		OnStartGainIndex(true);
 	} else
 	{
 		SetResistor(resistorIdx);
+	}
+
+	initWaitCount = 2;
+	state = STATE_INIT_WAIT;
+}
+
+void OnInitWait()
+{
+	if(initWaitCount>0)
+	{
+		initWaitCount--;
+		return;
+	}
+
+	if(predefinedGainVoltageIdx!=255 && predefinedGainCurrentIdx!=255)
+	{
+		OnMeasureStart();
+	} else
+	if(predefinedResistorIdx!=255)
+	{
+		OnStartGainIndex();
+	} else
+	{
 		state = STATE_RESISTOR_INDEX_WAIT;
 	}
 }
@@ -187,7 +236,7 @@ void OnResistorIndex()
 	int di = asc->adc_max - asc->adc_min;
 	if(di*10>goodDelta || resistorIdx>=3)
 	{
-		OnStartGainIndex(false);
+		OnStartGainIndex();
 	} else
 	{
 		state = STATE_RESISTOR_INDEX_WAIT;
@@ -196,12 +245,10 @@ void OnResistorIndex()
 	}
 }
 
-void OnStartGainIndex(bool wait)
+void OnStartGainIndex()
 {
-	if(wait)
-		state = STATE_GAIN_INDEX_WAIT;
-	else
-		state = STATE_GAIN_INDEX;
+	state = STATE_GAIN_INDEX;
+
     gainIndexStopV = false;
     gainIndexStopI = false;
     gainIndexIterator = 0;
@@ -342,10 +389,15 @@ void OnMeasure()
 	bool oldLastZxFilled = lastZxFilled;
 	complexf oldLastZx = lastZx;
 
-	OnCalculate();
+	OnCalculate(useCorrector);
 
 	LcdRepaint();
 
+	if(bCalibration)
+	{
+		OnCalibrationComplete();
+		state = STATE_NOP;
+	} else
 	if(bContinuousMode)
 	{
 		bool startFast = false;
@@ -372,7 +424,9 @@ void OnMeasure()
 		if(startFast)
 			OnMeasureStart();
 		else
-			ProcessStartComputeX(computeXCount, predefinedResistorIdx);
+			ProcessStartComputeX(computeXCount, predefinedResistorIdx, 
+				predefinedGainVoltageIdx, predefinedGainCurrentIdx,
+				useCorrector);
 	}
 	else
 	{

@@ -26,8 +26,14 @@ typedef struct ZmShort
 typedef struct CoeffCorrector2x
 {
 	ZmOpen Zm[CORRECTOR2X_GAIN_COUNT];
-	float R;//real load value
-	float C;
+
+	/*
+		Для разных коэффициэнтов усиления используем разные резисторы.
+		Для gain=0, gain=1 используем маленький номинал
+		Для gain=2 используем большой.
+	*/
+	float R[CORRECTOR2X_GAIN_COUNT];//real load value
+	float C[CORRECTOR2X_GAIN_COUNT];
 } CoeffCorrector2x;
 
 typedef struct CoeffCorrectorOpen
