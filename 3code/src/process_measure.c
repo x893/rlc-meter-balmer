@@ -395,8 +395,8 @@ void OnMeasure()
 
 	if(bCalibration)
 	{
-		OnCalibrationComplete();
 		state = STATE_NOP;
+		OnCalibrationComplete();
 	} else
 	if(bContinuousMode)
 	{
