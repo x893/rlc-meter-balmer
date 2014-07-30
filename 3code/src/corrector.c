@@ -169,7 +169,7 @@ complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* cr)
 	ZmShort* c = cr->Zm+idx;
 	complexf Zstd = gainVoltageIdx==7 ? cr->R1 : cr->R100;
 	complexf Zx = Zstd/(c->Zstdm-c->Zsm)*(Zxm-c->Zsm);
-	return Zx;	
+	return Zx;
 }
 
 bool CorrectorFlashClear()
@@ -189,21 +189,27 @@ uint32_t round256(uint32_t c)
 	return ((c+255)/256)*256;
 }
 
-bool CorrectorFlashCurrentData()
+//Return 255 if not found
+uint8_t PredefinedPeriodIndex()
 {
-	bool found = false;
-	uint32_t index;
-	for(int i=0; i<PREDEFINED_PERIODS_COUNT; i++)
+	uint8_t index = 255;
+	for(uint8_t i=0; i<PREDEFINED_PERIODS_COUNT; i++)
 	{
 		if(predefinedPeriods[i]==coeff.period)
 		{
-			found = true;
 			index = i;
 			break;
 		}
 	}
 
-	if(!found)
+	return index;
+}
+
+bool CorrectorFlashCurrentData()
+{
+	uint8_t index = PredefinedPeriodIndex();
+
+	if(index==255)
 		return false;
 
 	uint32_t offset = index*round256(sizeof(CoeffCorrector));

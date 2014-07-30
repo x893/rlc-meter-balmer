@@ -90,4 +90,9 @@ CoeffCorrector* GetCorrector();
 
 void ClearCorrector();
 
+//return index in predefinedPeriods array
+//return 255 if not found
+uint8_t PredefinedPeriodIndex();
+
+
 #endif//_CORRECTOR_H_

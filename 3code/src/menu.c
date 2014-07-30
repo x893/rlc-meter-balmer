@@ -118,7 +118,6 @@ void ToggleLight();
 void MenuOnCommand(MenuEnum command);
 void MenuClearFlash();
 void MenuOnCorrection(MenuEnum command);
-void OnCalibrationStart();
 
 void OnButtonPressed()
 {
@@ -395,14 +394,67 @@ void MenuClearFlash()
 		MessageBox("CLEAR FAIL");
 }
 
+void MenuSaveFlash()
+{
+	if(CorrectorFlashCurrentData())
+		MessageBox("SAVE COMPLETE");
+	else
+		MessageBox("SAVE FAIL");
+}
+
+
+typedef struct CalibrationJob
+{
+	uint8_t resistorIndex;
+	uint8_t VIndex;
+	uint8_t IIndex;
+	uint8_t ampDiv;
+} CalibrationJob;
+
+void OnCalibrationStart(CalibrationJob* job, uint8_t jobCount);
+
+
+static CalibrationJob* calJob;
+static uint8_t calJobCount;
+static uint8_t calCurIndex;
+static complexf calResult[20];
+
+static CalibrationJob calibrateShort[]=
+{
+    {0, 0, 0, 1},
+    {0, 1, 0, 1},
+    {0, 2, 0, 1},
+    {0, 4, 0, 1},
+    {0, 6, 0, 1},
+    {0, 7, 0, 1},
+};
+
+static CalibrationJob calibrate100Om[]=
+{
+	{0, 0, 0, 1},
+    {0, 0, 1, 2},
+
+    {0, 1, 0, 2},
+    {0, 2, 0, 4},
+    {0, 4, 0, 8},
+    {0, 6, 0, 16},
+};
+
 void MenuOnCorrection(MenuEnum command)
 {
 	g_last_correction_command = command;
+
 	CoeffCorrector* corr = GetCorrector();
 	if(corr->period==0)
 	{
 		ClearCorrector();
 		corr->period = DacPeriod();
+	}
+
+	if(PredefinedPeriodIndex()==255)
+	{
+		MessageBox2("ERROR", "Bad frequency");
+		return;
 	}
 
 	switch(command)
@@ -435,11 +487,12 @@ void MenuOnCorrection(MenuEnum command)
 		NumberEditStart();
 		break;
 	case MENU_CORRECTION_SHORT:
+		OnCalibrationStart(calibrateShort, sizeof(calibrateShort)/sizeof(calibrateShort[0]));
+		break;
 	case MENU_CORRECTION_OPEN:
-		OnCalibrationStart();
 		break;	
 	case MENU_CORRECTION_SAVE:
-		MessageBox("SAVE COMPLETE");
+		MenuSaveFlash();
 		break;
 	case MENU_CORRECTION_CLEAR:
 		MenuClearFlash();
@@ -449,20 +502,84 @@ void MenuOnCorrection(MenuEnum command)
 	}
 }
 
-void OnCalibrationStart()
+void CalNextJob()
 {
 	uint32_t period = DacPeriod();
-	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE);
-	bCalibration = true;
+	CalibrationJob* job = calJob+calCurIndex;
+	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE/job->ampDiv);
 	ProcessStartComputeX(0/*count*/, 
-			0/*predefinedResistorIdx*/,
-			5/*predefinedGainVoltageIdx*/,
-			0/*predefinedGainCurrentIdx*/,
+			job->resistorIndex/*predefinedResistorIdx*/,
+			job->VIndex/*predefinedGainVoltageIdx*/,
+			job->IIndex/*predefinedGainCurrentIdx*/,
 			false/*useCorrector*/
 		);
 }
 
+void OnCalibrationStart(CalibrationJob* job, uint8_t jobCount)
+{
+	calJob = job;
+	calJobCount = jobCount;
+	calCurIndex = 0;
+
+	isSerial = true;
+
+	if(jobCount>sizeof(calResult)/sizeof(calResult[0]))
+	{
+		MessageBox2("OnCalibrationStart", "ERR jobCount");
+		return;
+	}
+
+	bCalibration = true;
+	CalNextJob();
+}
+
+static bool FindResult(	uint8_t resistorIndex, uint8_t VIndex, uint8_t IIndex, complexf* result)
+{
+	for(uint8_t i=0; i<calJobCount; i++)
+	{
+		CalibrationJob* p = calJob+i;
+		if(p->resistorIndex==resistorIndex && p->VIndex==VIndex && p->IIndex==IIndex)
+		{
+			*result = calResult[i];
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void OnSaveCalibrationResult()
+{
+	if(g_last_correction_command==MENU_CORRECTION_SHORT)
+	{
+		CoeffCorrectorShort* p = &GetCorrector()->cshort;
+		if(!FindResult(0, 0, 0, &p->Zm[0].Zsm))
+			MessageBox2("ERROR Cal", "Open 0");
+		if(!FindResult(0, 1, 0, &p->Zm[1].Zsm))
+			MessageBox2("ERROR Cal", "Open 1");
+		if(!FindResult(0, 2, 0, &p->Zm[2].Zsm))
+			MessageBox2("ERROR Cal", "Open 2");
+		if(!FindResult(0, 4, 0, &p->Zm[3].Zsm))
+			MessageBox2("ERROR Cal", "Open 4");
+		if(!FindResult(0, 6, 0, &p->Zm[4].Zsm))
+			MessageBox2("ERROR Cal", "Open 6");
+		if(!FindResult(0, 7, 0, &p->Zm[5].Zsm))
+			MessageBox2("ERROR Cal", "Open 7");
+		return;
+	}
+}
+
 void OnCalibrationComplete()
 {
-	bCalibration = false;
+	calResult[calCurIndex] = Rre + Rim*I;
+
+	calCurIndex++;
+	if(calCurIndex<calJobCount)
+	{
+		CalNextJob();
+	} else
+	{
+		OnSaveCalibrationResult();
+		bCalibration = false;
+	}
 }
