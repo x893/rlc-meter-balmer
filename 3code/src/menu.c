@@ -118,6 +118,7 @@ void ToggleLight();
 void MenuOnCommand(MenuEnum command);
 void MenuClearFlash();
 void MenuOnCorrection(MenuEnum command);
+void OnNumberEditEnd();
 
 void OnButtonPressed()
 {
@@ -174,6 +175,7 @@ void OnTimer()
 	if(NumberEditCompleted())
 	{
 		NumberEditEnd();
+		OnNumberEditEnd();
 		g_update = true;
 	}
 
@@ -378,12 +380,14 @@ void MessageBox(char* line1)
 {
 	message_line1 = line1;
 	message_line2 = NULL;
+	g_update = true;
 }
 
 void MessageBox2(char* line1, char* line2)
 {
 	message_line1 = line1;
 	message_line2 = line2;
+	g_update = true;
 }
 
 void MenuClearFlash()
@@ -429,6 +433,11 @@ static CalibrationJob calibrateShort[]=
     {0, 7, 0, 1},
 };
 
+static CalibrationJob calibrate1Om[]=
+{
+	{0, 7, 0, 1},
+};
+
 static CalibrationJob calibrate100Om[]=
 {
 	{0, 0, 0, 1},
@@ -438,6 +447,40 @@ static CalibrationJob calibrate100Om[]=
     {0, 2, 0, 4},
     {0, 4, 0, 8},
     {0, 6, 0, 16},
+};
+
+static CalibrationJob calibrate1KOm[]=
+{
+    {0, 0, 2, 1},
+    {1, 0, 0, 1},
+    {1, 0, 1, 2},
+};
+
+static CalibrationJob calibrate10KOm[]=
+{
+    {1, 0, 2, 1},
+    {2, 0, 0, 1},
+    {2, 0, 1, 2},
+};
+
+static CalibrationJob calibrate100KOm[]=
+{
+    {2, 0, 2, 1},
+};
+
+static CalibrationJob calibrateOpen[]=
+{
+    {0, 0, 0, 1},
+    {0, 0, 1, 1},
+    {0, 0, 2, 1},
+
+    {1, 0, 0, 1},
+    {1, 0, 1, 1},
+    {1, 0, 2, 1},
+
+    {2, 0, 0, 1},
+    {2, 0, 1, 1},
+    {2, 0, 2, 1},
 };
 
 void MenuOnCorrection(MenuEnum command)
@@ -490,6 +533,7 @@ void MenuOnCorrection(MenuEnum command)
 		OnCalibrationStart(calibrateShort, sizeof(calibrateShort)/sizeof(calibrateShort[0]));
 		break;
 	case MENU_CORRECTION_OPEN:
+		OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
 		break;	
 	case MENU_CORRECTION_SAVE:
 		MenuSaveFlash();
@@ -550,9 +594,10 @@ static bool FindResult(	uint8_t resistorIndex, uint8_t VIndex, uint8_t IIndex, c
 
 void OnSaveCalibrationResult()
 {
+	CoeffCorrector* corr = GetCorrector();
 	if(g_last_correction_command==MENU_CORRECTION_SHORT)
 	{
-		CoeffCorrectorShort* p = &GetCorrector()->cshort;
+		CoeffCorrectorShort* p = &corr->cshort;
 		if(!FindResult(0, 0, 0, &p->Zm[0].Zsm))
 			MessageBox2("ERROR Cal", "Open 0");
 		if(!FindResult(0, 1, 0, &p->Zm[1].Zsm))
@@ -567,6 +612,72 @@ void OnSaveCalibrationResult()
 			MessageBox2("ERROR Cal", "Open 7");
 		return;
 	}
+
+	if(g_last_correction_command==MENU_CORRECTION_1_Om)
+	{
+		CoeffCorrectorShort* p = &corr->cshort;
+		if(!FindResult(0, 7, 0, &p->Zm[5].Zstdm))
+			MessageBox2("ERROR Cal", "1Om 7");
+		return;
+	}
+
+	if(g_last_correction_command==MENU_CORRECTION_100_Om)
+	{
+		CoeffCorrectorShort* p = &corr->cshort;
+		if(!FindResult(0, 0, 0, &p->Zm[0].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 0");
+		if(!FindResult(0, 1, 0, &p->Zm[1].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 1");
+		if(!FindResult(0, 2, 0, &p->Zm[2].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 2");
+		if(!FindResult(0, 4, 0, &p->Zm[3].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 4");
+		if(!FindResult(0, 6, 0, &p->Zm[4].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 6");
+
+		if(!FindResult(0, 0, 0, &corr->x2x[0].Zm[0].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 00");
+		if(!FindResult(0, 0, 1, &corr->x2x[0].Zm[1].Zstdm))
+			MessageBox2("ERROR Cal", "100Om 01");
+		return;
+	}
+
+	if(g_last_correction_command==MENU_CORRECTION_1_KOm)
+	{
+		if(!FindResult(0, 0, 2, &corr->x2x[0].Zm[2].Zstdm))
+			MessageBox2("ERROR Cal", "1KOm 00");
+		if(!FindResult(1, 0, 0, &corr->x2x[1].Zm[0].Zstdm))
+			MessageBox2("ERROR Cal", "1KOm 00");
+		if(!FindResult(1, 0, 1, &corr->x2x[1].Zm[1].Zstdm))
+			MessageBox2("ERROR Cal", "1KOm 01");
+	}
+
+	if(g_last_correction_command==MENU_CORRECTION_10_KOm)
+	{
+		if(!FindResult(1, 0, 2, &corr->x2x[1].Zm[2].Zstdm))
+			MessageBox2("ERROR Cal", "10KOm 00");
+		if(!FindResult(2, 0, 0, &corr->x2x[2].Zm[0].Zstdm))
+			MessageBox2("ERROR Cal", "10KOm 00");
+		if(!FindResult(2, 0, 1, &corr->x2x[2].Zm[1].Zstdm))
+			MessageBox2("ERROR Cal", "10KOm 01");
+	}
+
+	if(g_last_correction_command==MENU_CORRECTION_100_KOm)
+	{
+		if(!FindResult(2, 0, 2, &corr->x2x[2].Zm[2].Zstdm))
+			MessageBox2("ERROR Cal", "100KOm 00");
+	}
+
+	if(g_last_correction_command==MENU_CORRECTION_OPEN)
+	{
+		for(uint8_t resistorIndex=0; resistorIndex<3; resistorIndex++)
+		for(uint8_t IIndex=0; IIndex<3; IIndex++)
+		{
+			if(!FindResult(resistorIndex, 0, IIndex, &corr->x2x[resistorIndex].Zm[IIndex].Zom))
+				MessageBox2("ERROR Cal", "Open");
+		}
+	}
+	
 }
 
 void OnCalibrationComplete()
@@ -581,5 +692,48 @@ void OnCalibrationComplete()
 	{
 		OnSaveCalibrationResult();
 		bCalibration = false;
+		MessageBox("COMPLETE");
+	}
+}
+
+void OnNumberEditEnd()
+{
+	CoeffCorrector* corr = GetCorrector();
+	switch(g_last_correction_command)
+	{
+	case MENU_CORRECTION_1_Om:
+		corr->cshort.R1 = NumberEditGetValue();
+		OnCalibrationStart(calibrate1Om, sizeof(calibrate1Om)/sizeof(calibrate1Om[0]));
+		break;	
+	case MENU_CORRECTION_100_Om:
+		corr->cshort.R100 =
+		corr->x2x[0].R[0] =
+		corr->x2x[0].R[1] =
+			NumberEditGetValue();
+		OnCalibrationStart(calibrate100Om, sizeof(calibrate100Om)/sizeof(calibrate100Om[0]));
+		break;
+	case MENU_CORRECTION_1_KOm:
+		corr->x2x[0].R[2] =
+		corr->x2x[1].R[0] =
+		corr->x2x[1].R[1] =
+			NumberEditGetValue();
+		OnCalibrationStart(calibrate1KOm, sizeof(calibrate1KOm)/sizeof(calibrate1KOm[0]));
+		break;
+	case MENU_CORRECTION_10_KOm:
+		corr->x2x[1].R[2] =
+		corr->x2x[2].R[0] =
+		corr->x2x[2].R[1] =
+			NumberEditGetValue();
+		OnCalibrationStart(calibrate10KOm, sizeof(calibrate10KOm)/sizeof(calibrate10KOm[0]));
+		break;
+	case MENU_CORRECTION_100_KOm:
+		corr->x2x[2].R[2] =
+		corr->open.R = 
+			NumberEditGetValue();
+		OnCalibrationStart(calibrate100KOm, sizeof(calibrate100KOm)/sizeof(calibrate100KOm[0]));
+		break;
+	default:
+		MessageBox2("NumberEditEnd", "Bad command");	
+		break;
 	}
 }
