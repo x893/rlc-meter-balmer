@@ -15,7 +15,7 @@ period= 7200 freq= 10000
 period= 768 freq=  93750 
 */
 const uint32_t predefinedPeriods[PREDEFINED_PERIODS_COUNT] = {720000, 72000, 7200, 768, 384};
-const signed char gainValidIdx[] = {0, 1, 2, -1, 3, -1, 4, 5};
+const int8_t gainValidIdx[] = {0, 1, 2, -1, 3, -1, 4, 5};
 
 complexf Corrector2x(complexf Zxm, CoeffCorrector2x* c);
 complexf CorrectorOpen(complexf Zxm, CoeffCorrectorOpen* c);
@@ -41,6 +41,10 @@ void SetCorrectorPeriod(uint32_t period)
 	coeff.period = period;
 }
 
+int8_t GetGainValidIdx(uint8_t index)
+{
+	return gainValidIdx[index];
+}
 
 complexf Corrector(complexf Zxm)
 {

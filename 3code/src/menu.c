@@ -416,12 +416,14 @@ typedef struct CalibrationJob
 } CalibrationJob;
 
 void OnCalibrationStart(CalibrationJob* job, uint8_t jobCount);
+void OnOpenFirstPass();
 
 
 static CalibrationJob* calJob;
 static uint8_t calJobCount;
 static uint8_t calCurIndex;
 static complexf calResult[20];
+static bool calFirstPassOpen = false;
 
 static CalibrationJob calibrateShort[]=
 {
@@ -466,6 +468,13 @@ static CalibrationJob calibrate10KOm[]=
 static CalibrationJob calibrate100KOm[]=
 {
     {2, 0, 2, 1},
+
+    {3, 0, 0, 1},
+    {3, 0, 1, 2},
+    {3, 0, 2, 4},
+    {3, 0, 4, 8},
+    {3, 0, 6, 16},
+    {3, 0, 7, 32},
 };
 
 static CalibrationJob calibrateOpen[]=
@@ -481,6 +490,13 @@ static CalibrationJob calibrateOpen[]=
     {2, 0, 0, 1},
     {2, 0, 1, 1},
     {2, 0, 2, 1},
+
+    {3, 0, 0, 1},
+    {3, 0, 1, 1},
+    {3, 0, 2, 1},
+    {3, 0, 4, 1},
+    {3, 0, 6, 1},
+    {3, 0, 7, 1},
 };
 
 void MenuOnCorrection(MenuEnum command)
@@ -533,7 +549,7 @@ void MenuOnCorrection(MenuEnum command)
 		OnCalibrationStart(calibrateShort, sizeof(calibrateShort)/sizeof(calibrateShort[0]));
 		break;
 	case MENU_CORRECTION_OPEN:
-		OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
+		OnOpenFirstPass();
 		break;	
 	case MENU_CORRECTION_SAVE:
 		MenuSaveFlash();
@@ -565,15 +581,15 @@ void OnCalibrationStart(CalibrationJob* job, uint8_t jobCount)
 	calJobCount = jobCount;
 	calCurIndex = 0;
 
-	isSerial = true;
-
 	if(jobCount>sizeof(calResult)/sizeof(calResult[0]))
 	{
 		MessageBox2("OnCalibrationStart", "ERR jobCount");
 		return;
 	}
 
+	isSerial = true;
 	bCalibration = true;
+	printRim = true;
 	CalNextJob();
 }
 
@@ -590,6 +606,24 @@ static bool FindResult(	uint8_t resistorIndex, uint8_t VIndex, uint8_t IIndex, c
 	}
 
 	return false;
+}
+
+void OnOpenFirstPass()
+{
+	calFirstPassOpen = true;
+	isSerial = true;
+	bCalibration = true;
+	printRim = true;
+
+	GetCorrector()->open.maxGainIndex = 7;
+	//	OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
+	AdcDacStartSynchro(GetCorrector()->period, DEFAULT_DAC_AMPLITUDE);
+	ProcessStartComputeX(0/*count*/, 
+			255/*predefinedResistorIdx*/,
+			255/*predefinedGainVoltageIdx*/,
+			255/*uint8_t predefinedGainCurrentIdx*/,
+			false/*useCorrector*/
+		);
 }
 
 void OnSaveCalibrationResult()
@@ -666,6 +700,15 @@ void OnSaveCalibrationResult()
 	{
 		if(!FindResult(2, 0, 2, &corr->x2x[2].Zm[2].Zstdm))
 			MessageBox2("ERROR Cal", "100KOm 00");
+
+		for(uint8_t IIndex=0; IIndex<8; IIndex++)
+		{
+			int8_t idx = GetGainValidIdx(IIndex);
+			if(idx<0)
+				continue;
+			if(!FindResult(3, 0, IIndex, &corr->open.Zm[idx].Zstdm))
+				MessageBox2("ERROR Cal", "100 KOm 1");
+		}
 	}
 
 	if(g_last_correction_command==MENU_CORRECTION_OPEN)
@@ -676,12 +719,39 @@ void OnSaveCalibrationResult()
 			if(!FindResult(resistorIndex, 0, IIndex, &corr->x2x[resistorIndex].Zm[IIndex].Zom))
 				MessageBox2("ERROR Cal", "Open");
 		}
+
+		for(uint8_t IIndex=0; IIndex<8; IIndex++)
+		{
+			int8_t idx = GetGainValidIdx(IIndex);
+			if(idx<0)
+				continue;
+			if(!FindResult(3, 0, IIndex, &corr->open.Zm[idx].Zom))
+				MessageBox2("ERROR Cal", "Open 1");
+		}
 	}
 	
 }
 
 void OnCalibrationComplete()
 {
+	if(calFirstPassOpen)
+	{
+		calFirstPassOpen = false;
+		GetCorrector()->open.maxGainIndex = gainCurrentIdx;
+
+		if(false)
+		{//debug code
+			static char buf[]="0";
+			buf[0]='0'+gainCurrentIdx;
+			MessageBox2("OPEN", buf);
+			bCalibration = false;
+		} else
+		{
+			OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));
+		}
+		return;
+	}
+
 	calResult[calCurIndex] = Rre + Rim*I;
 
 	calCurIndex++;
