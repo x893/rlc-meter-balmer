@@ -94,5 +94,8 @@ void ClearCorrector();
 //return 255 if not found
 uint8_t PredefinedPeriodIndex();
 
+//index=0..7
+int8_t GetGainValidIdx(uint8_t index);
+
 
 #endif//_CORRECTOR_H_
