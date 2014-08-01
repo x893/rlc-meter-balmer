@@ -11,6 +11,9 @@
 #define CORRECTOR_OPEN_SHORT_GAIN_COUNT 6
 #define PREDEFINED_PERIODS_COUNT 5
 
+//COEFF_CORRECTOR_SIZE == one flash page!!!!
+#define COEFF_CORRECTOR_SIZE 2048
+
 typedef struct ZmOpen
 {
 	complexf Zstdm;//measured load
@@ -51,7 +54,7 @@ typedef struct CoeffCorrectorShort
 	float R1;//real load value 1 Om (for gain=7)
 } CoeffCorrectorShort;
 
-//sizeof(CoeffCorrector)<512
+//sizeof(CoeffCorrector)<2048
 typedef struct CoeffCorrector
 {
 	uint32_t period;//period==0 - not filled
@@ -79,8 +82,10 @@ complexf Corrector(complexf Zxm);
 
 //Очистить весь flash необходимый для записи калибровоячных констант
 bool CorrectorFlashClear();
+bool CorrectorFlashClearCurrent();
 
 //Записать текущие константы в нужный кусок flash.
+//Обязательно очищать данные перед записью!!!!!!!
 bool CorrectorFlashCurrentData();
 
 //Прочитать корректирующие коэффициэнты, соответствующие DacPeriod()

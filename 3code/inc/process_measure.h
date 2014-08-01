@@ -19,8 +19,9 @@ typedef enum STATES
 } STATES;
 
 void ProcessData();
+uint16_t ProcessCalcOptimalCount();
 void ProcessStartComputeX(
-			uint8_t count, uint8_t predefinedResistorIdx_,
+			uint16_t count, uint8_t predefinedResistorIdx_,
 			uint8_t predefinedGainVoltageIdx_,
 			uint8_t predefinedGainCurrentIdx_,
 			bool useCorrector_
