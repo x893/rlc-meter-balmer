@@ -625,7 +625,7 @@ void OnOpenFirstPass()
 	GetCorrector()->open.maxGainIndex = 7;
 	//	OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
 	AdcDacStartSynchro(GetCorrector()->period, DEFAULT_DAC_AMPLITUDE);
-	ProcessStartComputeX(ProcessCalcOptimalCount()*10/*count*/, 
+	ProcessStartComputeX(ProcessCalcOptimalCount()*2/*count*/, 
 			255/*predefinedResistorIdx*/,
 			255/*predefinedGainVoltageIdx*/,
 			255/*uint8_t predefinedGainCurrentIdx*/,

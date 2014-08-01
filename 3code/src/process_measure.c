@@ -117,6 +117,8 @@ uint16_t ProcessCalcOptimalCount()
 		count = F/10;
 	else
 		count = F/30;
+	if(count>200)
+		count = 200;
 	if(count<1)
 		count = 1;
 	return count;
