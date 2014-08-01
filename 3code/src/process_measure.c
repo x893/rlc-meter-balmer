@@ -38,8 +38,8 @@ uint8_t gainIndexIterator;
 bool gainIndexStopV;
 bool gainIndexStopI;
 
-uint8_t computeXCount;
-uint8_t computeXIterator;
+uint16_t computeXCount;
+uint16_t computeXIterator;
 uint8_t predefinedResistorIdx;
 uint8_t predefinedGainVoltageIdx;
 uint8_t predefinedGainCurrentIdx;
@@ -109,7 +109,20 @@ float getResistorOm()
 	return R;
 }
 
-void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_, 
+uint16_t ProcessCalcOptimalCount()
+{
+	uint16_t count = 1;
+	int F = (int)DacFrequency();
+	if(F<2000)
+		count = F/10;
+	else
+		count = F/30;
+	if(count<1)
+		count = 1;
+	return count;
+}
+
+void ProcessStartComputeX(uint16_t count, uint8_t predefinedResistorIdx_, 
 			uint8_t predefinedGainVoltageIdx_,
 			uint8_t predefinedGainCurrentIdx_,
 			bool useCorrector_
@@ -120,13 +133,7 @@ void ProcessStartComputeX(uint8_t count, uint8_t predefinedResistorIdx_,
 	computeXCount = count;
 	if(count==0)
 	{
-		int F = (int)DacFrequency();
-		if(F<2000)
-			computeXCount = F/10;
-		else
-			computeXCount = F/30;
-		if(computeXCount<1)
-			computeXCount = 1;
+		computeXCount = ProcessCalcOptimalCount();
 	}
 
 	predefinedResistorIdx = predefinedResistorIdx_;
@@ -205,7 +212,7 @@ void OnStartGainAuto()
 		SetResistor(resistorIdx);
 	}
 
-	initWaitCount = 2;
+	initWaitCount = bCalibration?10:2;
 	state = STATE_INIT_WAIT;
 }
 

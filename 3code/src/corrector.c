@@ -176,18 +176,6 @@ complexf CorrectorShort(complexf Zxm, CoeffCorrectorShort* cr)
 	return Zx;
 }
 
-bool CorrectorFlashClear()
-{
-	//Clear 4 Kb flash 
-	bool ok;
-	FLASH_Unlock();
-	ok = (FLASH_ErasePage(FLASH_START_ARRAY)==FLASH_COMPLETE);
-	if(ok)
-		ok = (FLASH_ErasePage(FLASH_START_ARRAY+2048)==FLASH_COMPLETE);
-	FLASH_Lock();
-	return ok;
-}
-
 uint32_t round256(uint32_t c)
 {
 	return ((c+255)/256)*256;
@@ -209,6 +197,38 @@ uint8_t PredefinedPeriodIndex()
 	return index;
 }
 
+bool CorrectorFlashClear()
+{
+	//Clear 2 Kb flash 
+	bool ok;
+	FLASH_Unlock();
+	for(int i=0; i<PREDEFINED_PERIODS_COUNT; i++)
+	{
+		ok = (FLASH_ErasePage(FLASH_START_ARRAY+COEFF_CORRECTOR_SIZE*i)==FLASH_COMPLETE);
+		if(!ok)
+			break;
+	}
+
+	FLASH_Lock();
+	return ok;
+}
+
+bool CorrectorFlashClearCurrent()
+{
+	uint8_t index = PredefinedPeriodIndex();
+
+	if(index==255)
+		return false;
+
+	//Clear 4 Kb flash 
+	bool ok;
+	FLASH_Unlock();
+	ok = (FLASH_ErasePage(FLASH_START_ARRAY+COEFF_CORRECTOR_SIZE*index)==FLASH_COMPLETE);
+
+	FLASH_Lock();
+	return ok;
+}
+
 bool CorrectorFlashCurrentData()
 {
 	uint8_t index = PredefinedPeriodIndex();
@@ -216,13 +236,13 @@ bool CorrectorFlashCurrentData()
 	if(index==255)
 		return false;
 
-	uint32_t offset = index*round256(sizeof(CoeffCorrector));
+	uint32_t offset = index*COEFF_CORRECTOR_SIZE;
 
 	FLASH_Unlock();
 
 	for(int i=0; i<sizeof(CoeffCorrector); i+=4)
 	{
-		FLASH_ProgramWord(i+offset+FLASH_START_ARRAY, ((uint32_t*)&coeff)[i/4]);
+		FLASH_ProgramWord(FLASH_START_ARRAY+offset+i, ((uint32_t*)&coeff)[i/4]);
 	}
 
 	FLASH_Lock();
@@ -236,7 +256,7 @@ void CorrectorLoadData()
 		return;
 	for(int i=0; i<PREDEFINED_PERIODS_COUNT; i++)
 	{
-		CoeffCorrector* c = (CoeffCorrector*)(i*round256(sizeof(CoeffCorrector))+FLASH_START_ARRAY);
+		CoeffCorrector* c = (CoeffCorrector*)(i*COEFF_CORRECTOR_SIZE+FLASH_START_ARRAY);
 		if(DacPeriod()==c->period)
 		{
 			cfound = c;

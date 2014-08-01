@@ -10,6 +10,7 @@
 #include "process_measure.h"
 #include "number_edit.h"
 #include "corrector.h"
+#include "systick.h"
 
 #define SIZEOF(x) (sizeof(x)/sizeof(x[0]))
 
@@ -87,7 +88,7 @@ static MenuElem g_correction_menu[]={
 	{"10 KOm", MENU_CORRECTION_10_KOm},
 	{"100 KOm", MENU_CORRECTION_100_KOm},
 	{"SAVE", MENU_CORRECTION_SAVE},
-	{"CLEAR ALL", MENU_CORRECTION_CLEAR},
+	{"CLEAR", MENU_CORRECTION_CLEAR},
 };
 
 static MenuElem* g_cur_menu = NULL;
@@ -392,14 +393,20 @@ void MessageBox2(char* line1, char* line2)
 
 void MenuClearFlash()
 {
-	if(CorrectorFlashClear())
+	if(CorrectorFlashClearCurrent())
 		MessageBox("CLEAR COMPLETE");
 	else
 		MessageBox("CLEAR FAIL");
+	ClearCorrector();
 }
 
 void MenuSaveFlash()
 {
+	if(!CorrectorFlashClearCurrent())
+		MessageBox("CLEAR FAIL");
+
+	delay_ms(10);
+
 	if(CorrectorFlashCurrentData())
 		MessageBox("SAVE COMPLETE");
 	else
@@ -618,7 +625,7 @@ void OnOpenFirstPass()
 	GetCorrector()->open.maxGainIndex = 7;
 	//	OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
 	AdcDacStartSynchro(GetCorrector()->period, DEFAULT_DAC_AMPLITUDE);
-	ProcessStartComputeX(0/*count*/, 
+	ProcessStartComputeX(ProcessCalcOptimalCount()*10/*count*/, 
 			255/*predefinedResistorIdx*/,
 			255/*predefinedGainVoltageIdx*/,
 			255/*uint8_t predefinedGainCurrentIdx*/,
