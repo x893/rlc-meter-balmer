@@ -28,10 +28,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "pcd8544.h"
 #include "pressure.h"
 #include "quadrature_encoder.h"
-#include "hw_pcd8544.h"
+
+#include "ili/hw_ili9341.h"
+#include "ili/UTFT.h"
+
+#ifdef PCD_DISPLAY
+#include "pcd/pcd8544.h"
+#include "pcd/hw_pcd8544.h"
+#endif//PCD_DISPLAY
 
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
@@ -57,7 +63,7 @@
 __IO uint32_t TimingDelay = 0;
 __IO uint32_t UserButtonPressed = 0;
 __IO float HeadingValue = 0.0f;  
-float MagBuffer[3] = {0.0f}, AccBuffer[3] = {0.0f}, Buffer[3] = {0.0f};
+static float MagBuffer[3] = {0.0f}, AccBuffer[3] = {0.0f}, Buffer[3] = {0.0f};
 uint8_t Xval, Yval = 0x00;
 
 __IO uint8_t DataReady = 0;
@@ -65,6 +71,11 @@ __IO uint32_t USBConnectTimeOut = 100;
 
 float fNormAcc,fSinRoll,fCosRoll,fSinPitch,fCosPitch = 0.0f, RollAng = 0.0f, PitchAng = 0.0f;
 float fTiltedX,fTiltedY = 0.0f;
+
+void mainPcd8544();
+void mainOriginal();
+void mainIli9341();
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -73,13 +84,81 @@ float fTiltedX,fTiltedY = 0.0f;
   * @param  None 
   * @retval None
   */
+
 int main(void)
 {  
-  uint8_t i = 0;
-  /* SysTick end of count event each 10ms */
+  // SysTick end of count event each 10ms
   RCC_GetClocksFreq(&RCC_Clocks);
   SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
+
+  //mainOriginal();
+  //mainPcd8544();
+  mainIli9341();
+}
+
+extern uint8_t SmallFont[];
+extern uint8_t BigFont[];
+extern uint8_t SevenSegNumFont[];
+
+void mainIli9341()
+{
+  STM_EVAL_LEDInit(LED3);
+  STM_EVAL_LEDInit(LED4);
+  STM_EVAL_LEDInit(LED5);
+  STM_EVAL_LEDInit(LED6);
+  STM_EVAL_LEDInit(LED7);
+  STM_EVAL_LEDInit(LED8);
+  STM_EVAL_LEDInit(LED9);
+  STM_EVAL_LEDInit(LED10);
+
+  HwLcdInit();
+
+  HwLcdPinLed(1);
+  STM_EVAL_LEDOn(LED3);
+
+  UTFT_InitLCD(UTFT_LANDSCAPE);
+
+  UTFT_clrScr();
+  UTFT_setColor(0, 255, 0);
+  UTFT_setBackColor(0, 0, 0);
+
+  UTFT_drawRect(10,10, 20, 20);
+
+  UTFT_setFont(BigFont);
+  UTFT_print(" !\"#$%&'()*+,-./", UTFT_CENTER, 0, 0);
+  UTFT_print("0123456789:;<=>?", UTFT_CENTER, 16, 0);
+  UTFT_print("@ABCDEFGHIJKLMNO", UTFT_CENTER, 32, 0);
+  UTFT_print("PQRSTUVWXYZ[\\]^_", UTFT_CENTER, 48, 0);
+  UTFT_print("`abcdefghijklmno", UTFT_CENTER, 64, 0);
+  UTFT_print("pqrstuvwxyz{|}~ ", UTFT_CENTER, 80, 0);
+
+  UTFT_setColor(255, 0, 0);
+  UTFT_setFont(SmallFont);
+  UTFT_print(" !\"#$%&'()*+,-./0123456789:;<=>?", UTFT_CENTER, 120, 0);
+  UTFT_print("@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_", UTFT_CENTER, 132, 0);
+  UTFT_print("`abcdefghijklmnopqrstuvwxyz{|}~ ", UTFT_CENTER, 144, 0);
+
+  UTFT_setColor(0, 0, 255);
+  UTFT_setFont(SevenSegNumFont);
+  UTFT_print("0123456789", UTFT_CENTER, 190, 0);
+  STM_EVAL_LEDOn(LED4);
+
+  int i = 0;
+  while(1)
+  {
+    STM_EVAL_LEDToggle(LED8);
+
+    char ch[] = "0";
+    ch[0] = '0'+((++i)%10);
+
+    //UTFT_print(ch, UTFT_CENTER, 190, 0);
+    Delay(100);
+  }
+}
   
+#ifdef PCD_DISPLAY
+void mainPcd8544()
+{
   //STM_EVAL_LEDInit(LED3);
   //STM_EVAL_LEDToggle(LED3);
   //QuadEncInit();
@@ -154,6 +233,13 @@ int main(void)
     Delay(200);
   }
 */
+
+}
+#endif//PCD_DISPLAY
+
+void mainOriginal()
+{
+  uint8_t i = 0;
   /* Initialize LEDs and User Button available on STM32F3-Discovery board */
   STM_EVAL_LEDInit(LED3);
   STM_EVAL_LEDInit(LED4);

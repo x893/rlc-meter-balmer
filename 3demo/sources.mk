@@ -5,15 +5,16 @@
 
 DEPS += \
 	output/CMSIS/startup_stm32f30x.d \
-	output/base/src/format_print.d \
 	output/base/src/hw_config.d \
-	output/base/src/hw_pcd8544.d \
 	output/base/src/main.d \
-	output/base/src/pcd8544.d \
+	output/base/src/main_9341.d \
 	output/base/src/pressure.d \
 	output/base/src/quadrature_encoder.d \
 	output/base/src/stm32f30x_it.d \
 	output/base/src/system_stm32f30x.d \
+	output/base/src/ili/DefaultFonts.d \
+	output/base/src/ili/UTFT.d \
+	output/base/src/ili/hw_ili9341.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery_l3gd20.d \
 	output/base/STM32F3_Discovery/stm32f3_discovery_lsm303dlhc.d \
@@ -32,15 +33,16 @@ DEPS += \
 
 OBJS += \
 	output/CMSIS/startup_stm32f30x.o \
-	output/base/src/format_print.o \
 	output/base/src/hw_config.o \
-	output/base/src/hw_pcd8544.o \
 	output/base/src/main.o \
-	output/base/src/pcd8544.o \
+	output/base/src/main_9341.o \
 	output/base/src/pressure.o \
 	output/base/src/quadrature_encoder.o \
 	output/base/src/stm32f30x_it.o \
 	output/base/src/system_stm32f30x.o \
+	output/base/src/ili/DefaultFonts.o \
+	output/base/src/ili/UTFT.o \
+	output/base/src/ili/hw_ili9341.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery_l3gd20.o \
 	output/base/STM32F3_Discovery/stm32f3_discovery_lsm303dlhc.o \
@@ -61,24 +63,16 @@ output/CMSIS/startup_stm32f30x.o: ../3code/Libraries/CMSIS/Device/ST/STM32F30x/S
 	@echo 'Building target: startup_stm32f30x.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
 
-output/base/src/format_print.o: ./src/format_print.c
-	@echo 'Building target: format_print.c'
-	@$(CC) $(C_FLAGS) -o "$@" "$<"
-
 output/base/src/hw_config.o: ./src/hw_config.c
 	@echo 'Building target: hw_config.c'
-	@$(CC) $(C_FLAGS) -o "$@" "$<"
-
-output/base/src/hw_pcd8544.o: ./src/hw_pcd8544.c
-	@echo 'Building target: hw_pcd8544.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/main.o: ./src/main.c
 	@echo 'Building target: main.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
-output/base/src/pcd8544.o: ./src/pcd8544.c
-	@echo 'Building target: pcd8544.c'
+output/base/src/main_9341.o: ./src/main_9341.c
+	@echo 'Building target: main_9341.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/pressure.o: ./src/pressure.c
@@ -95,6 +89,18 @@ output/base/src/stm32f30x_it.o: ./src/stm32f30x_it.c
 
 output/base/src/system_stm32f30x.o: ./src/system_stm32f30x.c
 	@echo 'Building target: system_stm32f30x.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/ili/DefaultFonts.o: ./src/ili/DefaultFonts.c
+	@echo 'Building target: DefaultFonts.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/ili/UTFT.o: ./src/ili/UTFT.c
+	@echo 'Building target: UTFT.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/ili/hw_ili9341.o: ./src/ili/hw_ili9341.c
+	@echo 'Building target: hw_ili9341.c'
 	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/STM32F3_Discovery/stm32f3_discovery.o: ./STM32F3_Discovery/stm32f3_discovery.c

@@ -18,6 +18,7 @@ sources = [
 	"output" : "base",
 	"dirs" : [
 		"src",
+		"src/ili",
 		"STM32F3_Discovery",
 		],
 },

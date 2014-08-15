@@ -88,7 +88,7 @@ def main():
 
 		makeFile.write("\t@echo 'Building target: "+os.path.split(s[0])[1]+"'\n")
 		if ext=='.cpp':
-			makeFile.write('\t@g++ $(CPP_FLAGS) -o "$@" "$<"\n\n')
+			makeFile.write('\t@$(CPP) $(CPP_FLAGS) -o "$@" "$<"\n\n')
 		elif ext=='.c':
 			makeFile.write('\t@$(CC) $(C_FLAGS) -o "$@" "$<"\n\n')
 		elif ext=='.S':

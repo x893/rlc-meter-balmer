@@ -1,6 +1,7 @@
 RM := rm -rf
 TC=arm-none-eabi
 CC=$(TC)-gcc
+CPP=$(TC)-gcc
 LD=$(TC)-ld -v
 OBJCOPY=$(TC)-objcopy
 AR=$(TC)-ar
