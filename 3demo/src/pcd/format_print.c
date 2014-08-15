@@ -1,5 +1,5 @@
 #include "pcd8544.h"
-char Buffer[32];
+static char Buffer[32];
 
 void addCommaToBuffer(uint8_t posComma)
 {
