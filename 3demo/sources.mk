@@ -5,6 +5,8 @@
 
 DEPS += \
 	output/CMSIS/startup_stm32f30x.d \
+	output/base/src/ad9958_drv.d \
+	output/base/src/calibrate_det_simplified.d \
 	output/base/src/hw_config.d \
 	output/base/src/main.d \
 	output/base/src/main_9341.d \
@@ -33,6 +35,8 @@ DEPS += \
 
 OBJS += \
 	output/CMSIS/startup_stm32f30x.o \
+	output/base/src/ad9958_drv.o \
+	output/base/src/calibrate_det_simplified.o \
 	output/base/src/hw_config.o \
 	output/base/src/main.o \
 	output/base/src/main_9341.o \
@@ -62,6 +66,14 @@ OBJS += \
 output/CMSIS/startup_stm32f30x.o: ../3code/Libraries/CMSIS/Device/ST/STM32F30x/Source/Templates/gcc_ride7/startup_stm32f30x.S
 	@echo 'Building target: startup_stm32f30x.S'
 	@$(CC) $(ASM_FLAGS) -o "$@" "$<"
+
+output/base/src/ad9958_drv.o: ./src/ad9958_drv.c
+	@echo 'Building target: ad9958_drv.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
+
+output/base/src/calibrate_det_simplified.o: ./src/calibrate_det_simplified.c
+	@echo 'Building target: calibrate_det_simplified.c'
+	@$(CC) $(C_FLAGS) -o "$@" "$<"
 
 output/base/src/hw_config.o: ./src/hw_config.c
 	@echo 'Building target: hw_config.c'

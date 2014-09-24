@@ -39,6 +39,8 @@
 #include "pcd/hw_pcd8544.h"
 #endif//PCD_DISPLAY
 
+#include "ad9958_drv.h"
+
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
   */
@@ -75,6 +77,7 @@ float fTiltedX,fTiltedY = 0.0f;
 void mainPcd8544();
 void mainOriginal();
 void mainIli9341();
+void main9958();
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -93,12 +96,40 @@ int main(void)
 
   //mainOriginal();
   //mainPcd8544();
-  mainIli9341();
+  //mainIli9341();
+  main9958();
 }
 
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 extern uint8_t SevenSegNumFont[];
+
+void main9958()
+{
+  // SysTick end of count event each 1ms
+  SysTick_Config(RCC_Clocks.HCLK_Frequency / 1000);
+  STM_EVAL_LEDInit(LED3);
+  STM_EVAL_LEDInit(LED4);
+  STM_EVAL_LEDInit(LED5);
+  STM_EVAL_LEDInit(LED6);
+  STM_EVAL_LEDInit(LED7);
+  STM_EVAL_LEDInit(LED8);
+  STM_EVAL_LEDInit(LED9);
+  STM_EVAL_LEDInit(LED10);
+
+  STM_EVAL_LEDOn(LED3);
+  AD9958_Init();
+  STM_EVAL_LEDOn(LED4);
+  Delay(5);
+  AD9958_Set_Frequency(DDS_MAIN, 1000000);
+  AD9958_Set_Frequency(DDS_LO, 1000000);
+  STM_EVAL_LEDOn(LED5);
+
+  while(1)
+  {
+  }
+}
+
 
 void mainIli9341()
 {
@@ -143,13 +174,13 @@ void mainIli9341()
   UTFT_print("0123456789", UTFT_CENTER, 190, 0);
   STM_EVAL_LEDOn(LED4);
 
-  int i = 0;
+  //int i = 0;
   while(1)
   {
     STM_EVAL_LEDToggle(LED8);
 
-    char ch[] = "0";
-    ch[0] = '0'+((++i)%10);
+    //char ch[] = "0";
+    //ch[0] = '0'+((++i)%10);
 
     //UTFT_print(ch, UTFT_CENTER, 190, 0);
     Delay(100);
