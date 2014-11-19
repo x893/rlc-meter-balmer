@@ -10,6 +10,7 @@ void VBatInit()
 	ADC_InitTypeDef       ADC_InitStructure;
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;
 	GPIO_InitTypeDef      GPIO_InitStructure;
+	GPIO_StructInit(&GPIO_InitStructure);
 	/* ADC Channel configuration */
 	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div2);  
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_ADC12, ENABLE);

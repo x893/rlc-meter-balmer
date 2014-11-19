@@ -55,8 +55,8 @@
   * @{
   */
 #define PLL_MUL					20.0				/* PLL multiplier */
-#define REFCLK					25000000.0			/* Reference clock: 24 MHz */
-#define MASTER_CLOCK			(REFCLK*PLL_MUL)	/* Master clock: 480 MHz */
+#define REFCLK					25000000.0			/* Reference clock: 25 MHz */
+#define MASTER_CLOCK			(REFCLK*PLL_MUL)	/* Master clock: 500 MHz */
 
 #define MAX_OUTPUT_FREQUENCY	MAX_FREQUENCY		/* 230 MHz */
 
@@ -77,6 +77,13 @@
 
 #define DDS_CS_HIGH			(GPIOA->BSRR = GPIO_Pin_4)
 #define DDS_CS_LOW			(GPIOA->BRR = GPIO_Pin_4)
+
+
+    // CSR: 3-wire mode, MSB first, channels enabled
+//static uint8_t wire = 2;
+    // CSR: 2-wire mode, MSB first, channels enabled
+static uint8_t wire = 0;
+
 /**
   * @}
   */
@@ -87,7 +94,8 @@ void Delay(uint32_t nTime);
 /* Private function prototypes -----------------------------------------------*/
 static void RCC_Configuration(void);
 static void GPIO_Configuration(void);
-static uint8_t dds_send_rcv (uint8_t u8Data);
+static void dds_send(uint8_t u8Data);
+static uint8_t dds_rcv();
 static void WR_CSR(uint8_t u8Data);
 static uint8_t RD_CSR(void);
 static void WR_FR1(uint8_t u8Data1,uint8_t u8Data2,uint8_t u8Data3);
@@ -111,16 +119,16 @@ static void IOUpdatePulse(void);
   */
 void AD9958_Init(void)
 {
-	SPI_InitTypeDef   SPI_InitStructure;
+SPI_InitTypeDef   SPI_InitStructure;
 
   	/* System clocks configuration ---------------------------------------------*/
 	RCC_Configuration();
 
   	/* GPIO configuration ------------------------------------------------------*/
   	GPIO_Configuration();
-
-  	/* 1st phase: SPI1 Master */
-  	/* SPI1 Config -------------------------------------------------------------*/
+/*
+  	// 1st phase: SPI1 Master 
+  	// SPI1 Config -------------------------------------------------------------
   	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
   	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
@@ -132,10 +140,10 @@ void AD9958_Init(void)
   	SPI_InitStructure.SPI_CRCPolynomial = 7;
   	SPI_Init(SPI1, &SPI_InitStructure);
 
-  	/* Enable SPI1 */
+  	// Enable SPI1
   	SPI_Cmd(SPI1, ENABLE);
-
-  	/* DDS configuration -------------------------------------------------------*/
+*/
+  	/* DDS configuration -------------------------------------------------------
   	/* Resets DDS device */
 #ifdef DDS_POWER_DOWN_ENABLE    
 	DDS_PWR_DOWN_LOW;
@@ -149,29 +157,35 @@ void AD9958_Init(void)
 	DDS_RESET_LOW;
 	Delay(2);
 
-  // CSR: 2-wire mode, MSB first, channels enabled
-	WR_CSR(0xc2);
+
+    WR_CSR(0xc0|wire);
 
 	/* FR1: PLL=20  */
- 	WR_FR1(0xd0,0x00,0x00);
+ 	//WR_FR1(0xd0,0x00,0x00);
+
+    //PLL=20, Charge Pump=max
+    //WR_FR1(0xd3,0x00,0x00);
+
+    //PLL=4, Charge Pump=max
+    WR_FR1(0x10,0x00,0x00);
 
  	/* Reset phase */
  	WR_CPOW0(0x00);
 
 	/* Gain for main channel  */
- 	WR_CSR(0x42);
+ 	WR_CSR(0x40|wire);
 	WR_CFR(0x00,0x03,0x00);
 	WR_ACR(0x00, 0x11, 0x80);
  	WR_CFTW0(0);
 
 	/* Gain for LO  */
-	WR_CSR(0x82);
+	WR_CSR(0x80|wire);
 	WR_CFR(0x00,0x03,0x00);
 	WR_ACR(0x00, 0x11, 0x00);
  	WR_CFTW0(0);
 
 	/* Enable both channel cmds */
-	WR_CSR(0xc2);
+	WR_CSR(0xc0|wire);
 
 	/* Transfer registers */
 	IOUpdatePulse();
@@ -204,24 +218,24 @@ int AD9958_Set_Frequency(int iChannel,double dfFreq)
 	if(iChannel==DDS_MAIN)
 	{
 		/* Enable channel 0 cmds and disable channel 1 cmds */
-		WR_CSR(0x42);
+		WR_CSR(0x40|wire);
 	}
 	else
 	{
 	  	/* Enable channel 1 cmds and disable channel 0 cmds */
-		WR_CSR(0x82);
+		WR_CSR(0x80|wire);
 		u16AmpWord-=0x80;
 	}
-	u8High=HI8(u16AmpWord);
-	u8Low=LO8(u16AmpWord);
-	WR_ACR(0x00, u8High, u8Low);
+	//u8High=HI8(u16AmpWord);
+	//u8Low=LO8(u16AmpWord);
+	//WR_ACR(0x00, u8High, u8Low);
 
 	/* Write frequency word */
  	u32Temp=(uint32_t)dfFreq*(0xFFFFFFFF/(float)MASTER_CLOCK+1.0/MASTER_CLOCK);
  	WR_CFTW0(u32Temp);
 
 	/* Enable both channel cmds */
-	WR_CSR(0xc2);
+	WR_CSR(0xc0|wire);
 
   	/* All channels clear phase for synchronization */
 	WR_FR2(0x10,0x00);
@@ -243,14 +257,14 @@ int AD9958_Set_Frequency(int iChannel,double dfFreq)
 bool AD9958_Test(void)
 {
 	/* Perform several write and verify operations */
-	WR_CSR(0x42);
-	if (RD_CSR()!=0x42)
+	WR_CSR(0x40|wire);
+	if (RD_CSR()!=(0x40|wire))
 		return false;
-	WR_CSR(0x82);
-	if (RD_CSR()!=0x82)
+	WR_CSR(0x80|wire);
+	if (RD_CSR()!=(0x80|wire))
 		return false;
-	WR_CSR(0xc2);
-	if (RD_CSR()!=0xc2)
+	WR_CSR(0xc0|wire);
+	if (RD_CSR()!=(0xc0|wire))
 		return false;
 
 	return true;
@@ -277,13 +291,13 @@ int AD9958_Set_Level(int iChannel,uint16_t u16Level)
 	if(iChannel==DDS_MAIN)
 	{
 		/* Enable channel 0 cmds and disable channel 1 cmds */
-		WR_CSR(0x42);
+		WR_CSR(0x40|wire);
 
 	}
 	else
 	{
 	  	/* Enable channel 1 cmds and disable channel 0 cmds */
-		WR_CSR(0x82);
+		WR_CSR(0x80|wire);
 	}
 	/* Adjust amplitude level */
 	u8High=HI8(u16Level)|0x10;
@@ -291,7 +305,7 @@ int AD9958_Set_Level(int iChannel,uint16_t u16Level)
 	WR_ACR(0x00, u8High, u8Low);
 
 	/* Enable both channel cmds */
-	WR_CSR(0xc2);
+	WR_CSR(0xc0|wire);
 
 	/* Transfer registers */
 	IOUpdatePulse();
@@ -333,8 +347,8 @@ static void WR_CSR(uint8_t u8Data)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x00);	/* CSR's address is 0 */
-	dds_send_rcv(u8Data);
+	dds_send(0x00);	/* CSR's address is 0 */
+	dds_send(u8Data);
 
 	DDS_CS_HIGH;
 }
@@ -351,8 +365,8 @@ static uint8_t RD_CSR(void)
 
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x80);	/* CSR's address is 0 */
-	u8Data = dds_send_rcv(0xff);
+	dds_send(0x80);	/* CSR's address is 0 */
+	u8Data = dds_rcv();
 
 	DDS_CS_HIGH;
 
@@ -370,10 +384,10 @@ static void WR_FR1(uint8_t u8Data1,uint8_t u8Data2,uint8_t u8Data3)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x01);	/* FR1's address is 1 */
-	dds_send_rcv(u8Data1);
-	dds_send_rcv(u8Data2);
-	dds_send_rcv(u8Data3);
+	dds_send(0x01);	/* FR1's address is 1 */
+	dds_send(u8Data1);
+	dds_send(u8Data2);
+	dds_send(u8Data3);
 
 	DDS_CS_HIGH;
 }
@@ -389,9 +403,9 @@ static void WR_FR2(uint8_t u8Data1,uint8_t u8Data2)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x02);	/* FR1's address is 2 */
-	dds_send_rcv(u8Data1);
-	dds_send_rcv(u8Data2);
+	dds_send(0x02);	/* FR1's address is 2 */
+	dds_send(u8Data1);
+	dds_send(u8Data2);
 
 	DDS_CS_HIGH;
 }
@@ -408,10 +422,10 @@ static void WR_CFR(uint8_t u8Data1,uint8_t u8Data2,uint8_t u8Data3)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x03);	/* CFR's address is 3 */
-	dds_send_rcv(u8Data1);
-	dds_send_rcv(u8Data2);
-	dds_send_rcv(u8Data3);
+	dds_send(0x03);	/* CFR's address is 3 */
+	dds_send(u8Data1);
+	dds_send(u8Data2);
+	dds_send(u8Data3);
 
 	DDS_CS_HIGH;
 }
@@ -425,11 +439,11 @@ static void WR_CFTW0(uint32_t u32ftWord)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x04);	/* CFTW0's address is 4 */
-	dds_send_rcv(((uint8_t *)(&u32ftWord))[3]);
-	dds_send_rcv(((uint8_t *)(&u32ftWord))[2]);
-	dds_send_rcv(((uint8_t *)(&u32ftWord))[1]);
-	dds_send_rcv(((uint8_t *)(&u32ftWord))[0]);
+	dds_send(0x04);	/* CFTW0's address is 4 */
+	dds_send(((uint8_t *)(&u32ftWord))[3]);
+	dds_send(((uint8_t *)(&u32ftWord))[2]);
+	dds_send(((uint8_t *)(&u32ftWord))[1]);
+	dds_send(((uint8_t *)(&u32ftWord))[0]);
 
 	DDS_CS_HIGH;
 }
@@ -444,9 +458,9 @@ static void WR_CPOW0(uint32_t u32CpWord)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x05);	/* CPW0's address is 5 */
-	dds_send_rcv((((uint8_t *)(&u32CpWord))[1])&0x3F);
-	dds_send_rcv(((uint8_t *)(&u32CpWord))[0]);
+	dds_send(0x05);	/* CPW0's address is 5 */
+	dds_send((((uint8_t *)(&u32CpWord))[1])&0x3F);
+	dds_send(((uint8_t *)(&u32CpWord))[0]);
 
 	DDS_CS_HIGH;
 }
@@ -463,45 +477,57 @@ static void WR_ACR(uint8_t u8Data1,uint8_t u8Data2,uint8_t u8Data3)
 {
 	DDS_CS_LOW;
 
-	dds_send_rcv(0x06);	/* ACR's address is 3 */
-	dds_send_rcv(u8Data1);
-	dds_send_rcv(u8Data2);
-	dds_send_rcv(u8Data3);
+	dds_send(0x06);	/* ACR's address is 3 */
+	dds_send(u8Data1);
+	dds_send(u8Data2);
+	dds_send(u8Data3);
 
 	DDS_CS_HIGH;
 }
 
-/**
-  * @brief  Send/receive data to the DDS
-  *
-  * @param  u8Data 	send byte
-  * @retval Received byte
-  */
-/*
-static uint8_t dds_send_rcv (uint8_t u8Data)
+static void dds_send(uint8_t data)
 {
-	uint8_t u8Rcv;
+    GPIO_InitTypeDef gpio;
+    // GPIO_Pin_7 = MOSI
+    gpio.GPIO_Pin = GPIO_Pin_7;
+    gpio.GPIO_Mode = GPIO_Mode_OUT;
+    gpio.GPIO_OType = GPIO_OType_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &gpio);
 
-	// Wait for SPI1 Tx buffer empty 
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
-    // Send SPI1 data 
-    SPI_SendData8(SPI1, u8Data);
-    // Wait for SPI1 data reception 
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
-    // Read SPI1 received data
-    u8Rcv=SPI_ReceiveData8(SPI1);
-
-    return u8Rcv;
+    for(uint8_t i=0; i<8; i++) {
+        for(volatile int j=0; j<4; j++);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_7, (data & 0x80)? 1:0);
+        data = data<<1;
+        for(volatile int j=0; j<32; j++);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_5, 1);
+        for(volatile int j=0; j<32; j++);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_5, 0);
+    }
 }
-*/
 
-static uint8_t dds_send_rcv (uint8_t u8Data)
+static uint8_t dds_rcv()
 {
-  SPI_SendData8(SPI1, u8Data);
-  while( !(SPI1->SR & SPI_I2S_FLAG_TXE) ); // wait until transmit complete
-  while( !(SPI1->SR & SPI_I2S_FLAG_RXNE) ); // wait until receive complete
-  while( SPI1->SR & SPI_I2S_FLAG_BSY ); // wait until SPI is not busy anymore
-  return SPI_ReceiveData8(SPI1);
+    GPIO_InitTypeDef gpio;
+    // GPIO_Pin_7 = MOSI
+    gpio.GPIO_Pin = GPIO_Pin_7;
+    gpio.GPIO_Mode = GPIO_Mode_IN;
+    gpio.GPIO_OType = GPIO_OType_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &gpio);
+
+    uint8_t data = 0;
+    for(uint8_t i=0; i<8; i++) {
+        data = data<<1;
+        for(volatile int j=0; j<32; j++);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_5, 1);
+        data |= GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_7);
+        for(volatile int j=0; j<32; j++);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_5, 0);
+    }
+    return data;
 }
 
 /**
@@ -518,8 +544,8 @@ static void RCC_Configuration(void)
   	/* Enable SPI1 Periph clock */
   	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 }
 
 /**
@@ -529,42 +555,35 @@ static void RCC_Configuration(void)
   */
 static void GPIO_Configuration(void)
 {
-  	GPIO_InitTypeDef gpio;
-
-  	/* Configure SPI1 pins: SCK and MOSI */
+    GPIO_InitTypeDef gpio;
+    /* Configure SPI1 pins: SCK and MOSI */
     // GPIO_Pin_5 = SCK
-    // GPIO_Pin_6 = MISO
     // GPIO_Pin_7 = MOSI
-  	gpio.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_6;
-  gpio.GPIO_Mode = GPIO_Mode_AF;
-  gpio.GPIO_OType = GPIO_OType_PP;
-  gpio.GPIO_Speed = GPIO_Speed_50MHz;
-  gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  	GPIO_Init(GPIOA, &gpio);
+    gpio.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_7;
+    gpio.GPIO_Mode = GPIO_Mode_OUT; //GPIO_Mode_IN
+    gpio.GPIO_OType = GPIO_OType_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &gpio);
 
-  // connect SPI1 pins to SPI alternate function
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_5);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_5);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_5);
+    gpio.GPIO_Pin = GPIO_Pin_4;
+    gpio.GPIO_Mode = GPIO_Mode_OUT;
+    gpio.GPIO_OType = GPIO_OType_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &gpio);
 
-  gpio.GPIO_Pin = GPIO_Pin_4;
-  gpio.GPIO_Mode = GPIO_Mode_OUT;
-  gpio.GPIO_OType = GPIO_OType_PP;
-  gpio.GPIO_Speed = GPIO_Speed_50MHz;
-  gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOA, &gpio);
-
-  //DDS_IO
+    //DDS_IO
 	gpio.GPIO_Pin = GPIO_Pin_0;
 	GPIO_Init(GPIOB, &gpio);
 
-  //DDS_RESET
+    //DDS_RESET
 	gpio.GPIO_Pin = GPIO_Pin_1;
 	GPIO_Init(GPIOB, &gpio);
 
 #ifdef DDS_POWER_DOWN_ENABLE
-  gpio.GPIO_Pin = GPIO_Pin_3;
-  GPIO_Init(GPIOE, &gpio);
+    gpio.GPIO_Pin = GPIO_Pin_3;
+    GPIO_Init(GPIOE, &gpio);
 #endif
 }
 

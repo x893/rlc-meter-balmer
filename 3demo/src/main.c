@@ -96,8 +96,8 @@ int main(void)
 
   //mainOriginal();
   //mainPcd8544();
-  //mainIli9341();
-  main9958();
+  mainIli9341();
+  //main9958();
 }
 
 extern uint8_t SmallFont[];
@@ -121,10 +121,14 @@ void main9958()
   AD9958_Init();
   STM_EVAL_LEDOn(LED4);
   Delay(5);
+
+  if(AD9958_Test())
+    STM_EVAL_LEDOn(LED5);
+  else
+    STM_EVAL_LEDOn(LED7);
+
   AD9958_Set_Frequency(DDS_MAIN, 1000000);
   AD9958_Set_Frequency(DDS_LO, 1000000);
-  STM_EVAL_LEDOn(LED5);
-
   while(1)
   {
   }
@@ -148,6 +152,9 @@ void mainIli9341()
   STM_EVAL_LEDOn(LED3);
 
   UTFT_InitLCD(UTFT_LANDSCAPE);
+
+  //HwLcdChangeSpiPrescaler(SPI_BaudRatePrescaler_64);
+  HwLcdChangeSpiPrescaler(SPI_BaudRatePrescaler_2);
 
   UTFT_clrScr();
   UTFT_setColor(0, 255, 0);

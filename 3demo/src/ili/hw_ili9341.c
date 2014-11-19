@@ -19,6 +19,8 @@ void Delay(__IO uint32_t nTime);
 #define PIN_SOURCE_MISO	GPIO_PinSource6
 #define PIN_SOURCE_MOSI	GPIO_PinSource7
 
+static SPI_InitTypeDef spi;
+
 
 void HwLcdInit()
 {
@@ -52,7 +54,6 @@ void HwLcdInit()
 	GPIO_PinAFConfig(TFT_PORT, PIN_SOURCE_MOSI, GPIO_AF_5);
 
     //SPI_StructInit(&spi);
-	SPI_InitTypeDef spi;
 	spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	spi.SPI_Mode = SPI_Mode_Master;
 	spi.SPI_DataSize = SPI_DataSize_8b;
@@ -61,6 +62,15 @@ void HwLcdInit()
 	spi.SPI_NSS = SPI_NSS_Soft;
 	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_128;
 	spi.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_Init(TFT_SPI, &spi);
+	SPI_Cmd(TFT_SPI, ENABLE);
+	SPI_NSSInternalSoftwareConfig(SPI1, SPI_NSSInternalSoft_Set);
+}
+
+void HwLcdChangeSpiPrescaler(uint16_t spiPrescaler)
+{
+	SPI_Cmd(TFT_SPI, DISABLE);
+	spi.SPI_BaudRatePrescaler = spiPrescaler;
 	SPI_Init(TFT_SPI, &spi);
 	SPI_Cmd(TFT_SPI, ENABLE);
 	SPI_NSSInternalSoftwareConfig(SPI1, SPI_NSSInternalSoft_Set);
