@@ -45,6 +45,7 @@ void QuadEncInit()
 #endif
 
     GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
     
     GPIO_InitStructure.GPIO_Pin = BUTTON_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;

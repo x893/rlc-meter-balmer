@@ -7,6 +7,8 @@
 //LCD Hardware routines
 
 void HwLcdInit();
+
+void HwLcdChangeSpiPrescaler(uint16_t spiPrescaler);
 //Подождать несколько милисекунд
 void DelaySome();
 
