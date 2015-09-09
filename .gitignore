@@ -1,3 +1,5 @@
 3code/build/
 *.uvguix.*
 *.uvoptx
+*.b#?
+*.s#?
