@@ -1,57 +1,14 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
-/**
-  ******************************************************************************
-  * @file    USB_Example/usb_istr.c
-  * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    20-September-2012
-  * @brief   ISTR events interrupt service routines
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
-
-/* Includes ------------------------------------------------------------------*/
 #include "usb_lib.h"
 #include "usb_prop.h"
 #include "usb_pwr.h"
 #include "usb_istr.h"
 
-/** @addtogroup STM32F3_Discovery_Peripheral_Examples
-  * @{
-  */
+__IO uint16_t wIstr;			/* ISTR register last read value */
+__IO uint8_t bIntPackSOF = 0;	/* SOFs received between 2 consecutive packets */
 
-/** @addtogroup USB_Example
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-__IO uint16_t wIstr;  /* ISTR register last read value */
-__IO uint8_t bIntPackSOF = 0;  /* SOFs received between 2 consecutive packets */
-
-/* Extern variables ----------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 /* function pointers to non-control endpoints service routines */
 void(*pEpInt_IN[7])(void) =
 {
@@ -82,7 +39,6 @@ void(*pEpInt_OUT[7])(void) =
   */
 void USB_Istr(void)
 {
-
 	wIstr = _GetISTR();
 
 #if (IMR_MSK & ISTR_CTR)
@@ -96,7 +52,7 @@ void USB_Istr(void)
 #endif
 	}
 #endif  
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_RESET)
 	if (wIstr & ISTR_RESET & wInterrupt_Mask)
 	{
@@ -107,7 +63,7 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_DOVR)
 	if (wIstr & ISTR_DOVR & wInterrupt_Mask)
 	{
@@ -117,7 +73,7 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_ERR)
 	if (wIstr & ISTR_ERR & wInterrupt_Mask)
 	{
@@ -127,7 +83,7 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_WKUP)
 	if (wIstr & ISTR_WKUP & wInterrupt_Mask)
 	{
@@ -138,21 +94,15 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_SUSP)
 	if (wIstr & ISTR_SUSP & wInterrupt_Mask)
-	{
-
-		/* check if SUSPEND is possible */
+	{	/* check if SUSPEND is possible */
 		if (fSuspendEnabled)
-		{
 			Suspend();
-		}
-		else
-		{
-			/* if not possible then resume after xx ms */
+		else	/* if not possible then resume after xx ms */
 			Resume(RESUME_LATER);
-		}
+
 		/* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
 		_SetISTR((uint16_t)CLR_SUSP);
 #ifdef SUSP_CALLBACK
@@ -160,7 +110,7 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_SOF)
 	if (wIstr & ISTR_SOF & wInterrupt_Mask)
 	{
@@ -172,13 +122,13 @@ void USB_Istr(void)
 #endif
 	}
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
 #if (IMR_MSK & ISTR_ESOF)
 	if (wIstr & ISTR_ESOF & wInterrupt_Mask)
 	{
 		_SetISTR((uint16_t)CLR_ESOF);
 		/* resume handling timing is made with ESOFs */
-		Resume(RESUME_ESOF); /* request without change of the machine state */
+		Resume(RESUME_ESOF);	/* request without change of the machine state */
 
 #ifdef ESOF_CALLBACK
 		ESOF_Callback();
@@ -186,14 +136,3 @@ void USB_Istr(void)
 	}
 #endif
 } /* USB_Istr */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

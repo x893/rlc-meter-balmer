@@ -8,13 +8,12 @@
 
 #define pi  3.14159f
 //#define SINUS_BUFFER_SIZE 1000
-#define SINUS_BUFFER_SIZE 2000
-#define DEFAULT_DAC_AMPLITUDE 1200
+#define SINUS_BUFFER_SIZE		2000
+#define DEFAULT_DAC_AMPLITUDE	1200
 
 extern float g_sinusBufferFloat[SINUS_BUFFER_SIZE];
 
 void DacInit(void);
-
 /*
 	Stop DAC and set frequency
 */

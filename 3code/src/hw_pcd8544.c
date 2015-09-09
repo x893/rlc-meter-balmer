@@ -100,13 +100,15 @@ void HwLcdPinRst(uint8_t on)
 	GPIO_WriteBit(LCD_RST_PORT, LCD_RST_PIN, (BitAction)on);
 }
 
-void SPI1_send(uint16_t data)
+void HwLcdSend(uint16_t data)
 {
 #ifdef HARDWARE_SPI
 
 	SPI1->DR = data;
-	while (!(SPI1->SR & SPI_I2S_FLAG_TXE));	// wait until transmit complete
-	while (SPI1->SR & SPI_I2S_FLAG_BSY);	// wait until SPI is not busy anymore
+	while (!(SPI1->SR & SPI_I2S_FLAG_TXE))
+		;	// wait until transmit complete
+	while (SPI1->SR & SPI_I2S_FLAG_BSY)
+		;	// wait until SPI is not busy anymore
 
 #else
 
@@ -128,9 +130,4 @@ void SPI1_send(uint16_t data)
 	}
 
 #endif
-}
-
-void HwLcdSend(uint16_t data)
-{
-	SPI1_send(data);
 }

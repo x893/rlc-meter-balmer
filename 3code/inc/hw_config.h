@@ -26,6 +26,16 @@ void Get_SerialNum			(void);
 
 #define USB_ON_PORT			GPIOC
 #define USB_ON_PIN			GPIO_Pin_6
+#define USB_INT_DEFAULT		// For Default Interrupt Mode
+//	#define USB_INT_REMAP	// For Remapping Interrupt Mode
+
+#define RCC_AHBPeriph_ALLGPIO	(RCC_AHBPeriph_GPIOA	\
+								| RCC_AHBPeriph_GPIOB	\
+								| RCC_AHBPeriph_GPIOC	\
+								| RCC_AHBPeriph_GPIOD	\
+								| RCC_AHBPeriph_GPIOE	\
+								| RCC_AHBPeriph_GPIOF	\
+								)
 
 #define AN_SW_PORT			GPIOB
 #define AN_SW_PIN			GPIO_Pin_10
@@ -100,8 +110,8 @@ void Get_SerialNum			(void);
 */
 void SetResistor(uint8_t idx);
 
-//24000 == 3 KHz
-#define LOW_PASS_PERIOD 24000 
+// 24000 == 3 KHz
+#define LOW_PASS_PERIOD 24000
 /*
 Add 3.3 nF capacitor to filter after DAC.
 */

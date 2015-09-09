@@ -12,29 +12,7 @@
 #include "lcd_interface.h"
 #include "vbat.h"
 
-//	LCD primitives (from PCD8544.c)
 //	-------------------------------
-__weak uint8_t LcdGotoXYFont( uint8_t x, uint8_t y )
-{
-	return OK;
-}
-__weak uint8_t LcdSingleBar( uint8_t baseX, uint8_t baseY, uint8_t height, uint8_t width, LcdPixelMode mode )
-{
-	return OK;
-}
-__weak uint8_t LcdStr( LcdFontSize size, const char* dataArray)
-{
-	return OK;
-}
-__weak void LcdClear( void ) { }
-__weak void LcdUpdate( void ) { }
-__weak void LcdInit( void ) { }
-__weak uint8_t LcdLine( uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, LcdPixelMode mode )
-{
-	return OK;
-}
-//	-------------------------------
-void InitLight(void);
 
 void USB_Config(void)
 {
@@ -89,5 +67,3 @@ void assert_failed(uint8_t* file, uint32_t line)
 	}
 }
 #endif
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -35,23 +35,17 @@ void SysTick_SetReload(u32 Reload)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void SysTick_CounterCmd(u32 SysTick_Counter)
+void SysTick_CounterCmd(uint32_t SysTick_Counter)
 {
 	/* Check the parameters */
 	assert_param(IS_SYSTICK_COUNTER(SysTick_Counter));
 
 	if (SysTick_Counter == SysTick_Counter_Enable)
-	{
 		SysTick->CTRL |= SysTick_Counter_Enable;
-	}
 	else if (SysTick_Counter == SysTick_Counter_Disable)
-	{
 		SysTick->CTRL &= SysTick_Counter_Disable;
-	}
 	else /* SysTick_Counter == SysTick_Counter_Clear */
-	{
 		SysTick->VAL = SysTick_Counter_Clear;
-	}
 }
 
 /*******************************************************************************
@@ -68,13 +62,9 @@ void SysTick_ITConfig(FunctionalState NewState)
 	assert_param(IS_FUNCTIONAL_STATE(NewState));
 
 	if (NewState != DISABLE)
-	{
 		SysTick->CTRL |= CTRL_TICKINT_Set;
-	}
 	else
-	{
 		SysTick->CTRL &= CTRL_TICKINT_Reset;
-	}
 }
 
 /*******************************************************************************
@@ -86,7 +76,7 @@ void SysTick_ITConfig(FunctionalState NewState)
 *******************************************************************************/
 u32 SysTick_GetCounter(void)
 {
-	return(SysTick->VAL);
+	return (SysTick->VAL);
 }
 
 /*******************************************************************************
@@ -102,7 +92,7 @@ u32 SysTick_GetCounter(void)
 *******************************************************************************/
 FlagStatus SysTick_GetFlagStatus(u8 SysTick_FLAG)
 {
-	u32 statusreg = 0, tmp = 0;
+	uint32_t statusreg = 0, tmp = 0;
 	FlagStatus bitstatus = RESET;
 
 	/* Check the parameters */
@@ -112,22 +102,15 @@ FlagStatus SysTick_GetFlagStatus(u8 SysTick_FLAG)
 	tmp = SysTick_FLAG >> 3;
 
 	if (tmp == 2) /* The flag to check is in CTRL register */
-	{
 		statusreg = SysTick->CTRL;
-	}
 	else          /* The flag to check is in CALIB register */
-	{
 		statusreg = SysTick->CALIB;
-	}
 
-	if ((statusreg & ((u32)1 << SysTick_FLAG)) != (u32)RESET)
-	{
+	if ((statusreg & (1ul << SysTick_FLAG)) != RESET)
 		bitstatus = SET;
-	}
 	else
-	{
 		bitstatus = RESET;
-	}
+
 	return bitstatus;
 }
 
@@ -143,15 +126,16 @@ void delay_init(void)
 	delay_fac_ms = RCC_ClocksStatus.HCLK_Frequency / 1000;
 }
 
-void delay_us(u32 Nus)
+void delay_us(uint32_t nus)
 {
-	SysTick_SetReload(delay_fac_us * Nus);
+	SysTick_SetReload(delay_fac_us * nus);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 	SysTick_CounterCmd(SysTick_Counter_Enable);
 	do
 	{
 		Status = SysTick_GetFlagStatus(SysTick_FLAG_COUNT);
 	} while (Status != SET);
+
 	SysTick_CounterCmd(SysTick_Counter_Disable);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 }
@@ -162,9 +146,8 @@ void delay_ms(uint16_t nms)
 	uint32_t temp = delay_fac_ms * nms;
 
 	if (temp > 0x00ffffff)
-	{
 		temp = 0x00ffffff;
-	}
+
 	SysTick_SetReload(temp);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 	SysTick_CounterCmd(SysTick_Counter_Enable);
@@ -172,6 +155,7 @@ void delay_ms(uint16_t nms)
 	{
 		Status = SysTick_GetFlagStatus(SysTick_FLAG_COUNT);
 	} while (Status != SET);
+
 	SysTick_CounterCmd(SysTick_Counter_Disable);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 }

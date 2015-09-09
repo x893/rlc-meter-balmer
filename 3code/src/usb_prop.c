@@ -1,34 +1,6 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
-/**
-  ******************************************************************************
-  * @file    USB_Example/usb_prop.c
-  * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    20-September-2012
-  * @brief   All processing related to Demo
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
-
-/* Includes ------------------------------------------------------------------*/
 #include "usb_lib.h"
 #include "usb_conf.h"
 #include "usb_prop.h"
@@ -36,18 +8,6 @@
 #include "usb_pwr.h"
 #include "hw_config.h"
 
-/** @addtogroup STM32F3_Discovery_Peripheral_Examples
-  * @{
-  */
-
-/** @addtogroup USB_Example
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 uint32_t ProtocolValue;
 
 /* -------------------------------------------------------------------------- */
@@ -75,6 +35,7 @@ DEVICE_PROP Device_Property =
 	0,
 	0x40 /*MAX PACKET SIZE*/
 };
+
 USER_STANDARD_REQUESTS User_Standard_Requests =
 {
 	RLC_GetConfiguration,
@@ -120,11 +81,6 @@ ONE_DESCRIPTOR String_Descriptor[4] =
 	{ (uint8_t*)RLC_StringSerial, RLC_SIZ_STRING_SERIAL }
 };
 
-/* Extern variables ----------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Extern function prototypes ------------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
 /**
   * @brief  RLC_Init
   * @param  None
@@ -132,15 +88,11 @@ ONE_DESCRIPTOR String_Descriptor[4] =
   */
 void RLC_Init(void)
 {
-	/* Update the serial number string descriptor with the data from the unique	ID*/
-	Get_SerialNum();
-
+	Get_SerialNum();	/* Update the serial number string descriptor with the data from the unique	ID*/
 	pInformation->Current_Configuration = 0;
-	/* Connect the device */
-	PowerOn();
-
-	/* Perform basic device initialization operations */
-	USB_SIL_Init();
+	
+	PowerOn();			/* Connect the device */
+	USB_SIL_Init();		/* Perform basic device initialization operations */
 
 	bDeviceState = UNCONNECTED;
 }
@@ -154,7 +106,7 @@ void RLC_Reset(void)
 {
 	/* Set RLC_DEVICE as not configured */
 	pInformation->Current_Configuration = 0;
-	pInformation->Current_Interface = 0;/*the default Interface*/
+	pInformation->Current_Interface = 0;	/*the default Interface*/
 
 	/* Current Feature initialization */
 	pInformation->Current_Feature = RLC_ConfigDescriptor[7];
@@ -194,8 +146,7 @@ void RLC_SetConfiguration(void)
 	DEVICE_INFO *pInfo = &Device_Info;
 
 	if (pInfo->Current_Configuration != 0)
-	{
-		/* Device configured */
+	{	/* Device configured */
 		bDeviceState = CONFIGURED;
 	}
 }
@@ -234,35 +185,31 @@ void RLC_Status_Out(void)
 RESULT RLC_Data_Setup(uint8_t RequestNo)
 {
 	uint8_t *(*CopyRoutine)(uint16_t);
-
 	CopyRoutine = NULL;
-	/*
-	  if ((RequestNo == GET_DESCRIPTOR)
-	  && (Type_Recipient == (STANDARD_REQUEST | INTERFACE_RECIPIENT))
-	  && (pInformation->USBwIndex0 == 0))
-	  {
 
-	  if (pInformation->USBwValue1 == REPORT_DESCRIPTOR)
-	  {
-	  CopyRoutine = RLC_GetReportDescriptor;
-	  }
-	  else if (pInformation->USBwValue1 == HID_DESCRIPTOR_TYPE)
-	  {
-	  CopyRoutine = RLC_GetHIDDescriptor;
-	  }
-
-	  }
-	  else if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-	  && RequestNo == GET_PROTOCOL)
-	  {
-	  CopyRoutine = RLC_GetProtocolValue;
-	  }
-	  */
+/*
+	if ((RequestNo == GET_DESCRIPTOR)
+	&& (Type_Recipient == (STANDARD_REQUEST | INTERFACE_RECIPIENT))
+	&& (pInformation->USBwIndex0 == 0))
+	{
+		if (pInformation->USBwValue1 == REPORT_DESCRIPTOR)
+		{
+			CopyRoutine = RLC_GetReportDescriptor;
+		}
+		else if (pInformation->USBwValue1 == HID_DESCRIPTOR_TYPE)
+		{
+			CopyRoutine = RLC_GetHIDDescriptor;
+		}
+	}
+	else if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+	&& RequestNo == GET_PROTOCOL)
+	{
+		CopyRoutine = RLC_GetProtocolValue;
+	}
+*/
 
 	if (CopyRoutine == NULL)
-	{
 		return USB_UNSUPPORT;
-	}
 
 	pInformation->Ctrl_Info.CopyData = CopyRoutine;
 	pInformation->Ctrl_Info.Usb_wOffset = 0;
@@ -278,15 +225,10 @@ RESULT RLC_Data_Setup(uint8_t RequestNo)
 RESULT RLC_NoData_Setup(uint8_t RequestNo)
 {
 	if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-		&& (RequestNo == SET_PROTOCOL))
-	{
+	&& (RequestNo == SET_PROTOCOL)
+		)
 		return RLC_SetProtocol();
-	}
-
-	else
-	{
-		return USB_UNSUPPORT;
-	}
+	return USB_UNSUPPORT;
 }
 
 /**
@@ -318,13 +260,8 @@ uint8_t *RLC_GetStringDescriptor(uint16_t Length)
 {
 	uint8_t wValue0 = pInformation->USBwValue0;
 	if (wValue0 > 4)
-	{
 		return NULL;
-	}
-	else
-	{
-		return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
-	}
+	return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
 }
 
 /**
@@ -356,13 +293,10 @@ uint8_t *RLC_GetHIDDescriptor(uint16_t Length)
 RESULT RLC_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
 {
 	if (AlternateSetting > 0)
-	{
 		return USB_UNSUPPORT;
-	}
 	else if (Interface > 0)
-	{
 		return USB_UNSUPPORT;
-	}
+
 	return USB_SUCCESS;
 }
 
@@ -373,8 +307,7 @@ RESULT RLC_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
   */
 RESULT RLC_SetProtocol(void)
 {
-	uint8_t wValue0 = pInformation->USBwValue0;
-	ProtocolValue = wValue0;
+	ProtocolValue = pInformation->USBwValue0;
 	return USB_SUCCESS;
 }
 
@@ -390,18 +323,5 @@ uint8_t *RLC_GetProtocolValue(uint16_t Length)
 		pInformation->Ctrl_Info.Usb_wLength = 1;
 		return NULL;
 	}
-	else
-	{
-		return (uint8_t *)(&ProtocolValue);
-	}
+	return (uint8_t *)(&ProtocolValue);
 }
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

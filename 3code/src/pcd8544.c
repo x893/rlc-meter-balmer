@@ -76,6 +76,8 @@
 #include "pcd8544.h"
 #include "hw_pcd8544.h"
 
+#define LcdSend(d)	HwLcdSend(d)
+
 /*
 * Character lookup table code was taken from the work of Sylvain Bissonette
 * This table defines the standard ASCII characters in a 5x7 dot format.
@@ -179,23 +181,13 @@ const uint8_t FontLookup[][5] =
 #define CHAR_MIN 0x20
 #define CHAR_COUNT (sizeof(FontLookup)/sizeof(FontLookup[0]))
 
-// Send two byte
-// First sent Hi byte
-void LcdSend(uint16_t data)
-{
-	HwLcdSend(data);
-}
-
-/* Global variables */
-
 /* Cache buffer in SRAM 84*48 bits or 504 bytes */
 uint8_t  LcdCache[LCD_CACHE_SIZE];
 
 /* Cache index */
 int   LcdCacheIdx;
 
-/* Variable to decide whether update Lcd Cache is active/nonactive */
-bool  UpdateLcd;
+void InitLight(void);
 
 /*
  * Name         :  LcdInit
@@ -267,8 +259,6 @@ void LcdContrast(uint8_t contrast)
 void LcdClear(void)
 {
 	memset(LcdCache, 0x00, LCD_CACHE_SIZE);
-	/* Set update flag to be true */
-	UpdateLcd = true;
 }
 
 /*
@@ -303,10 +293,10 @@ uint8_t LcdGotoXYFont(uint8_t x, uint8_t y)
  */
 uint8_t LcdChr(LcdFontSize size, char chr)
 {
-	byte i, c;
-	byte b1, b2;
+	uint8_t i, c;
+	uint8_t b1, b2;
 	int  tmpIdx;
-	byte ch = (byte)chr;
+	uint8_t ch = (uint8_t)chr;
 
 	if ((ch < CHAR_MIN) || (ch >= (CHAR_MIN + CHAR_COUNT)))
 	{
@@ -384,8 +374,8 @@ uint8_t LcdChr(LcdFontSize size, char chr)
  */
 uint8_t LcdStr(LcdFontSize size, const char* dataArray)
 {
-	byte tmpIdx = 0;
-	byte response;
+	uint8_t tmpIdx = 0;
+	uint8_t response;
 	char chr;
 	while (1)
 	{
@@ -423,11 +413,11 @@ uint8_t LcdStr(LcdFontSize size, const char* dataArray)
  * Return value :  see return value on pcd8544.h
  * Note         :  Based on Sylvain Bissonette's code
  */
-byte LcdPixel(byte x, byte y, LcdPixelMode mode)
+uint8_t LcdPixel(uint8_t x, uint8_t y, LcdPixelMode mode)
 {
-	word  index;
-	byte  offset;
-	byte  data;
+	uint16_t  index;
+	uint8_t  offset;
+	uint8_t  data;
 
 	/* Prevent from getting out of border */
 	if (x > LCD_X_RES) return OUT_OF_BORDER;
@@ -473,10 +463,10 @@ byte LcdPixel(byte x, byte y, LcdPixelMode mode)
  *                 mode   -> Off, On or Xor. See enum in pcd8544.h.
  * Return value :  see return value on pcd8544.h
  */
-byte LcdLine(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
+uint8_t LcdLine(uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, LcdPixelMode mode)
 {
 	int dx, dy, stepx, stepy, fraction;
-	byte response;
+	uint8_t response;
 
 	/* Calculate differential form */
 	/* dy   y2 - y1 */
@@ -559,9 +549,6 @@ byte LcdLine(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
 				return response;
 		}
 	}
-
-	/* Set update flag to be true */
-	UpdateLcd = true;
 	return OK;
 }
 
@@ -575,11 +562,10 @@ byte LcdLine(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
  *				   mode   -> Off, On or Xor. See enum in pcd8544.h.
  * Return value :  see return value on pcd8544.h
  */
-uint8_t LcdSingleBar(byte baseX, byte baseY, byte height, byte width, LcdPixelMode mode)
+uint8_t LcdSingleBar(uint8_t baseX, uint8_t baseY, uint8_t height, uint8_t width, LcdPixelMode mode)
 {
-	byte tmpIdxX, tmpIdxY, tmp;
-
-	byte response;
+	uint8_t tmpIdxX, tmpIdxY, tmp;
+	uint8_t response;
 
 	/* Checking border */
 	if ((baseX > LCD_X_RES) || (baseY > LCD_Y_RES)) return OUT_OF_BORDER;
@@ -600,9 +586,6 @@ uint8_t LcdSingleBar(byte baseX, byte baseY, byte height, byte width, LcdPixelMo
 
 		}
 	}
-
-	/* Set update flag to be true */
-	UpdateLcd = true;
 	return OK;
 }
 
@@ -615,11 +598,11 @@ uint8_t LcdSingleBar(byte baseX, byte baseY, byte height, byte width, LcdPixelMo
  * Return value :  see return value on pcd8544.h
  * Note         :  Please check EMPTY_SPACE_BARS, BAR_X, BAR_Y in pcd8544.h
  */
-byte LcdBars(byte data[], byte numbBars, byte width, byte multiplier)
+uint8_t LcdBars(uint8_t data[], uint8_t numbBars, uint8_t width, uint8_t multiplier)
 {
-	byte b;
-	byte tmpIdx = 0;
-	byte response;
+	uint8_t b;
+	uint8_t tmpIdx = 0;
+	uint8_t response;
 
 	for (b = 0; b < numbBars; b++)
 	{
@@ -634,9 +617,6 @@ byte LcdBars(byte data[], byte numbBars, byte width, byte multiplier)
 		if (response == OUT_OF_BORDER)
 			return response;
 	}
-
-	/* Set update flag to be true */
-	UpdateLcd = true;
 	return OK;
 
 }
@@ -650,10 +630,10 @@ byte LcdBars(byte data[], byte numbBars, byte width, byte multiplier)
  *				   mode -> Off, On or Xor. See enum in pcd8544.h.
  * Return value :  see return value on pcd8544.h.
  */
-byte LcdRect(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
+uint8_t LcdRect(uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, LcdPixelMode mode)
 {
-	byte tmpIdxX, tmpIdxY;
-	byte response;
+	uint8_t tmpIdxX, tmpIdxY;
+	uint8_t response;
 
 	/* Checking border */
 	if ((x1 > LCD_X_RES) || (x2 > LCD_X_RES) || (y1 > LCD_Y_RES) || (y2 > LCD_Y_RES))
@@ -673,9 +653,6 @@ byte LcdRect(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
 					return response;
 			}
 		}
-
-		/* Set update flag to be true */
-		UpdateLcd = true;
 	}
 	return OK;
 }
@@ -686,12 +663,9 @@ byte LcdRect(byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode)
  * Return value :  None.
  * Example      :  LcdImage(&sample_image_declared_as_array);
  */
-void LcdImage(const byte *imageData)
+void LcdImage(const uint8_t * imageData)
 {
 	memcpy(LcdCache, imageData, LCD_CACHE_SIZE);
-
-	/* Set update flag to be true */
-	UpdateLcd = true;
 }
 
 /*
@@ -702,6 +676,8 @@ void LcdImage(const byte *imageData)
  */
 void LcdUpdate(void)
 {
+	uint16_t p;
+
 	HwLcdPinCE(0); // Enable display controller (active low).
 	HwLcdPinDC(0); // Send command
 
@@ -712,12 +688,9 @@ void LcdUpdate(void)
 	/*  Serialize the display buffer. */
 	for (int i = 0; i < LCD_CACHE_SIZE; i += 2)
 	{
-		uint16_t p = ((uint16_t)LcdCache[i]) << 8;
+		p = ((uint16_t)LcdCache[i]) << 8;
 		p |= LcdCache[i + 1];
 		LcdSend(p);
 	}
-
-	/* Set update flag to be true */
-	UpdateLcd = false;
 	HwLcdPinCE(1); // Disable display controller.
 }

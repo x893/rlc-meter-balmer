@@ -331,10 +331,10 @@ void OnMeasureStart()
 
 void OnMeasure()
 {
+	bool oldLastZxFilled;
+
 	if (Measure_Context.computeXIterator == 0)
-	{
 		sum_data = g_data;
-	}
 	else
 	{
 		sum_data.ch_i.k_sin += g_data.ch_i.k_sin;
@@ -351,11 +351,9 @@ void OnMeasure()
 
 	Measure_Context.computeXIterator++;
 	if (Measure_Context.computeXIterator < Measure_Context.computeXCount)
-	{
 		return;
-	}
 
-	//calculate result
+	// calculate result
 	sum_data.ch_i.k_sin /= Measure_Context.computeXCount;
 	sum_data.ch_i.k_cos /= Measure_Context.computeXCount;
 	sum_data.ch_i.square_error /= Measure_Context.computeXCount;
@@ -366,7 +364,7 @@ void OnMeasure()
 
 	g_data = sum_data;
 
-	bool oldLastZxFilled = lastZxFilled;
+	oldLastZxFilled = lastZxFilled;
 	complexf oldLastZx = lastZx;
 
 	OnCalculate(Measure_Context.useCorrector);

@@ -12,7 +12,7 @@
 void LcdRepaint(void);
 void LcdHello(void);
 
-void printInt(int32_t value, uint8_t font);
+void printInt(int32_t value, LcdFontSize font);
 
 extern int printD;
 extern float printGradus;

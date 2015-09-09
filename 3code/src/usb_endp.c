@@ -2,7 +2,6 @@
 // 2013-2014
 
 #include <string.h>
-
 #include "usb_lib.h"
 #include "usb_istr.h"
 #include "usb_commands.h"
@@ -21,7 +20,7 @@ void USBAdd(uint8_t * data, uint16_t size)
 		Rx_Buffer[Rx_length++] = data[i];
 }
 
-void USBAddStr(char* data)
+void USBAddStr(char * data)
 {
 	USBAdd((uint8_t *)data, strlen(data));
 }

@@ -10,7 +10,8 @@ void NumberEditRepaint(void);
 static bool started = false;
 static bool completed = false;
 static float value = 0.1;
-static const char* text = NULL;
+static const char * text = NULL;
+
 int powMinDelta = -1;
 int powMaxDelta = 1;
 int powCurDelta = 0;
@@ -57,27 +58,22 @@ void NumberEditSetValue(float avalue, int apowMinDelta, int apowMaxDelta)
 void NumberEditOnButtonPressed()
 {
 	if (powCurDelta > powMinDelta)
-	{
 		powCurDelta--;
-		return;
-	}
-
-	completed = true;
+	else
+		completed = true;
 }
 
 float GetCurDelta()
 {
 	float f = 1.0f;
+	int i;
+
 	if (powCurDelta > 0)
-	{
-		for (int i = 0; i < powCurDelta; i++)
+		for (i = 0; i < powCurDelta; i++)
 			f *= 10.0f;
-	}
 	else
-	{
-		for (int i = 0; i < -powCurDelta; i++)
+		for (i = 0; i < -powCurDelta; i++)
 			f *= 0.1f;
-	}
 	return f;
 }
 

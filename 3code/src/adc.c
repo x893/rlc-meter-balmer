@@ -45,8 +45,8 @@ void AdcStop()
 	ADC_StopConversion(ADC4);
 }
 
-//for ADC34
-void DMA_ADC34_IRQHandler(void)
+// IRQ Handler for ADC34
+void ADC_VI_IRQHandler(void)
 {
 	if (DMA2->ISR & DMA_ISR_TCIF5)	// transfer complete
 		ADC_Context.g_adcStatus++;
@@ -98,12 +98,12 @@ void AdcInit34(void)
 	ADC_SelectCalibrationMode(ADC3, ADC_CalibrationMode_Single);
 	ADC_StartCalibration(ADC3);
 	while (ADC_GetCalibrationStatus(ADC3) != RESET)
-	;
+		;
 
 	ADC_SelectCalibrationMode(ADC4, ADC_CalibrationMode_Single);
 	ADC_StartCalibration(ADC4);
 	while (ADC_GetCalibrationStatus(ADC4) != RESET)
-	;
+		;
 
 	ADC_CommonInitTypeDef ADC_CommonInitStructure;
 	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_RegSimul;
@@ -189,9 +189,9 @@ void AdcStartPre34()
 	DMA_SetCurrDataCounter(DMA2_Channel2, 0);
 
 	uint8_t sample_ticks = DacSampleTicks() < 72 ? ADC_SampleTime_7Cycles5 : ADC_SampleTime_19Cycles5;
-	//uint8_t sample_ticks = ADC_SampleTime_601Cycles5;
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_1/*PB1*/, 1, sample_ticks);
-	ADC_RegularChannelConfig(ADC4, ADC_Channel_1/*PE14*/, 1, sample_ticks);
+	// uint8_t sample_ticks = ADC_SampleTime_601Cycles5;
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_1,/* PB1  */  1, sample_ticks);
+	ADC_RegularChannelConfig(ADC4, ADC_Channel_1,/* PE14 */ 1, sample_ticks);
 
 	ADC_Cmd(ADC3, ENABLE);
 	ADC_Cmd(ADC4, ENABLE);
@@ -265,9 +265,6 @@ void AdcDacStartSynchro(uint32_t period, uint16_t amplitude)
 {
 	if (ADC_Context.g_adcStatus == 1)
 		AdcStop();
-	//	Потенциально здесь может все зависнуть, если цикл внутри AdcQuant не завершился
-	//	for(int i=0;i<RESULT_BUFFER_SIZE;i++)
-	//		g_resultBuffer[i]=0x00080008;
 
 	ADC_Context.g_cur_cycle = 0;
 
@@ -286,7 +283,7 @@ void AdcDacStartSynchro(uint32_t period, uint16_t amplitude)
 
 	ADC_Context.g_adc_elapsed_time = 0;
 	StartTimer();
-	TIM_Cmd(TIM2, ENABLE); //Start DAC
+	TIM_Cmd(TIM2, ENABLE); // Start DAC
 }
 
 
@@ -307,15 +304,15 @@ void AdcResultBufferCopy(uint16_t offset, uint16_t count)
 		outI[i] = inI[i];
 }
 
-//Когда начинается следующий квант
-//Функция должна быстро отрабатывать
+//	Before start new frame
+//	(must works faster as possible)
 bool AdcOnNextRequest()
 {
 	return ADC_Context.g_usb_request_data;
 }
 
 //
-// Когда данные скопированны в g_resultBufferCopy
+//	After data copied to g_resultBufferCopy
 //
 void AdcOnComplete()
 {
@@ -338,34 +335,30 @@ void AdcOnComplete()
 
 void AdcQuant()
 {
+	uint16_t curOffset = 0;
+	uint16_t counter, nextOffset;
+
 	if (ADC_Context.g_adcStatus != 1)
 		return;
 
 	//	if(g_usb_sampled_data)
 	//		return;
 
-	bool isNextQuant = (ADC_Context.g_cur_cycle != ADC_Context.g_adc_cycles);
-
-	if (!isNextQuant)
+	if (ADC_Context.g_cur_cycle == ADC_Context.g_adc_cycles)
 		return;
 
 	ADC_Context.g_cur_cycle = ADC_Context.g_adc_cycles;
 
 	if (DMA2_Channel5->CNDTR < ADC_Context.g_ResultBufferSize - (ADC_Context.g_ResultBufferSize / 4))
-	{
-		// Этот квант уже не успеем скопировать, пропускаем
-		return;
-	}
+		return;	// No time to copy frame, skip it
 
 	if (!AdcOnNextRequest())
 		return;
 
-	uint16_t curOffset = 0;
-
 	while (1)
 	{
-		uint16_t counter = (uint16_t)DMA2_Channel5->CNDTR;	// Remaining data to write
-		uint16_t nextOffset = ADC_Context.g_ResultBufferSize - counter;
+		counter = (uint16_t)DMA2_Channel5->CNDTR;	// Remaining data to write
+		nextOffset = ADC_Context.g_ResultBufferSize - counter;
 		if (ADC_Context.g_cur_cycle != ADC_Context.g_adc_cycles)
 			break;
 
@@ -376,13 +369,12 @@ void AdcQuant()
 		}
 	}
 
-
 	if (curOffset < ADC_Context.g_ResultBufferSize)
 		AdcResultBufferCopy(curOffset, ADC_Context.g_ResultBufferSize - curOffset);
 
 	ADC_Context.g_cur_cycle++;
-
 	AdcClearData(&g_data);
+
 	if (ADC_Context.g_cur_cycle != ADC_Context.g_adc_cycles)
 		g_data.error = true;
 
@@ -390,7 +382,7 @@ void AdcQuant()
 	AdcOnComplete();
 }
 
-void AdcSendLastComputeCh(AdcSummaryChannel* ch)
+void AdcSendLastComputeCh(AdcSummaryChannel * ch)
 {
 	USBAdd16(ch->adc_min);
 	USBAdd16(ch->adc_max);

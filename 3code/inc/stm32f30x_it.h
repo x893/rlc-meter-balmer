@@ -59,8 +59,10 @@ void USB_LP_IRQHandler(void);
 void USBWakeUp_IRQHandler(void);
 void USBWakeUp_RMP_IRQHandler(void);
 
+void TIM7_IRQHandler(void);
 void Timer_IRQHandler(void);
 void DMA_ADC34_IRQHandler(void);
+void ADC_VI_IRQHandler(void);
 
 #ifdef __cplusplus
 }

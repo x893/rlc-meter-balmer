@@ -15,7 +15,7 @@
 void StartTimer(void)
 {
 	SysTick_CounterCmd(SysTick_Counter_Disable);
-	SysTick_SetReload(0xFFFFFF);
+	SysTick_SetReload(0x00FFFFFF);
 	SysTick_CounterCmd(SysTick_Counter_Clear);
 	SysTick_CounterCmd(SysTick_Counter_Enable);
 }
@@ -27,7 +27,7 @@ void StopTimer(void)
 
 uint32_t GetTime(void)	// 72 MHz
 {
-	return 0xFFFFFF - SysTick_GetCounter();
+	return 0x00FFFFFF - SysTick_GetCounter();
 }
 
 void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
@@ -77,11 +77,11 @@ void USBCommandReceive(uint8_t* commandBuffer, uint16_t commandSize)
 		break;
 	case 12:	// COMMAND_START_GAIN_AUTO
 		ProcessStartComputeX(
-			commandBuffer[1]	/*count*/,
-			commandBuffer[2]	/*predefinedResistorIdx*/,
-			255					/*predefinedGainVoltageIdx*/,
-			255					/*uint8_t predefinedGainCurrentIdx*/,
-			true				/*useCorrector*/
+			commandBuffer[1]	/* count */,
+			commandBuffer[2]	/* predefinedResistorIdx */,
+			255					/* predefinedGainVoltageIdx */,
+			255					/* uint8_t predefinedGainCurrentIdx */,
+			true				/* useCorrector */
 			);
 		break;
 	case 13:	// COMMAND_RVI_INDEXES

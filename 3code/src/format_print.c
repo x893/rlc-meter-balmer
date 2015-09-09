@@ -9,14 +9,14 @@ char Buffer[32];
 void addCommaToBuffer(uint8_t posComma)
 {
 	uint8_t size = 0;
+	uint8_t i;
+
 	for (; size < sizeof(Buffer) && Buffer[size]; size++);
 
 	if (size >= posComma)
 	{
-		for (uint8_t i = size; i > size - posComma; i--)
-		{
+		for (i = size; i > size - posComma; i--)
 			Buffer[i] = Buffer[i - 1];
-		}
 
 		Buffer[size + 1] = 0;
 		Buffer[size - posComma] = '.';
@@ -26,55 +26,47 @@ void addCommaToBuffer(uint8_t posComma)
 void sprintIntFormat(int32_t value, uint8_t aMinDigits, uint8_t aEmptyChar)
 {
 	char* buf = Buffer;
-	uint32_t valueUnsigned;
+	int8_t digits = 0;
+	int8_t i;
+	int32_t v;
+
 	if (value < 0)
 	{
 		*buf++ = '-';
-		valueUnsigned = -value;
-	}
-	else
-	{
-		valueUnsigned = value;
+		value = -value;
 	}
 
-	int8_t digits = 0;
-	for (uint32_t v = valueUnsigned; v > 0; digits++)
-	{
+	for (v = value; v > 0; digits++)
 		v /= 10;
-	}
 
 	if (value == 0)
-	{
 		digits = 1;
-	}
 
-	for (int8_t i = digits; i < aMinDigits; i++)
-	{
+	for (i = digits; i < aMinDigits; i++)
 		*buf++ = aEmptyChar;
-	}
 
 	buf[digits--] = 0;
-	for (uint32_t v = valueUnsigned; digits >= 0; digits--)
+	for (v = value; digits >= 0; digits--)
 	{
 		buf[digits] = (v % 10) + '0';
 		v /= 10;
 	}
 }
 
-void printIntFormat(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aEmptyChar)
+void printIntFormat(int32_t value, LcdFontSize font, uint8_t aMinDigits, uint8_t aEmptyChar)
 {
 	sprintIntFormat(value, aMinDigits, aEmptyChar);
-	LcdStr((LcdFontSize)font, Buffer);
+	LcdStr(font, Buffer);
 }
 
-void printIntFixed(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint)
+void printIntFixed(int32_t value, LcdFontSize font, uint8_t aMinDigits, uint8_t aFixedPoint)
 {
 	sprintIntFormat(value, aMinDigits, '0');
 	addCommaToBuffer(aFixedPoint);
-	LcdStr((LcdFontSize)font, Buffer);
+	LcdStr(font, Buffer);
 }
 
-void printInt(int32_t value, uint8_t font)
+void printInt(int32_t value, LcdFontSize font)
 {
 	printIntFormat(value, font, 1, ' ');
 }
@@ -86,7 +78,7 @@ static const char*  const strTime[] = { "mks", "ms", "s" };
 static const char*  const strFrequency[] = { "mHz", "Hz", "KHz", "MHz" };
 static const char*  const strInductor[] = { "nH", "mkH", "mH", "H" };
 
-void formatPrint(char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
+void formatPrint(char * aBuffer, float aValue, const char * const * aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
 {
 	float mul = 1;
 	int8_t iSuffix = 0;
@@ -173,16 +165,16 @@ AddSufix:;
 	*aBuffer = 0;
 }
 
-void printC(float aValue, uint8_t font)
+void printC(float aValue, LcdFontSize font)
 {
 	formatPrint(Buffer, aValue, strCapacitor, sizeof(strCapacitor) / sizeof(strCapacitor[0]), -4);
-	LcdStr((LcdFontSize)font, Buffer);
+	LcdStr(font, Buffer);
 }
 
-void printR(float aValue, uint8_t font)
+void printR(float aValue, LcdFontSize font)
 {
 	formatPrint(Buffer, aValue, strResistor, sizeof(strResistor) / sizeof(strResistor[0]), -1);
-	LcdStr((LcdFontSize)font, Buffer);
+	LcdStr(font, Buffer);
 }
 
 void printV(float aValue)
@@ -203,10 +195,10 @@ void printF(float aValue)
 	LcdStr(FONT_1X, Buffer);
 }
 
-void printL(float aValue, uint8_t font)
+void printL(float aValue, LcdFontSize font)
 {
 	formatPrint(Buffer, aValue, strInductor, sizeof(strInductor) / sizeof(strInductor[0]), -3);
-	LcdStr((LcdFontSize)font, Buffer);
+	LcdStr(font, Buffer);
 }
 
 void formatPrintX2(uint8_t y, char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)

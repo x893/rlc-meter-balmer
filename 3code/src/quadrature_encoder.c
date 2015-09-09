@@ -63,7 +63,6 @@ void QuadInit()
 	GPIO_Init(Codeur_GPIO, &GPIO_InitStructure);
  
 	// Timer AF Pins Configuration
-
 	GPIO_PinAFConfig(Codeur_GPIO, Codeur_A_SOURCE, Codeur_AF);
 	GPIO_PinAFConfig(Codeur_GPIO, Codeur_B_SOURCE, Codeur_AF);
  
@@ -100,9 +99,9 @@ void QuadTimerButton()
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
 
-	//TIM_TimeBaseStructure.TIM_Period = 2000; // 1 sec
-	TIM_TimeBaseStructure.TIM_Period = 40; // 20 msec
-	TIM_TimeBaseStructure.TIM_Prescaler = 72*500-1; // 2000 tick per sec
+	//TIM_TimeBaseStructure.TIM_Period = 2000;			// 1 sec
+	TIM_TimeBaseStructure.TIM_Period = 40;				// 20 msec
+	TIM_TimeBaseStructure.TIM_Prescaler = 72 * 500 - 1;	// 2000 tick per sec
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
 

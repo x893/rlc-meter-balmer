@@ -3,7 +3,7 @@
 
 #include "hw_config.h"
 
-void SPI1_send(uint16_t data);
+void HwLcdSend(uint16_t data);
 
 /*
 	Init SPI for operate MCP6S21 Opertional amplifier
@@ -47,6 +47,6 @@ void MCPSetGain(bool voltage, uint8_t gain)
 	uint16_t command = (0x40 << 8) | gain;
 
 	GPIO_ResetBits(SPI_CS_PORT, voltage ? SPI_CS_V_PIN : SPI_CS_I_PIN);
-	SPI1_send(command);
+	HwLcdSend(command);
 	GPIO_SetBits(SPI_CS_PORT, voltage ? SPI_CS_V_PIN : SPI_CS_I_PIN);
 }

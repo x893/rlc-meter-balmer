@@ -1,64 +1,20 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
-/**
-  ******************************************************************************
-  * @file    USB_Example/usb_pwr.c
-  * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    20-September-2012
-  * @brief   AConnection/disconnection & power management
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f30x.h"
 #include "usb_lib.h"
 #include "usb_conf.h"
 #include "usb_pwr.h"
 #include "hw_config.h"
 
-/** @addtogroup STM32F3_Discovery_Peripheral_Examples
-  * @{
-  */
-
-/** @addtogroup USB_Example
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-__IO uint32_t bDeviceState = UNCONNECTED; /* USB device status */
-__IO bool fSuspendEnabled = true;  /* true when suspend is possible */
+__IO uint32_t bDeviceState = UNCONNECTED;	/* USB device status */
+__IO bool fSuspendEnabled = true;			/* true when suspend is possible */
 
 struct
 {
 	__IO RESUME_STATE eState;
 	__IO uint8_t bESOFcnt;
-}
-ResumeS;
-/* Extern variables ----------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Extern function prototypes ------------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
+} ResumeS;
 
 /**
   * @brief  PowerOn
@@ -69,19 +25,15 @@ RESULT PowerOn(void)
 {
 	uint16_t wRegVal;
 
-	/*** cable plugged-in ? ***/
-	USB_Cable_Config(ENABLE);
-
-	/*** CNTR_PWDN = 0 ***/
-	wRegVal = CNTR_FRES;
+	USB_Cable_Config(ENABLE);	/*** cable plugged-in ? ***/
+	wRegVal = CNTR_FRES;		/*** CNTR_PWDN = 0 ***/
 	_SetCNTR(wRegVal);
 
-	/*** CNTR_FRES = 0 ***/
-	wInterrupt_Mask = 0;
+	wInterrupt_Mask = 0;		/*** CNTR_FRES = 0 ***/
 	_SetCNTR(wInterrupt_Mask);
-	/*** Clear pending interrupts ***/
-	_SetISTR(0);
-	/*** Set interrupt mask ***/
+	
+	_SetISTR(0);				/*** Clear pending interrupts ***/
+								/*** Set interrupt mask ***/
 	wInterrupt_Mask = CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM;
 	_SetCNTR(wInterrupt_Mask);
 
@@ -95,16 +47,10 @@ RESULT PowerOn(void)
   */
 RESULT PowerOff()
 {
-	/* disable all interrupts and force USB reset */
-	_SetCNTR(CNTR_FRES);
-	/* clear interrupt status register */
-	_SetISTR(0);
-	/* Disable the Pull-Up*/
-	USB_Cable_Config(DISABLE);
-	/* switch-off device */
-	_SetCNTR(CNTR_FRES + CNTR_PDWN);
-	/* sw variables reset */
-	/* ... */
+	_SetCNTR(CNTR_FRES);			/* disable all interrupts and force USB reset */
+	_SetISTR(0);					/* clear interrupt status register */
+	USB_Cable_Config(DISABLE);		/* Disable the Pull-Up*/
+	_SetCNTR(CNTR_FRES + CNTR_PDWN);/* switch-off device */
 
 	return USB_SUCCESS;
 }
@@ -232,13 +178,3 @@ void Resume(RESUME_STATE eResumeSetVal)
 		break;
 	}
 }
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

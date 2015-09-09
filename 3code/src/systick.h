@@ -4,8 +4,8 @@
 #ifndef __SYSTICK_H
 #define __SYSTICK_H 
 
-#include "stm32f30x.h"
 #include <stdint.h>
+#include "stm32f30x.h"
 
 #define IS_SYSTICK_CLK_SOURCE(SOURCE) (((SOURCE) == SysTick_CLKSource_HCLK) || \
                                        ((SOURCE) == SysTick_CLKSource_HCLK_Div8))
@@ -40,7 +40,7 @@ void SysTick_SetReload(uint32_t Reload);
 void SysTick_CounterCmd(uint32_t SysTick_Counter);
 void SysTick_ITConfig(FunctionalState NewState);
 u32 SysTick_GetCounter(void);
-FlagStatus SysTick_GetFlagStatus(u8 SysTick_FLAG);
+FlagStatus SysTick_GetFlagStatus(uint8_t SysTick_FLAG);
 
 
 void delay_init(void);

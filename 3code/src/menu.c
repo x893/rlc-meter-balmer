@@ -12,17 +12,17 @@
 #include "corrector.h"
 #include "systick.h"
 
-#define SIZEOF(x) (sizeof(x)/sizeof(x[0]))
+#define SIZEOF(x) (sizeof(x) / sizeof(x[0]))
 
 typedef enum MenuEnum {
-	MENU_NONE = 0, //Несуществующий пункт меню
-	MENU_MAIN_RETURN, //Выход из main menu
+	MENU_NONE = 0,			// No menu
+	MENU_MAIN_RETURN,		// Exit from main menu
 	MENU_MAIN_FREQUENCY,
 	MENU_MAIN_SER_PAR,
-	MENU_MAIN_VIEW_PARAM, //Какой из параметров отображается.
-	MENU_MAIN_TOGGLE_LIGHT, //Подсветка дисплея
+	MENU_MAIN_VIEW_PARAM,	// Parameter to display
+	MENU_MAIN_TOGGLE_LIGHT,	// Display Backlight
 	MENU_MAIN_CORRECTION,
-	MENU_RETURN, //Возврат в main menu
+	MENU_RETURN,			// Return to main menu
 	MENU_F_100Hz,
 	MENU_F_1KHz,
 	MENU_F_10KHz,
@@ -44,74 +44,74 @@ typedef enum MenuEnum {
 } MenuEnum;
 
 typedef struct MenuElem {
-	char* text;
 	MenuEnum command;
+	char * text;
 } MenuElem;
 
 static MenuElem g_main_menu[] = {
-	{ "..", MENU_MAIN_RETURN },
-	{ "Frequency", MENU_MAIN_FREQUENCY },
-	{ "SER/PAR", MENU_MAIN_SER_PAR },
-	{ "View", MENU_MAIN_VIEW_PARAM },
-	{ "Toggle Light", MENU_MAIN_TOGGLE_LIGHT },
-	{ "Correction", MENU_MAIN_CORRECTION },
+	{ MENU_MAIN_RETURN,			".."			},
+	{ MENU_MAIN_FREQUENCY,		"Frequency"		},
+	{ MENU_MAIN_SER_PAR,		"SER/PAR"		},
+	{ MENU_MAIN_VIEW_PARAM,		"View"			},
+	{ MENU_MAIN_TOGGLE_LIGHT,	"Toggle Light"	},
+	{ MENU_MAIN_CORRECTION,		"Correction"	},
 };
 
 static MenuElem g_f_menu[] = {
-	{ "..", MENU_RETURN },
-	{ "100 Hz", MENU_F_100Hz },
-	{ "1 KHz", MENU_F_1KHz },
-	{ "10 KHz", MENU_F_10KHz },
-	{ "93.75 KHz", MENU_F_93_75KHz },
-	{ "187.5 KHz", MENU_F_187_5KHz },
+	{ MENU_RETURN,		".."		},
+	{ MENU_F_100Hz,		"100 Hz"	},
+	{ MENU_F_1KHz,		"1 KHz"		},
+	{ MENU_F_10KHz, 	"10 KHz"	},
+	{ MENU_F_93_75KHz,	"93.75 KHz"	},
+	{ MENU_F_187_5KHz,	"187.5 KHz"	},
 };
 
 static MenuElem g_sp_menu[] = {
-	{ "..", MENU_RETURN },
-	{ "SERIAL", MENU_SP_SERIAL },
-	{ "PARALLEL", MENU_SP_PARALLEL },
+	{ MENU_RETURN,		".."		},
+	{ MENU_SP_SERIAL,	"SERIAL"	},
+	{ MENU_SP_PARALLEL,	"PARALLEL"	},
 };
 
 static MenuElem g_v_menu[] = {
-	{ "..", MENU_RETURN },
-	{ "R.imag", MENU_V_RIM },
-	{ "L/C", MENU_V_LC },
+	{ MENU_RETURN,	".."		},
+	{ MENU_V_RIM,	"R.imag"	},
+	{ MENU_V_LC,	"L/C"		},
 };
 
 static MenuElem g_correction_menu[] = {
-	{ "..", MENU_RETURN },
-	{ "short", MENU_CORRECTION_SHORT },
-	{ "open", MENU_CORRECTION_OPEN },
-	{ "1 Om", MENU_CORRECTION_1_Om },
-	{ "100 Om", MENU_CORRECTION_100_Om },
-	{ "1 KOm", MENU_CORRECTION_1_KOm },
-	{ "10 KOm", MENU_CORRECTION_10_KOm },
-	{ "100 KOm", MENU_CORRECTION_100_KOm },
-	{ "SAVE", MENU_CORRECTION_SAVE },
-	{ "CLEAR", MENU_CORRECTION_CLEAR },
+	{ MENU_RETURN,				".."		},
+	{ MENU_CORRECTION_SHORT,	"short"		},
+	{ MENU_CORRECTION_OPEN,		"open"		},
+	{ MENU_CORRECTION_1_Om,		"1 Om"		},
+	{ MENU_CORRECTION_100_Om,	"100 Om"	},
+	{ MENU_CORRECTION_1_KOm,	"1 KOm"		},
+	{ MENU_CORRECTION_10_KOm,	"10 KOm"	},
+	{ MENU_CORRECTION_100_KOm,	"100 KOm"	},
+	{ MENU_CORRECTION_SAVE,		"SAVE"		},
+	{ MENU_CORRECTION_CLEAR,	"CLEAR"		},
 };
 
-static MenuElem* g_cur_menu = NULL;
+static MenuElem * g_cur_menu = NULL;
 static uint8_t g_menu_size = 0;
 static uint8_t g_menu_pos = 0;
 static bool g_update = false;
-static char* message_line1 = NULL;
-static char* message_line2 = NULL;
+static char * message_line1 = NULL;
+static char * message_line2 = NULL;
 
 static MenuEnum g_last_main_command = MENU_MAIN_FREQUENCY;
 static MenuEnum g_last_f_command = MENU_F_100Hz;
 static MenuEnum g_last_correction_command = MENU_NONE;
 
-#define MENU_START(menu) \
-	g_cur_menu = menu; \
-	g_menu_size = SIZEOF(menu); \
-	g_menu_pos = 0;
+#define MENU_START(menu)		\
+	g_cur_menu = menu;			\
+	g_menu_size = SIZEOF(menu);	\
+	g_menu_pos = 0
 
-#define MENU_CLEAR() \
-	g_cur_menu = NULL; \
-	g_menu_size = 0;
+#define MENU_CLEAR()	\
+	g_cur_menu = NULL;	\
+	g_menu_size = 0
 
-void MenuSetF(uint32_t period);
+void MenuSetFreq(uint32_t period);
 void MenuSetSerial(bool ser);
 void MenuSetPos(MenuEnum pos);
 void MenuSetPrinRim(bool pr);
@@ -127,27 +127,21 @@ void OnButtonPressed(void)
 	if (NumberEditStarted())
 	{
 		NumberEditOnButtonPressed();
-		return;
 	}
-
-	if (message_line1)
-	{//MessageBox suport
+	else if (message_line1)
+	{	// MessageBox suport
 		message_line1 = NULL;
-		return;
 	}
-
-
-	if (g_cur_menu == NULL)
+	else if (g_cur_menu == NULL)
 	{
 		MENU_START(g_main_menu);
 		MenuSetPos(g_last_main_command);
-		return;
 	}
-
-	if (g_menu_pos >= g_menu_size)
-		return;
-	MenuEnum command = g_cur_menu[g_menu_pos].command;
-	MenuOnCommand(command);
+	else if (g_menu_pos < g_menu_size)
+	{
+		MenuEnum command = g_cur_menu[g_menu_pos].command;
+		MenuOnCommand(command);
+	}
 }
 
 void OnWeel(int16_t delta)
@@ -156,19 +150,16 @@ void OnWeel(int16_t delta)
 	{
 		NumberEditOnWeel(delta);
 		g_update = true;
+	}
+	else if (message_line1)
+	{	//MessageBox suport
 		return;
 	}
-
-	if (message_line1)
-	{//MessageBox suport
-		return;
+	else if (g_cur_menu != NULL)
+	{
+		g_menu_pos = (g_menu_pos + g_menu_size + delta) % g_menu_size;
+		g_update = true;
 	}
-
-	if (g_cur_menu == NULL)
-		return;
-
-	g_menu_pos = (g_menu_pos + g_menu_size + delta) % g_menu_size;
-	g_update = true;
 }
 
 void OnTimer()
@@ -224,23 +215,23 @@ void MenuOnCommand(MenuEnum command)
 		MenuSetPos(g_last_main_command);
 		break;
 	case MENU_F_100Hz:
-		MenuSetF(720000);
+		MenuSetFreq(720000);
 		g_last_f_command = command;
 		break;
 	case MENU_F_1KHz:
-		MenuSetF(72000);
+		MenuSetFreq(72000);
 		g_last_f_command = command;
 		break;
 	case MENU_F_10KHz:
-		MenuSetF(7200);
+		MenuSetFreq(7200);
 		g_last_f_command = command;
 		break;
 	case MENU_F_93_75KHz:
-		MenuSetF(768);
+		MenuSetFreq(768);
 		g_last_f_command = command;
 		break;
 	case MENU_F_187_5KHz:
-		MenuSetF(384);
+		MenuSetFreq(384);
 		g_last_f_command = command;
 		break;
 	case MENU_SP_SERIAL:
@@ -345,27 +336,28 @@ bool MenuIsOpen()
 
 void MenuSetPos(MenuEnum command)
 {
-	if (g_menu_size == 0 || g_cur_menu == NULL)
-		return;
-	for (uint8_t i = 0; i < g_menu_size; i++)
+	if (g_menu_size != 0 && g_cur_menu != NULL)
 	{
-		if (g_cur_menu[i].command == command)
-		{
-			g_menu_pos = i;
-			break;
-		}
+		uint8_t i;
+		for (i = 0; i < g_menu_size; i++)
+			if (g_cur_menu[i].command == command)
+			{
+				g_menu_pos = i;
+				break;
+			}
 	}
 }
 
-void MenuSetF(uint32_t period)
+void MenuSetFreq(uint32_t period)
 {
 	Measure_Context.bContinuousMode = true;
 	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE);
-	ProcessStartComputeX(0/*count*/,
-		255/*predefinedResistorIdx*/,
-		255/*predefinedGainVoltageIdx*/,
-		255/*uint8_t predefinedGainCurrentIdx*/,
-		true/*useCorrector*/
+	ProcessStartComputeX(
+		0		/*count*/,
+		255		/*predefinedResistorIdx*/,
+		255		/*predefinedGainVoltageIdx*/,
+		255		/*uint8_t predefinedGainCurrentIdx*/,
+		true	/*useCorrector*/
 		);
 	MENU_CLEAR();
 }
@@ -430,8 +422,7 @@ typedef struct CalibrationJob
 void OnCalibrationStart(CalibrationJob* job, uint8_t jobCount);
 void OnOpenFirstPass(void);
 
-
-static CalibrationJob* calJob;
+static CalibrationJob * calJob;
 static uint8_t calJobCount;
 static uint8_t calCurIndex;
 static complexf calResult[20];
@@ -558,7 +549,7 @@ void MenuOnCorrection(MenuEnum command)
 		NumberEditStart();
 		break;
 	case MENU_CORRECTION_SHORT:
-		OnCalibrationStart(calibrateShort, sizeof(calibrateShort) / sizeof(calibrateShort[0]));
+		OnCalibrationStart(calibrateShort, NELEMENTS(calibrateShort));
 		break;
 	case MENU_CORRECTION_OPEN:
 		OnOpenFirstPass();
@@ -579,11 +570,12 @@ void CalNextJob()
 	uint32_t period = DacPeriod();
 	CalibrationJob* job = calJob + calCurIndex;
 	AdcDacStartSynchro(period, DEFAULT_DAC_AMPLITUDE / job->ampDiv);
-	ProcessStartComputeX(0/*count*/,
-		job->resistorIndex/*predefinedResistorIdx*/,
-		job->VIndex/*predefinedGainVoltageIdx*/,
-		job->IIndex/*predefinedGainCurrentIdx*/,
-		false/*useCorrector*/
+	ProcessStartComputeX(
+		0					/*count*/,
+		job->resistorIndex	/*predefinedResistorIdx*/,
+		job->VIndex			/*predefinedGainVoltageIdx*/,
+		job->IIndex			/*predefinedGainCurrentIdx*/,
+		false				/*useCorrector*/
 		);
 }
 
@@ -630,11 +622,12 @@ void OnOpenFirstPass()
 	GetCorrector()->open.maxGainIndex = 7;
 	//	OnCalibrationStart(calibrateOpen, sizeof(calibrateOpen)/sizeof(calibrateOpen[0]));	
 	AdcDacStartSynchro(GetCorrector()->period, DEFAULT_DAC_AMPLITUDE);
-	ProcessStartComputeX(ProcessCalcOptimalCount() * 2/*count*/,
-		255/*predefinedResistorIdx*/,
-		255/*predefinedGainVoltageIdx*/,
-		255/*uint8_t predefinedGainCurrentIdx*/,
-		false/*useCorrector*/
+	ProcessStartComputeX(
+		ProcessCalcOptimalCount() * 2	/*count*/,
+		255								/*predefinedResistorIdx*/,
+		255								/*predefinedGainVoltageIdx*/,
+		255								/*uint8_t predefinedGainCurrentIdx*/,
+		false							/*useCorrector*/
 		);
 }
 
@@ -710,12 +703,15 @@ void OnSaveCalibrationResult()
 
 	if (g_last_correction_command == MENU_CORRECTION_100_KOm)
 	{
+		int8_t idx;
+		uint8_t IIndex;
+
 		if (!FindResult(2, 0, 2, &corr->x2x[2].Zm[2].Zstdm))
 			MessageBox2("ERROR Cal", "100KOm 00");
 
-		for (uint8_t IIndex = 0; IIndex < 8; IIndex++)
+		for (IIndex = 0; IIndex < 8; IIndex++)
 		{
-			int8_t idx = GetGainValidIdx(IIndex);
+			idx = GetGainValidIdx(IIndex);
 			if (idx < 0)
 				continue;
 			if (!FindResult(3, 0, IIndex, &corr->open.Zm[idx].Zstdm))
@@ -725,16 +721,20 @@ void OnSaveCalibrationResult()
 
 	if (g_last_correction_command == MENU_CORRECTION_OPEN)
 	{
-		for (uint8_t resistorIndex = 0; resistorIndex < 3; resistorIndex++)
-			for (uint8_t IIndex = 0; IIndex < 3; IIndex++)
+		uint8_t resistorIndex;
+		uint8_t IIndex;
+		int8_t idx;
+
+		for (resistorIndex = 0; resistorIndex < 3; resistorIndex++)
+			for (IIndex = 0; IIndex < 3; IIndex++)
 			{
 				if (!FindResult(resistorIndex, 0, IIndex, &corr->x2x[resistorIndex].Zm[IIndex].Zom))
 					MessageBox2("ERROR Cal", "Open");
 			}
 
-		for (uint8_t IIndex = 0; IIndex < 8; IIndex++)
+		for (IIndex = 0; IIndex < 8; IIndex++)
 		{
-			int8_t idx = GetGainValidIdx(IIndex);
+			idx = GetGainValidIdx(IIndex);
 			if (idx < 0)
 				continue;
 			if (!FindResult(3, 0, IIndex, &corr->open.Zm[idx].Zom))
@@ -752,7 +752,7 @@ void OnCalibrationComplete()
 		GetCorrector()->open.maxGainIndex = Measure_Context.gainCurrentIdx;
 
 		if (false)
-		{//debug code
+		{	//debug code
 			static char buf[] = "0";
 			buf[0] = '0' + Measure_Context.gainCurrentIdx;
 			MessageBox2("OPEN", buf);
@@ -782,39 +782,40 @@ void OnCalibrationComplete()
 
 void OnNumberEditEnd()
 {
-	CoeffCorrector* corr = GetCorrector();
+	CoeffCorrector * corr = GetCorrector();
+
 	switch (g_last_correction_command)
 	{
 	case MENU_CORRECTION_1_Om:
 		corr->cshort.R1 = NumberEditGetValue();
-		OnCalibrationStart(calibrate1Om, sizeof(calibrate1Om) / sizeof(calibrate1Om[0]));
+		OnCalibrationStart(calibrate1Om, NELEMENTS(calibrate1Om));
 		break;
 	case MENU_CORRECTION_100_Om:
 		corr->cshort.R100 =
 			corr->x2x[0].R[0] =
 			corr->x2x[0].R[1] =
 			NumberEditGetValue();
-		OnCalibrationStart(calibrate100Om, sizeof(calibrate100Om) / sizeof(calibrate100Om[0]));
+		OnCalibrationStart(calibrate100Om, NELEMENTS(calibrate100Om));
 		break;
 	case MENU_CORRECTION_1_KOm:
 		corr->x2x[0].R[2] =
 			corr->x2x[1].R[0] =
 			corr->x2x[1].R[1] =
 			NumberEditGetValue();
-		OnCalibrationStart(calibrate1KOm, sizeof(calibrate1KOm) / sizeof(calibrate1KOm[0]));
+		OnCalibrationStart(calibrate1KOm, NELEMENTS(calibrate1KOm));
 		break;
 	case MENU_CORRECTION_10_KOm:
 		corr->x2x[1].R[2] =
 			corr->x2x[2].R[0] =
 			corr->x2x[2].R[1] =
 			NumberEditGetValue();
-		OnCalibrationStart(calibrate10KOm, sizeof(calibrate10KOm) / sizeof(calibrate10KOm[0]));
+		OnCalibrationStart(calibrate10KOm, NELEMENTS(calibrate10KOm));
 		break;
 	case MENU_CORRECTION_100_KOm:
 		corr->x2x[2].R[2] =
 			corr->open.R =
 			NumberEditGetValue();
-		OnCalibrationStart(calibrate100KOm, sizeof(calibrate100KOm) / sizeof(calibrate100KOm[0]));
+		OnCalibrationStart(calibrate100KOm, NELEMENTS(calibrate100KOm));
 		break;
 	default:
 		MessageBox2("NumberEditEnd", "Bad command");

@@ -1,52 +1,8 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
-/**
-  ******************************************************************************
-  * @file    USB_Example/usb_desc.c
-  * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    20-September-2012
-  * @brief   Descriptors for Demo
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
-
-/* Includes ------------------------------------------------------------------*/
 #include "usb_lib.h"
 #include "usb_desc.h"
-
-/** @addtogroup STM32F3_Discovery_Peripheral_Examples
-  * @{
-  */
-
-/** @addtogroup USB_Example
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Extern variables ----------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 
 /* USB Standard Device Descriptor */
 const uint8_t RLC_DeviceDescriptor[RLC_SIZ_DEVICE_DESC] =
@@ -249,13 +205,3 @@ uint8_t RLC_StringSerial[RLC_SIZ_STRING_SERIAL] =
 	USB_STRING_DESCRIPTOR_TYPE,	/* bDescriptorType */
 	'S', 0, 'T', 0, 'M', 0, '3', 0, '2', 0, '1', 0, '0', 0
 };
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

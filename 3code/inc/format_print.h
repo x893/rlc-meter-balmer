@@ -6,15 +6,15 @@
 
 #include <stdint.h>
 
-void printInt(int32_t value, uint8_t font);
-void printIntFixed(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint);
+void printInt(int32_t value, LcdFontSize font);
+void printIntFixed(int32_t value, LcdFontSize font, uint8_t aMinDigits, uint8_t aFixedPoint);
 
-void printC(float aValue, uint8_t font);
-void printR(float aValue, uint8_t font);
+void printC(float aValue, LcdFontSize font);
+void printR(float aValue, LcdFontSize font);
 void printV(float aValue);
 void printT(float aValue);
 void printF(float aValue);
-void printL(float aValue, uint8_t font);
+void printL(float aValue, LcdFontSize font);
 
 void printRX2(float aValue, uint8_t y);
 void printLX2(float aValue, uint8_t y);

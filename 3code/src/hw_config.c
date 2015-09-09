@@ -49,7 +49,7 @@ void Set_System(void)
 	// Enable the USB disconnect GPIO clock
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 
-	// USB_DISCONNECT used as USB pull-up
+	// USB_ON_PORT used as USB pull-up
 	GPIO_InitStructure.GPIO_Pin = USB_ON_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
@@ -215,6 +215,7 @@ void USB_Interrupts_Config(void)
 #if defined (USB_INT_DEFAULT)
 	NVIC_InitStructure.NVIC_IRQChannel = USBWakeUp_IRQn;
 #endif
+
 #if defined (USB_INT_REMAP)  
 	NVIC_InitStructure.NVIC_IRQChannel = USBWakeUp_RMP_IRQn;
 #endif  
@@ -231,13 +232,9 @@ void USB_Interrupts_Config(void)
 void USB_Cable_Config(FunctionalState NewState)
 {
 	if (NewState != DISABLE)
-	{
 		GPIO_SetBits(USB_ON_PORT, USB_ON_PIN);
-	}
 	else
-	{
 		GPIO_ResetBits(USB_ON_PORT, USB_ON_PIN);
-	}
 }
 
 
@@ -273,19 +270,20 @@ void Get_SerialNum(void)
 static void IntToUnicode(uint32_t value, uint8_t *pbuf, uint8_t len)
 {
 	uint8_t idx = 0;
+	uint8_t ch;
 
-	for (idx = 0; idx < len; idx++)
+	while (len != 0)
 	{
-		if (((value >> 28)) < 0xA)
-		{
-			pbuf[2 * idx] = (value >> 28) + '0';
-		}
+		--len;
+		ch = (value >> 28);
+		if (ch < 10)
+			pbuf[idx] = ch + '0';
 		else
-		{
-			pbuf[2 * idx] = (value >> 28) + 'A' - 10;
-		}
-		value = value << 4;
-		pbuf[2 * idx + 1] = 0;
+			pbuf[idx] = ch + ('A' - 10);
+
+		value <<= 4;
+		pbuf[idx + 1] = 0;
+		idx += 2;
 	}
 }
 
@@ -297,5 +295,5 @@ void SetResistor(uint8_t idx)
 
 void SetLowPassFilter(bool on)
 {
-	GPIO_WriteBit(AN_SW_PORT, AN_SW_PIN, (BitAction)(on ? false : true));
+	GPIO_WriteBit(AN_SW_PORT, AN_SW_PIN, (on ? Bit_RESET : Bit_SET));
 }
