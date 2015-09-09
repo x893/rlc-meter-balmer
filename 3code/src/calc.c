@@ -30,13 +30,13 @@ void AdcClearData(AdcSummaryData* data)
 static void CalcSquareError(AdcSummaryChannel* ch, uint16_t* in, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
-	uint16_t nsamples4 = nsamples>>2;
+	uint16_t nsamples4 = nsamples >> 2;
 
 	float sum_error = 0;
-	for(uint16_t i=0; i<count; i++)
+	for (uint16_t i = 0; i < count; i++)
 	{
 		float sin_table = g_sinusBufferFloat[i%nsamples];
-		float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
+		float cos_table = g_sinusBufferFloat[(i + nsamples4) % nsamples];
 
 		float d = ch->adc_mid + sin_table*ch->k_sin + cos_table*ch->k_cos;
 		d -= in[i];
@@ -44,13 +44,13 @@ static void CalcSquareError(AdcSummaryChannel* ch, uint16_t* in, uint16_t count)
 		sum_error += d*d;
 	}
 
-	ch->square_error = sqrt(sum_error/(count-1));
+	ch->square_error = sqrt(sum_error / (count - 1));
 }
 
 void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t count)
 {
 	uint16_t nsamples = DacSamplesPerPeriod();
-	uint16_t nsamples4 = nsamples>>2;
+	uint16_t nsamples4 = nsamples >> 2;
 
 	float sin_v = 0;
 	float cos_v = 0;
@@ -65,13 +65,13 @@ void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t co
 	uint32_t mid_sum_v = 0;
 	uint32_t mid_sum_i = 0;
 
-	for(uint16_t i=0; i<count; i++)
+	for (uint16_t i = 0; i < count; i++)
 	{
 		{
 			uint16_t cV = inV[i];
-			if(cV < data->ch_v.adc_min)
+			if (cV < data->ch_v.adc_min)
 				data->ch_v.adc_min = cV;
-			if(cV > data->ch_v.adc_max)
+			if (cV > data->ch_v.adc_max)
 				data->ch_v.adc_max = cV;
 
 			mid_sum_v += cV;
@@ -80,9 +80,9 @@ void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t co
 
 		{
 			uint16_t cI = inI[i];
-			if(cI < data->ch_i.adc_min)
+			if (cI < data->ch_i.adc_min)
 				data->ch_i.adc_min = cI;
-			if(cI > data->ch_i.adc_max)
+			if (cI > data->ch_i.adc_max)
 				data->ch_i.adc_max = cI;
 
 			mid_sum_i += cI;
@@ -90,34 +90,34 @@ void AdcCalcData(AdcSummaryData* data, uint16_t* inV, uint16_t* inI, uint16_t co
 		}
 	}
 
-	float mid_v = mid_sum_v/(float)count;
-	float mid_i = mid_sum_i/(float)count;
+	float mid_v = mid_sum_v / (float)count;
+	float mid_i = mid_sum_i / (float)count;
 
 	data->ch_v.adc_mid = mid_v;
 	data->ch_i.adc_mid = mid_i;
 
-	for(uint16_t i=0; i<count; i++)
+	for (uint16_t i = 0; i < count; i++)
 	{
 		float sin_table = g_sinusBufferFloat[i%nsamples];
-		float cos_table = g_sinusBufferFloat[(i+nsamples4)%nsamples];
+		float cos_table = g_sinusBufferFloat[(i + nsamples4) % nsamples];
 
 		{
-			float cV = inV[i]-mid_v;
+			float cV = inV[i] - mid_v;
 			sin_v += cV * sin_table;
 			cos_v += cV * cos_table;
 		}
 
 		{
-			float cI = inI[i]-mid_i;
+			float cI = inI[i] - mid_i;
 			sin_i += cI * sin_table;
 			cos_i += cI * cos_table;
 		}
 	}
 
-	data->ch_v.k_sin = sin_v*2.0f/(float)count;
-	data->ch_v.k_cos = cos_v*2.0f/(float)count;
-	data->ch_i.k_sin = sin_i*2.0f/(float)count;
-	data->ch_i.k_cos = cos_i*2.0f/(float)count;
+	data->ch_v.k_sin = sin_v*2.0f / (float)count;
+	data->ch_v.k_cos = cos_v*2.0f / (float)count;
+	data->ch_i.k_sin = sin_i*2.0f / (float)count;
+	data->ch_i.k_cos = cos_i*2.0f / (float)count;
 
 	CalcSquareError(&data->ch_v, inV, count);
 	CalcSquareError(&data->ch_i, inI, count);

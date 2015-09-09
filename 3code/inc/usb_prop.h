@@ -47,34 +47,34 @@ typedef enum _HID_REQUESTS
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void Joystick_init(void);
-void Joystick_Reset(void);
-void Joystick_SetConfiguration(void);
-void Joystick_SetDeviceAddress (void);
-void Joystick_Status_In (void);
-void Joystick_Status_Out (void);
-RESULT Joystick_Data_Setup(uint8_t);
-RESULT Joystick_NoData_Setup(uint8_t);
-RESULT Joystick_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting);
-uint8_t *Joystick_GetDeviceDescriptor(uint16_t );
-uint8_t *Joystick_GetConfigDescriptor(uint16_t);
-uint8_t *Joystick_GetStringDescriptor(uint16_t);
-RESULT Joystick_SetProtocol(void);
-uint8_t *Joystick_GetProtocolValue(uint16_t Length);
-RESULT Joystick_SetProtocol(void);
-uint8_t *Joystick_GetReportDescriptor(uint16_t Length);
-uint8_t *Joystick_GetHIDDescriptor(uint16_t Length);
+void RLC_Init(void);
+void RLC_Reset(void);
+void RLC_SetConfiguration(void);
+void RLC_SetDeviceAddress (void);
+void RLC_Status_In (void);
+void RLC_Status_Out (void);
+RESULT RLC_Data_Setup(uint8_t);
+RESULT RLC_NoData_Setup(uint8_t);
+RESULT RLC_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting);
+uint8_t *RLC_GetDeviceDescriptor(uint16_t );
+uint8_t *RLC_GetConfigDescriptor(uint16_t);
+uint8_t *RLC_GetStringDescriptor(uint16_t);
+RESULT RLC_SetProtocol(void);
+uint8_t *RLC_GetProtocolValue(uint16_t Length);
+RESULT RLC_SetProtocol(void);
+uint8_t *RLC_GetReportDescriptor(uint16_t Length);
+uint8_t *RLC_GetHIDDescriptor(uint16_t Length);
 
 /* Exported define -----------------------------------------------------------*/
-#define Joystick_GetConfiguration          NOP_Process
-//#define Joystick_SetConfiguration          NOP_Process
-#define Joystick_GetInterface              NOP_Process
-#define Joystick_SetInterface              NOP_Process
-#define Joystick_GetStatus                 NOP_Process
-#define Joystick_ClearFeature              NOP_Process
-#define Joystick_SetEndPointFeature        NOP_Process
-#define Joystick_SetDeviceFeature          NOP_Process
-//#define Joystick_SetDeviceAddress          NOP_Process
+#define RLC_GetConfiguration          NOP_Process
+//#define RLC_SetConfiguration          NOP_Process
+#define RLC_GetInterface              NOP_Process
+#define RLC_SetInterface              NOP_Process
+#define RLC_GetStatus                 NOP_Process
+#define RLC_ClearFeature              NOP_Process
+#define RLC_SetEndPointFeature        NOP_Process
+#define RLC_SetDeviceFeature          NOP_Process
+//#define RLC_SetDeviceAddress          NOP_Process
 
 #define REPORT_DESCRIPTOR                  0x22
 

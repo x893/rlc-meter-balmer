@@ -794,254 +794,254 @@ void RCC_PCLK2Config(uint32_t RCC_HCLK)
   */
 void RCC_GetClocksFreq(RCC_ClocksTypeDef* RCC_Clocks)
 {
-  uint32_t tmp = 0, pllmull = 0, pllsource = 0, prediv1factor = 0, presc = 0, pllclk = 0;
-  uint32_t apb2presc = 0, ahbpresc = 0;
-  
-  /* Get SYSCLK source -------------------------------------------------------*/
-  tmp = RCC->CFGR & RCC_CFGR_SWS;
-  
-  switch (tmp)
-  {
-    case 0x00:  /* HSI used as system clock */
-      RCC_Clocks->SYSCLK_Frequency = HSI_VALUE;
-      break;
-    case 0x04:  /* HSE used as system clock */
-      RCC_Clocks->SYSCLK_Frequency = HSE_VALUE;
-      break;
-    case 0x08:  /* PLL used as system clock */
-      /* Get PLL clock source and multiplication factor ----------------------*/
-      pllmull = RCC->CFGR & RCC_CFGR_PLLMULL;
-      pllsource = RCC->CFGR & RCC_CFGR_PLLSRC;
-      pllmull = ( pllmull >> 18) + 2;
+	uint32_t tmp = 0, pllmull = 0, pllsource = 0, prediv1factor = 0, presc = 0, pllclk = 0;
+	uint32_t apb2presc = 0, ahbpresc = 0;
+
+	/* Get SYSCLK source -------------------------------------------------------*/
+	tmp = RCC->CFGR & RCC_CFGR_SWS;
+
+	switch (tmp)
+	{
+	case 0x00:  /* HSI used as system clock */
+		RCC_Clocks->SYSCLK_Frequency = HSI_VALUE;
+		break;
+	case 0x04:  /* HSE used as system clock */
+		RCC_Clocks->SYSCLK_Frequency = HSE_VALUE;
+		break;
+	case 0x08:  /* PLL used as system clock */
+		/* Get PLL clock source and multiplication factor ----------------------*/
+		pllmull = RCC->CFGR & RCC_CFGR_PLLMULL;
+		pllsource = RCC->CFGR & RCC_CFGR_PLLSRC;
+		pllmull = ( pllmull >> 18) + 2;
       
-      if (pllsource == 0x00)
-      {
-        /* HSI oscillator clock divided by 2 selected as PLL clock entry */
-        pllclk = (HSI_VALUE >> 1) * pllmull;
-      }
-      else
-      {
-        prediv1factor = (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
-        /* HSE oscillator clock selected as PREDIV1 clock entry */
-        pllclk = (HSE_VALUE / prediv1factor) * pllmull; 
-      }
-      RCC_Clocks->SYSCLK_Frequency = pllclk;      
-      break;
-    default: /* HSI used as system clock */
-      RCC_Clocks->SYSCLK_Frequency = HSI_VALUE;
-      break;
-  }
-    /* Compute HCLK, PCLK clocks frequencies -----------------------------------*/
-  /* Get HCLK prescaler */
-  tmp = RCC->CFGR & RCC_CFGR_HPRE;
-  tmp = tmp >> 4;
-  ahbpresc = APBAHBPrescTable[tmp]; 
-  /* HCLK clock frequency */
-  RCC_Clocks->HCLK_Frequency = RCC_Clocks->SYSCLK_Frequency >> ahbpresc;
+		if (pllsource == 0x00)
+		{
+			/* HSI oscillator clock divided by 2 selected as PLL clock entry */
+			pllclk = (HSI_VALUE >> 1) * pllmull;
+		}
+		else
+		{
+			prediv1factor = (RCC->CFGR2 & RCC_CFGR2_PREDIV1) + 1;
+			/* HSE oscillator clock selected as PREDIV1 clock entry */
+			pllclk = (HSE_VALUE / prediv1factor) * pllmull; 
+		}
+		RCC_Clocks->SYSCLK_Frequency = pllclk;      
+		break;
+	default: /* HSI used as system clock */
+		RCC_Clocks->SYSCLK_Frequency = HSI_VALUE;
+		break;
+	}
+	/* Compute HCLK, PCLK clocks frequencies -----------------------------------*/
+	/* Get HCLK prescaler */
+	tmp = RCC->CFGR & RCC_CFGR_HPRE;
+	tmp = tmp >> 4;
+	ahbpresc = APBAHBPrescTable[tmp]; 
+	/* HCLK clock frequency */
+	RCC_Clocks->HCLK_Frequency = RCC_Clocks->SYSCLK_Frequency >> ahbpresc;
 
-  /* Get PCLK1 prescaler */
-  tmp = RCC->CFGR & RCC_CFGR_PPRE1;
-  tmp = tmp >> 8;
-  presc = APBAHBPrescTable[tmp];
-  /* PCLK1 clock frequency */
-  RCC_Clocks->PCLK1_Frequency = RCC_Clocks->HCLK_Frequency >> presc;
+	/* Get PCLK1 prescaler */
+	tmp = RCC->CFGR & RCC_CFGR_PPRE1;
+	tmp = tmp >> 8;
+	presc = APBAHBPrescTable[tmp];
+	/* PCLK1 clock frequency */
+	RCC_Clocks->PCLK1_Frequency = RCC_Clocks->HCLK_Frequency >> presc;
+
+	/* Get PCLK2 prescaler */
+	tmp = RCC->CFGR & RCC_CFGR_PPRE2;
+	tmp = tmp >> 11;
+	apb2presc = APBAHBPrescTable[tmp];
+	/* PCLK2 clock frequency */
+	RCC_Clocks->PCLK2_Frequency = RCC_Clocks->HCLK_Frequency >> apb2presc;
+
+	/* Get ADC12CLK prescaler */
+	tmp = RCC->CFGR2 & RCC_CFGR2_ADCPRE12;
+	tmp = tmp >> 4;
+	presc = ADCPrescTable[tmp];
+	if ((presc & 0x10) != 0)
+	{
+		/* ADC12CLK clock frequency is derived from PLL clock */
+		RCC_Clocks->ADC12CLK_Frequency = pllclk / presc;
+	}
+	else
+	{
+		/* ADC12CLK clock frequency is AHB clock */
+		RCC_Clocks->ADC12CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+
+	/* Get ADC34CLK prescaler */
+	tmp = RCC->CFGR2 & RCC_CFGR2_ADCPRE34;
+	tmp = tmp >> 9;
+	presc = ADCPrescTable[tmp];
+	if ((presc & 0x10) != 0)
+	{
+		/* ADC34CLK clock frequency is derived from PLL clock */
+		RCC_Clocks->ADC34CLK_Frequency = pllclk / presc;
+	}
+	else
+	{
+		/* ADC34CLK clock frequency is AHB clock */
+		RCC_Clocks->ADC34CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+
+	/* I2C1CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_I2C1SW) != RCC_CFGR3_I2C1SW)
+	{
+		/* I2C1 Clock is HSI Osc. */
+		RCC_Clocks->I2C1CLK_Frequency = HSI_VALUE;
+	}
+	else
+	{
+		/* I2C1 Clock is System Clock */
+		RCC_Clocks->I2C1CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+
+	/* I2C2CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_I2C2SW) != RCC_CFGR3_I2C2SW)
+	{
+		/* I2C2 Clock is HSI Osc. */
+		RCC_Clocks->I2C2CLK_Frequency = HSI_VALUE;
+	}
+	else
+	{
+		/* I2C2 Clock is System Clock */
+		RCC_Clocks->I2C2CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+
+	/* TIM1CLK clock frequency */
+	if (((RCC->CFGR3 & RCC_CFGR3_TIM1SW) == RCC_CFGR3_TIM1SW)&& (RCC_Clocks->SYSCLK_Frequency == pllclk) \
+	&& (apb2presc == ahbpresc)) 
+	{
+		/* TIM1 Clock is 2 * pllclk */
+		RCC_Clocks->TIM1CLK_Frequency = pllclk * 2;
+	}
+	else
+	{
+		/* TIM1 Clock is APB2 clock. */
+		RCC_Clocks->TIM1CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
+	}
+
+		/* TIM8CLK clock frequency */
+	if (((RCC->CFGR3 & RCC_CFGR3_TIM8SW) == RCC_CFGR3_TIM8SW)&& (RCC_Clocks->SYSCLK_Frequency == pllclk) \
+	&& (apb2presc == ahbpresc))
+	{
+		/* TIM8 Clock is 2 * pllclk */
+		RCC_Clocks->TIM8CLK_Frequency = pllclk * 2;
+	}
+	else
+	{
+		/* TIM8 Clock is APB2 clock. */
+		RCC_Clocks->TIM8CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
+	}
   
-  /* Get PCLK2 prescaler */
-  tmp = RCC->CFGR & RCC_CFGR_PPRE2;
-  tmp = tmp >> 11;
-  apb2presc = APBAHBPrescTable[tmp];
-  /* PCLK2 clock frequency */
-  RCC_Clocks->PCLK2_Frequency = RCC_Clocks->HCLK_Frequency >> apb2presc;
-  
-  /* Get ADC12CLK prescaler */
-  tmp = RCC->CFGR2 & RCC_CFGR2_ADCPRE12;
-  tmp = tmp >> 4;
-  presc = ADCPrescTable[tmp];
-  if ((presc & 0x10) != 0)
-  {
-     /* ADC12CLK clock frequency is derived from PLL clock */
-     RCC_Clocks->ADC12CLK_Frequency = pllclk / presc;
-  }
-  else
-  {
-   /* ADC12CLK clock frequency is AHB clock */
-     RCC_Clocks->ADC12CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  
-  /* Get ADC34CLK prescaler */
-  tmp = RCC->CFGR2 & RCC_CFGR2_ADCPRE34;
-  tmp = tmp >> 9;
-  presc = ADCPrescTable[tmp];
-  if ((presc & 0x10) != 0)
-  {
-     /* ADC34CLK clock frequency is derived from PLL clock */
-     RCC_Clocks->ADC34CLK_Frequency = pllclk / presc;
-  }
-  else
-  {
-   /* ADC34CLK clock frequency is AHB clock */
-     RCC_Clocks->ADC34CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
+	/* USART1CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_USART1SW) == 0x0)
+	{
+		/* USART Clock is PCLK */
+		RCC_Clocks->USART1CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW_0)
+	{
+		/* USART Clock is System Clock */
+		RCC_Clocks->USART1CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW_1)
+	{
+		/* USART Clock is LSE Osc. */
+		RCC_Clocks->USART1CLK_Frequency = LSE_VALUE;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW)
+	{
+		/* USART Clock is HSI Osc. */
+		RCC_Clocks->USART1CLK_Frequency = HSI_VALUE;
+	}
 
-  /* I2C1CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_I2C1SW) != RCC_CFGR3_I2C1SW)
-  {
-    /* I2C1 Clock is HSI Osc. */
-    RCC_Clocks->I2C1CLK_Frequency = HSI_VALUE;
-  }
-  else
-  {
-    /* I2C1 Clock is System Clock */
-    RCC_Clocks->I2C1CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
+	/* USART2CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_USART2SW) == 0x0)
+	{
+		/* USART Clock is PCLK */
+		RCC_Clocks->USART2CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW_0)
+	{
+		/* USART Clock is System Clock */
+		RCC_Clocks->USART2CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW_1)
+	{
+		/* USART Clock is LSE Osc. */
+		RCC_Clocks->USART2CLK_Frequency = LSE_VALUE;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW)
+	{
+		/* USART Clock is HSI Osc. */
+		RCC_Clocks->USART2CLK_Frequency = HSI_VALUE;
+	}    
 
-  /* I2C2CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_I2C2SW) != RCC_CFGR3_I2C2SW)
-  {
-    /* I2C2 Clock is HSI Osc. */
-    RCC_Clocks->I2C2CLK_Frequency = HSI_VALUE;
-  }
-  else
-  {
-    /* I2C2 Clock is System Clock */
-    RCC_Clocks->I2C2CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  
-    /* TIM1CLK clock frequency */
-  if(((RCC->CFGR3 & RCC_CFGR3_TIM1SW) == RCC_CFGR3_TIM1SW)&& (RCC_Clocks->SYSCLK_Frequency == pllclk) \
-  && (apb2presc == ahbpresc)) 
-  {
-    /* TIM1 Clock is 2 * pllclk */
-    RCC_Clocks->TIM1CLK_Frequency = pllclk * 2;
-  }
-  else
-  {
-    /* TIM1 Clock is APB2 clock. */
-    RCC_Clocks->TIM1CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
-  }
-
-    /* TIM8CLK clock frequency */
-  if(((RCC->CFGR3 & RCC_CFGR3_TIM8SW) == RCC_CFGR3_TIM8SW)&& (RCC_Clocks->SYSCLK_Frequency == pllclk) \
-  && (apb2presc == ahbpresc))
-  {
-    /* TIM8 Clock is 2 * pllclk */
-    RCC_Clocks->TIM8CLK_Frequency = pllclk * 2;
-  }
-  else
-  {
-    /* TIM8 Clock is APB2 clock. */
-    RCC_Clocks->TIM8CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
-  }
-  
-  /* USART1CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_USART1SW) == 0x0)
-  {
-    /* USART Clock is PCLK */
-    RCC_Clocks->USART1CLK_Frequency = RCC_Clocks->PCLK2_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW_0)
-  {
-    /* USART Clock is System Clock */
-    RCC_Clocks->USART1CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW_1)
-  {
-    /* USART Clock is LSE Osc. */
-    RCC_Clocks->USART1CLK_Frequency = LSE_VALUE;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART1SW) == RCC_CFGR3_USART1SW)
-  {
-    /* USART Clock is HSI Osc. */
-    RCC_Clocks->USART1CLK_Frequency = HSI_VALUE;
-  }
-
-  /* USART2CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_USART2SW) == 0x0)
-  {
-    /* USART Clock is PCLK */
-    RCC_Clocks->USART2CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW_0)
-  {
-    /* USART Clock is System Clock */
-    RCC_Clocks->USART2CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW_1)
-  {
-    /* USART Clock is LSE Osc. */
-    RCC_Clocks->USART2CLK_Frequency = LSE_VALUE;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART2SW) == RCC_CFGR3_USART2SW)
-  {
-    /* USART Clock is HSI Osc. */
-    RCC_Clocks->USART2CLK_Frequency = HSI_VALUE;
-  }    
-
-  /* USART3CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_USART3SW) == 0x0)
-  {
-    /* USART Clock is PCLK */
-    RCC_Clocks->USART3CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW_0)
-  {
-    /* USART Clock is System Clock */
-    RCC_Clocks->USART3CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW_1)
-  {
-    /* USART Clock is LSE Osc. */
-    RCC_Clocks->USART3CLK_Frequency = LSE_VALUE;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW)
-  {
-    /* USART Clock is HSI Osc. */
-    RCC_Clocks->USART3CLK_Frequency = HSI_VALUE;
-  }
+	/* USART3CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_USART3SW) == 0x0)
+	{
+		/* USART Clock is PCLK */
+		RCC_Clocks->USART3CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW_0)
+	{
+		/* USART Clock is System Clock */
+		RCC_Clocks->USART3CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW_1)
+	{
+		/* USART Clock is LSE Osc. */
+		RCC_Clocks->USART3CLK_Frequency = LSE_VALUE;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_USART3SW) == RCC_CFGR3_USART3SW)
+	{
+		/* USART Clock is HSI Osc. */
+		RCC_Clocks->USART3CLK_Frequency = HSI_VALUE;
+	}
   
     /* UART4CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_UART4SW) == 0x0)
-  {
-    /* USART Clock is PCLK */
-    RCC_Clocks->UART4CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW_0)
-  {
-    /* USART Clock is System Clock */
-    RCC_Clocks->UART4CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW_1)
-  {
-    /* USART Clock is LSE Osc. */
-    RCC_Clocks->UART4CLK_Frequency = LSE_VALUE;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW)
-  {
-    /* USART Clock is HSI Osc. */
-    RCC_Clocks->UART4CLK_Frequency = HSI_VALUE;
-  }   
-  
-  /* UART5CLK clock frequency */
-  if((RCC->CFGR3 & RCC_CFGR3_UART5SW) == 0x0)
-  {
-    /* USART Clock is PCLK */
-    RCC_Clocks->UART5CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW_0)
-  {
-    /* USART Clock is System Clock */
-    RCC_Clocks->UART5CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW_1)
-  {
-    /* USART Clock is LSE Osc. */
-    RCC_Clocks->UART5CLK_Frequency = LSE_VALUE;
-  }
-  else if((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW)
-  {
-    /* USART Clock is HSI Osc. */
-    RCC_Clocks->UART5CLK_Frequency = HSI_VALUE;
-  } 
+	if ((RCC->CFGR3 & RCC_CFGR3_UART4SW) == 0x0)
+	{
+		/* USART Clock is PCLK */
+		RCC_Clocks->UART4CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW_0)
+	{
+		/* USART Clock is System Clock */
+		RCC_Clocks->UART4CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW_1)
+	{
+		/* USART Clock is LSE Osc. */
+		RCC_Clocks->UART4CLK_Frequency = LSE_VALUE;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART4SW) == RCC_CFGR3_UART4SW)
+	{
+		/* USART Clock is HSI Osc. */
+		RCC_Clocks->UART4CLK_Frequency = HSI_VALUE;
+	}   
+
+	/* UART5CLK clock frequency */
+	if ((RCC->CFGR3 & RCC_CFGR3_UART5SW) == 0x0)
+	{
+		/* USART Clock is PCLK */
+		RCC_Clocks->UART5CLK_Frequency = RCC_Clocks->PCLK1_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW_0)
+	{
+		/* USART Clock is System Clock */
+		RCC_Clocks->UART5CLK_Frequency = RCC_Clocks->SYSCLK_Frequency;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW_1)
+	{
+		/* USART Clock is LSE Osc. */
+		RCC_Clocks->UART5CLK_Frequency = LSE_VALUE;
+	}
+	else if ((RCC->CFGR3 & RCC_CFGR3_UART5SW) == RCC_CFGR3_UART5SW)
+	{
+		/* USART Clock is HSI Osc. */
+		RCC_Clocks->UART5CLK_Frequency = HSI_VALUE;
+	} 
 }
 
 /**

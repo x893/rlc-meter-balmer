@@ -8,9 +8,9 @@
 #include <stdint.h>
 //LCD Hardware routines
 
-void HwLcdInit();
+void HwLcdInit(void);
 //Подождать несколько милисекунд
-void DelaySome();
+void DelaySome(void);
 
 //Управление пинами 0 - low, 1 - high
 void HwLcdPinCE(uint8_t on);

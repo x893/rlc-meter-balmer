@@ -4,6 +4,8 @@
 #ifndef _DAC_H_
 #define _DAC_H_
 
+#include <stdint.h>
+
 #define pi  3.14159f
 //#define SINUS_BUFFER_SIZE 1000
 #define SINUS_BUFFER_SIZE 2000
@@ -18,10 +20,10 @@ void DacInit(void);
 */
 void DacSetFrequency(uint32_t frequency);
 void DacSetPeriod(uint32_t sinusPeriod, uint16_t amplitude);
-void DacStart();
+void DacStart(void);
 
 uint32_t DacPeriod(void);
-float DacFrequency();
+float DacFrequency(void);
 uint32_t DacSamplesPerPeriod(void);
 uint32_t DacSampleTicks(void);
 

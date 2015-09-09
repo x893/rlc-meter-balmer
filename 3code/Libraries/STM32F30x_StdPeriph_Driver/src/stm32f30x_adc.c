@@ -947,36 +947,40 @@ void ADC_AnalogWatchdog3SingleChannelConfig(ADC_TypeDef* ADCx, uint8_t ADC_Chann
   */
 void ADC_TempSensorCmd(ADC_TypeDef* ADCx, FunctionalState NewState)
 {
-  /* Check the parameters */
-  assert_param(IS_ADC_ALL_PERIPH(ADCx));
-  assert_param(IS_FUNCTIONAL_STATE(NewState));
+#if 0
+	#warning ADC34_CCR_TSEN
 
-  if((ADCx == ADC1) || (ADCx == ADC2))
-  {
-    if (NewState != DISABLE)
-    {
-      /* Enable the temperature sensor channel*/
-      ADC1_2->CCR |= ADC12_CCR_TSEN;
-    }
-    else
-    {
-      /* Disable the temperature sensor channel*/
-      ADC1_2->CCR &= ~(uint32_t)ADC12_CCR_TSEN;
-    }
-  }
-  else
-  {
-    if (NewState != DISABLE)
-    {
-      /* Enable the temperature sensor channel*/
-      ADC3_4->CCR |= ADC34_CCR_TSEN;
-    }
-    else
-    {
-      /* Disable the temperature sensor channel*/
-      ADC3_4->CCR &= ~(uint32_t)ADC34_CCR_TSEN;
-    }
-  }
+	/* Check the parameters */
+	assert_param(IS_ADC_ALL_PERIPH(ADCx));
+	assert_param(IS_FUNCTIONAL_STATE(NewState));
+
+	if((ADCx == ADC1) || (ADCx == ADC2))
+	{
+		if (NewState != DISABLE)
+		{
+			/* Enable the temperature sensor channel*/
+			ADC1_2->CCR |= ADC12_CCR_TSEN;
+		}
+		else
+		{
+			/* Disable the temperature sensor channel*/
+			ADC1_2->CCR &= ~(uint32_t)ADC12_CCR_TSEN;
+		}
+	}
+	else
+	{
+		if (NewState != DISABLE)
+		{
+			/* Enable the temperature sensor channel*/
+			ADC3_4->CCR |= ADC34_CCR_TSEN;
+		}
+		else
+		{
+			/* Disable the temperature sensor channel*/
+			ADC3_4->CCR &= ~(uint32_t)ADC34_CCR_TSEN;
+		}
+	}
+#endif
 }
 
 /**
@@ -1029,36 +1033,39 @@ void ADC_VrefintCmd(ADC_TypeDef* ADCx, FunctionalState NewState)
   */
 void ADC_VbatCmd(ADC_TypeDef* ADCx, FunctionalState NewState)
 {
-  /* Check the parameters */
-  assert_param(IS_ADC_ALL_PERIPH(ADCx));
-  assert_param(IS_FUNCTIONAL_STATE(NewState));
+#if 0
+	#warning ADC34_CCR_VBATEN
+	/* Check the parameters */
+	assert_param(IS_ADC_ALL_PERIPH(ADCx));
+	assert_param(IS_FUNCTIONAL_STATE(NewState));
 
-  if((ADCx == ADC1) || (ADCx == ADC2))
-  {
-    if (NewState != DISABLE)
-    {
-      /* Enable the Vbat channel*/
-      ADC1_2->CCR |= ADC12_CCR_VBATEN;
-    }
-    else
-    {
-      /* Disable the Vbat channel*/
-      ADC1_2->CCR &= ~(uint32_t)ADC12_CCR_VBATEN;
-    }
-  }
-  else
-  {
-    if (NewState != DISABLE)
-    {
-      /* Enable the Vbat channel*/
-      ADC3_4->CCR |= ADC34_CCR_VBATEN;
-    }
-    else
-    {
-      /* Disable the Vbat channel*/
-      ADC3_4->CCR &= ~(uint32_t)ADC34_CCR_VBATEN;
-    }
-  }
+	if((ADCx == ADC1) || (ADCx == ADC2))
+	{
+		if (NewState != DISABLE)
+		{
+			/* Enable the Vbat channel*/
+			ADC1_2->CCR |= ADC12_CCR_VBATEN;
+		}
+		else
+		{
+			/* Disable the Vbat channel*/
+			ADC1_2->CCR &= ~(uint32_t)ADC12_CCR_VBATEN;
+		}
+	}
+	else
+	{
+		if (NewState != DISABLE)
+		{
+			/* Enable the Vbat channel*/
+			ADC3_4->CCR |= ADC34_CCR_VBATEN;
+		}
+		else
+		{
+			/* Disable the Vbat channel*/
+			ADC3_4->CCR &= ~(uint32_t)ADC34_CCR_VBATEN;
+		}
+	}
+#endif
 }
 
 /**

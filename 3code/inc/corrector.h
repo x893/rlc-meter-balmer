@@ -6,24 +6,23 @@
 
 #include "calc_rc.h"
 
-#define CORRECTOR2X_RESISTOR_COUNT 3
-#define CORRECTOR2X_GAIN_COUNT 3
-#define CORRECTOR_OPEN_SHORT_GAIN_COUNT 6
-#define PREDEFINED_PERIODS_COUNT 5
+#define CORRECTOR2X_RESISTOR_COUNT		3
+#define CORRECTOR2X_GAIN_COUNT			3
+#define CORRECTOR_OPEN_SHORT_GAIN_COUNT	6
 
 //COEFF_CORRECTOR_SIZE == one flash page!!!!
 #define COEFF_CORRECTOR_SIZE 2048
 
 typedef struct ZmOpen
 {
-	complexf Zstdm;//measured load
-	complexf Zom;//measured open fixtures
+	complexf Zstdm;	//measured load
+	complexf Zom;	//measured open fixtures
 } ZmOpen;
 
 typedef struct ZmShort
 {
-	complexf Zstdm;//measured load
-	complexf Zsm;//measured short
+	complexf Zstdm;	//measured load
+	complexf Zsm;	//measured short
 } ZmShort;
 
 typedef struct CoeffCorrector2x
@@ -35,29 +34,29 @@ typedef struct CoeffCorrector2x
 		Для gain=0, gain=1 используем маленький номинал
 		Для gain=2 используем большой.
 	*/
-	float R[CORRECTOR2X_GAIN_COUNT];//real load value
+	float R[CORRECTOR2X_GAIN_COUNT];	// real load value
 	float C[CORRECTOR2X_GAIN_COUNT];
 } CoeffCorrector2x;
 
 typedef struct CoeffCorrectorOpen
 {
-	ZmOpen Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
-	float R;//precize real value
-	float C;//capacitance load
+	float R;	//precize real value
+	float C;	//capacitance load
 	uint32_t maxGainIndex;
+	ZmOpen Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
 } CoeffCorrectorOpen;
 
 typedef struct CoeffCorrectorShort
 {
+	float R100;	//real load value 100 Om
+	float R1;	//real load value 1 Om (for gain=7)
 	ZmShort Zm[CORRECTOR_OPEN_SHORT_GAIN_COUNT];
-	float R100;//real load value 100 Om
-	float R1;//real load value 1 Om (for gain=7)
 } CoeffCorrectorShort;
 
 //sizeof(CoeffCorrector)<2048
 typedef struct CoeffCorrector
 {
-	uint32_t period;//period==0 - not filled
+	uint32_t period;	//period==0 - not filled
 	CoeffCorrector2x x2x[CORRECTOR2X_RESISTOR_COUNT];
 	CoeffCorrectorOpen open;
 	CoeffCorrectorShort cshort;
@@ -77,27 +76,26 @@ void SetCorrectorPeriod(uint32_t period);
 неточности усиления при разных коэффициэнтах усиления.
 */
 complexf GainCorrector(uint8_t gain_index_V, uint8_t gain_index_I);
-
 complexf Corrector(complexf Zxm);
 
 //Очистить весь flash необходимый для записи калибровоячных констант
-bool CorrectorFlashClear();
-bool CorrectorFlashClearCurrent();
+bool CorrectorFlashClear(void);
+bool CorrectorFlashClearCurrent(void);
 
 //Записать текущие константы в нужный кусок flash.
 //Обязательно очищать данные перед записью!!!!!!!
-bool CorrectorFlashCurrentData();
+bool CorrectorFlashCurrentData(void);
 
 //Прочитать корректирующие коэффициэнты, соответствующие DacPeriod()
-void CorrectorLoadData();
+void CorrectorLoadData(void);
 
-CoeffCorrector* GetCorrector();
+CoeffCorrector* GetCorrector(void);
 
-void ClearCorrector();
+void ClearCorrector(void);
 
 //return index in predefinedPeriods array
 //return 255 if not found
-uint8_t PredefinedPeriodIndex();
+uint8_t PredefinedPeriodIndex(void);
 
 //index=0..7
 int8_t GetGainValidIdx(uint8_t index);

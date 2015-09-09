@@ -1,52 +1,22 @@
-/*
- *
- * Name         :  pcd8544.h
- *
- * Description  :  This is header file for the PCD8544 graphic LCD driver.
- *                 Based on the code written by Sylvain Bissonette
- *
- * Author       :  Fandi Gunawan <fandigunawan@gmail.com>
- * Website      :  http://fandigunawan.wordpress.com
- *
- * Credit       :  Sylvain Bissonette (2003)
- *                 Louis Frigon (2003)
- *
- * License      :  GPL v. 3
- *
- * Compiler     :  WinAVR, GCC for AVR platform
- *                 Tested version :
- *                 - 20070525
- *                 - 20071221
- *                 - 20081225
- * Compiler note:  Please be aware of using older/newer version since WinAVR
- *                 is in extensive development. Please compile with parameter -O1
- *
- * History      :
- * Please refer to pcd8544.c
- */
-
 #ifndef _PCD8544_H_
 #define _PCD8544_H_
 
+#include <stdint.h>
+
 /* For return value */
-#define OK                         0
-#define OUT_OF_BORDER              1
-#define OK_WITH_WRAP               2
+#define OK				0
+#define OUT_OF_BORDER	1
+#define OK_WITH_WRAP	2
 
 
-#define LCD_X_RES                  84    /* x resolution */
-#define LCD_Y_RES                  48    /* y resolution */
-#define EMPTY_SPACE_BARS           2
-#define BAR_X                      5
-#define BAR_Y                      38
+#define LCD_X_RES			84    /* x resolution */
+#define LCD_Y_RES			48    /* y resolution */
+#define EMPTY_SPACE_BARS	2
+#define BAR_X				5
+#define BAR_Y				38
 
 /* Cache size in bytes ( 84 * 48 ) / 8 = 504 bytes */
-#define LCD_CACHE_SIZE             ( ( LCD_X_RES * LCD_Y_RES ) / 8)
-
-/* Type definition */
-//typedef char                       bool;
-typedef unsigned char              byte;
-typedef unsigned int               word;
+#define LCD_CACHE_SIZE		( ( LCD_X_RES * LCD_Y_RES ) / 8)
 
 /* Enumeration */
 
@@ -66,20 +36,20 @@ typedef enum
 } LcdFontSize;
 
 /* Function prototypes */
-void LcdInit       ( void );
+void LcdInit( void );
 
-void LcdClear      ( void );
-void LcdUpdate     ( void );
-void LcdImage      ( const byte *imageData );
-void LcdContrast   ( byte contrast);
-byte LcdGotoXYFont ( byte x, byte y );
-byte LcdChr        ( LcdFontSize size, char ch );
-byte LcdStr        ( LcdFontSize size, const char* dataArray);
-byte LcdPixel      ( byte x, byte y, LcdPixelMode mode );
-byte LcdLine       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );
-byte LcdRect       ( byte x1, byte x2, byte y1, byte y2, LcdPixelMode mode );
-byte LcdSingleBar  ( byte baseX, byte baseY, byte height, byte width, LcdPixelMode mode );
-byte LcdBars       ( byte data[], byte numbBars, byte width, byte multiplier );
-
+void LcdClear( void );
+void LcdUpdate( void );
+void LcdImage( const uint8_t *imageData );
+void LcdContrast( uint8_t contrast);
+uint8_t LcdGotoXYFont( uint8_t x, uint8_t y );
+uint8_t LcdChr( LcdFontSize size, char ch );
+uint8_t LcdStr( LcdFontSize size, const char* dataArray);
+uint8_t LcdPixel( uint8_t x, uint8_t y, LcdPixelMode mode );
+uint8_t LcdLine( uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, LcdPixelMode mode );
+uint8_t LcdRect( uint8_t x1, uint8_t x2, uint8_t y1, uint8_t y2, LcdPixelMode mode );
+uint8_t LcdSingleBar( uint8_t baseX, uint8_t baseY, uint8_t height, uint8_t width, LcdPixelMode mode );
+uint8_t LcdBars( uint8_t data[], uint8_t numbBars, uint8_t width, uint8_t multiplier );
+void LcdDrawBattery( int32_t value );
 
 #endif  /*  _PCD8544_H_ */

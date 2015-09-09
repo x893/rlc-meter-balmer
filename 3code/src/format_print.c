@@ -1,59 +1,62 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
+#include <stdint.h>
 #include "pcd8544.h"
+
 char Buffer[32];
 
 void addCommaToBuffer(uint8_t posComma)
 {
 	uint8_t size = 0;
-	for(;size<sizeof(Buffer) && Buffer[size]; size++);
+	for (; size < sizeof(Buffer) && Buffer[size]; size++);
 
-	if(size>=posComma)
+	if (size >= posComma)
 	{
-		for(uint8_t i=size; i>size-posComma; i--)
+		for (uint8_t i = size; i > size - posComma; i--)
 		{
-			Buffer[i] = Buffer[i-1];
+			Buffer[i] = Buffer[i - 1];
 		}
 
-		Buffer[size+1] = 0;
-		Buffer[size-posComma] = '.';
+		Buffer[size + 1] = 0;
+		Buffer[size - posComma] = '.';
 	}
 }
 
 void sprintIntFormat(int32_t value, uint8_t aMinDigits, uint8_t aEmptyChar)
 {
 	char* buf = Buffer;
-    uint32_t valueUnsigned;
-	if(value<0)
+	uint32_t valueUnsigned;
+	if (value < 0)
 	{
 		*buf++ = '-';
 		valueUnsigned = -value;
-	} else
-    {
-        valueUnsigned = value;
-    }
-    
-	int8_t digits = 0;
-	for(uint32_t v=valueUnsigned; v>0; digits++)
-	{
-		v/=10;
 	}
-    
-	if(value==0)
+	else
+	{
+		valueUnsigned = value;
+	}
+
+	int8_t digits = 0;
+	for (uint32_t v = valueUnsigned; v > 0; digits++)
+	{
+		v /= 10;
+	}
+
+	if (value == 0)
 	{
 		digits = 1;
 	}
-    
-	for(int8_t i=digits; i<aMinDigits; i++)
+
+	for (int8_t i = digits; i < aMinDigits; i++)
 	{
 		*buf++ = aEmptyChar;
 	}
-	
-	buf[digits--]=0;
-	for(uint32_t v=valueUnsigned; digits>=0; digits--)
+
+	buf[digits--] = 0;
+	for (uint32_t v = valueUnsigned; digits >= 0; digits--)
 	{
-		buf[digits] = (v%10)+'0';
+		buf[digits] = (v % 10) + '0';
 		v /= 10;
 	}
 }
@@ -61,14 +64,14 @@ void sprintIntFormat(int32_t value, uint8_t aMinDigits, uint8_t aEmptyChar)
 void printIntFormat(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aEmptyChar)
 {
 	sprintIntFormat(value, aMinDigits, aEmptyChar);
-	LcdStr(font, Buffer);
+	LcdStr((LcdFontSize)font, Buffer);
 }
 
 void printIntFixed(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint)
 {
 	sprintIntFormat(value, aMinDigits, '0');
 	addCommaToBuffer(aFixedPoint);
-	LcdStr(font, Buffer);
+	LcdStr((LcdFontSize)font, Buffer);
 }
 
 void printInt(int32_t value, uint8_t font)
@@ -76,32 +79,32 @@ void printInt(int32_t value, uint8_t font)
 	printIntFormat(value, font, 1, ' ');
 }
 
-static const char*  const strCapacitor[] = {"pF", "nF","mkF","mF","F"};
-static const char*  const strResistor[] ={"mOm", "Om", "KOm", "MOm"};
-static const char*  const strVoltage[] ={"mkV", "mV", "V"};
-static const char*  const strTime[] ={"mks", "ms", "s"};
-static const char*  const strFrequency[] ={"mHz", "Hz", "KHz", "MHz"};
-static const char*  const strInductor[] = {"nH","mkH","mH","H"};
+static const char*  const strCapacitor[] = { "pF", "nF", "mkF", "mF", "F" };
+static const char*  const strResistor[] = { "mOm", "Om", "KOm", "MOm" };
+static const char*  const strVoltage[] = { "mkV", "mV", "V" };
+static const char*  const strTime[] = { "mks", "ms", "s" };
+static const char*  const strFrequency[] = { "mHz", "Hz", "KHz", "MHz" };
+static const char*  const strInductor[] = { "nH", "mkH", "mH", "H" };
 
 void formatPrint(char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
 {
 	float mul = 1;
 	int8_t iSuffix = 0;
 
-	if(aValue<0)
+	if (aValue < 0)
 	{
 		*aBuffer++ = '-';
-		aValue = - aValue;
+		aValue = -aValue;
 	}
 
-	if(aValue>=1)
+	if (aValue >= 1)
 	{
-		for(iSuffix = -aSuffixMin; iSuffix<(int8_t)aSuffixCount; iSuffix++)
+		for (iSuffix = -aSuffixMin; iSuffix < (int8_t)aSuffixCount; iSuffix++)
 		{
-			float mul1 = mul*1000;
-			if(aValue<mul1)
+			float mul1 = mul * 1000;
+			if (aValue < mul1)
 				goto FormatValue;
-			mul = mul1; 
+			mul = mul1;
 		}
 
 		*aBuffer++ = 'i';
@@ -109,11 +112,12 @@ void formatPrint(char* aBuffer, float aValue, const char*const* aSuffix, uint8_t
 		*aBuffer++ = 'f';
 		iSuffix = -aSuffixMin;
 		goto AddSufix;
-	}else
+	}
+	else
 	{
-		for(iSuffix = -aSuffixMin; iSuffix>0; iSuffix--)
+		for (iSuffix = -aSuffixMin; iSuffix > 0; iSuffix--)
 		{
-			if(aValue>=mul)
+			if (aValue >= mul)
 				break;
 			mul *= 1e-3f;
 		}
@@ -126,81 +130,83 @@ FormatValue:;
 	{
 		int value;
 
-		if(aValue>=200)
+		if (aValue >= 200)
 		{
-			value = (int)(aValue+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+((value/100)%10);
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '0'+(char)(value%10);
-		} else
-		if(aValue>=20)
-		{
-			value = (int)(aValue*10+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+(value/100)%10;
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '.';
-			*aBuffer++ = '0'+(char)(value%10);
-		} else
-		{
-			value = (int)(aValue*100+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+(value/100)%10;
-			*aBuffer++ = '.';
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '0'+(char)(value%10);
+			value = (int)(aValue + 0.5f);
+			char c = (value / 1000);
+			if (c)
+				*aBuffer++ = '0' + c;
+			*aBuffer++ = '0' + ((value / 100) % 10);
+			*aBuffer++ = '0' + (char)((value / 10) % 10);
+			*aBuffer++ = '0' + (char)(value % 10);
 		}
+		else
+			if (aValue >= 20)
+			{
+				value = (int)(aValue * 10 + 0.5f);
+				char c = (value / 1000);
+				if (c)
+					*aBuffer++ = '0' + c;
+				*aBuffer++ = '0' + (value / 100) % 10;
+				*aBuffer++ = '0' + (char)((value / 10) % 10);
+				*aBuffer++ = '.';
+				*aBuffer++ = '0' + (char)(value % 10);
+			}
+			else
+			{
+				value = (int)(aValue * 100 + 0.5f);
+				char c = (value / 1000);
+				if (c)
+					*aBuffer++ = '0' + c;
+				*aBuffer++ = '0' + (value / 100) % 10;
+				*aBuffer++ = '.';
+				*aBuffer++ = '0' + (char)((value / 10) % 10);
+				*aBuffer++ = '0' + (char)(value % 10);
+			}
 	}
 
 AddSufix:;
 	const char* s = aSuffix[iSuffix];
 	//*aBuffer++ = ' ';
-	while(*s)
+	while (*s)
 		*aBuffer++ = *s++;
 	*aBuffer = 0;
 }
 
 void printC(float aValue, uint8_t font)
 {
-	formatPrint(Buffer, aValue, strCapacitor, sizeof(strCapacitor)/sizeof(strCapacitor[0]), -4);
-	LcdStr(font, Buffer);	
+	formatPrint(Buffer, aValue, strCapacitor, sizeof(strCapacitor) / sizeof(strCapacitor[0]), -4);
+	LcdStr((LcdFontSize)font, Buffer);
 }
 
 void printR(float aValue, uint8_t font)
 {
-	formatPrint(Buffer, aValue, strResistor, sizeof(strResistor)/sizeof(strResistor[0]), -1);
-	LcdStr(font, Buffer);	
+	formatPrint(Buffer, aValue, strResistor, sizeof(strResistor) / sizeof(strResistor[0]), -1);
+	LcdStr((LcdFontSize)font, Buffer);
 }
 
 void printV(float aValue)
 {
-	formatPrint(Buffer, aValue, strVoltage, sizeof(strVoltage)/sizeof(strVoltage[0]), -2);
-	LcdStr(FONT_1X, Buffer);	
+	formatPrint(Buffer, aValue, strVoltage, sizeof(strVoltage) / sizeof(strVoltage[0]), -2);
+	LcdStr(FONT_1X, Buffer);
 }
 
 void printT(float aValue)
 {
-	formatPrint(Buffer, aValue, strTime, sizeof(strTime)/sizeof(strTime[0]), -2);
-	LcdStr(FONT_1X, Buffer);	
+	formatPrint(Buffer, aValue, strTime, sizeof(strTime) / sizeof(strTime[0]), -2);
+	LcdStr(FONT_1X, Buffer);
 }
 
 void printF(float aValue)
 {
-	formatPrint(Buffer, aValue, strFrequency, sizeof(strFrequency)/sizeof(strFrequency[0]), -1);
-	LcdStr(FONT_1X, Buffer);	
+	formatPrint(Buffer, aValue, strFrequency, sizeof(strFrequency) / sizeof(strFrequency[0]), -1);
+	LcdStr(FONT_1X, Buffer);
 }
 
 void printL(float aValue, uint8_t font)
 {
-	formatPrint(Buffer, aValue, strInductor, sizeof(strInductor)/sizeof(strInductor[0]), -3);
-	LcdStr(font, Buffer);	
+	formatPrint(Buffer, aValue, strInductor, sizeof(strInductor) / sizeof(strInductor[0]), -3);
+	LcdStr((LcdFontSize)font, Buffer);
 }
 
 void formatPrintX2(uint8_t y, char* aBuffer, float aValue, const char*const* aSuffix, uint8_t aSuffixCount, int8_t aSuffixMin)
@@ -209,20 +215,20 @@ void formatPrintX2(uint8_t y, char* aBuffer, float aValue, const char*const* aSu
 	float mul = 1;
 	int8_t iSuffix = 0;
 
-	if(aValue<0)
+	if (aValue < 0)
 	{
-		LcdSingleBar  ( 0, y*8+2, 2, 5, PIXEL_ON);
+		LcdSingleBar(0, y * 8 + 2, 2, 5, PIXEL_ON);
 		aValue = -aValue;
 	}
 
-	if(aValue>=1)
+	if (aValue >= 1)
 	{
-		for(iSuffix = -aSuffixMin; iSuffix<(int8_t)aSuffixCount; iSuffix++)
+		for (iSuffix = -aSuffixMin; iSuffix < (int8_t)aSuffixCount; iSuffix++)
 		{
-			float mul1 = mul*1000;
-			if(aValue<mul1)
+			float mul1 = mul * 1000;
+			if (aValue < mul1)
 				goto FormatValue;
-			mul = mul1; 
+			mul = mul1;
 		}
 
 		*aBuffer++ = 'i';
@@ -230,11 +236,12 @@ void formatPrintX2(uint8_t y, char* aBuffer, float aValue, const char*const* aSu
 		*aBuffer++ = 'f';
 		iSuffix = -aSuffixMin;
 		goto AddSufix;
-	}else
+	}
+	else
 	{
-		for(iSuffix = -aSuffixMin; iSuffix>0; iSuffix--)
+		for (iSuffix = -aSuffixMin; iSuffix > 0; iSuffix--)
 		{
-			if(aValue>=mul)
+			if (aValue >= mul)
 				break;
 			mul *= 1e-3f;
 		}
@@ -247,69 +254,72 @@ FormatValue:;
 	{
 		int value;
 
-		if(aValue>=200)
+		if (aValue >= 200)
 		{
-			value = (int)(aValue+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+((value/100)%10);
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '0'+(char)(value%10);
-		} else
-		if(aValue>=20)
-		{
-			value = (int)(aValue*10+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+(value/100)%10;
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '.';
-			*aBuffer++ = '0'+(char)(value%10);
-		} else
-		if(aValue>=9)
-		{
-			value = (int)(aValue*100+0.5f);
-			char c = (value/1000);
-			if(c)
-				*aBuffer++ = '0'+c;
-			*aBuffer++ = '0'+(value/100)%10;
-			*aBuffer++ = '.';
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '0'+(char)(value%10);
-		} else
-		{
-			value = (int)(aValue*1000+0.5f);
-			char c = (value/1000);
-			*aBuffer++ = '0'+c;
-			*aBuffer++ = '.';
-			*aBuffer++ = '0'+(value/100)%10;
-			*aBuffer++ = '0'+(char)((value/10)%10);
-			*aBuffer++ = '0'+(char)(value%10);
+			value = (int)(aValue + 0.5f);
+			char c = (value / 1000);
+			if (c)
+				*aBuffer++ = '0' + c;
+			*aBuffer++ = '0' + ((value / 100) % 10);
+			*aBuffer++ = '0' + (char)((value / 10) % 10);
+			*aBuffer++ = '0' + (char)(value % 10);
 		}
+		else
+			if (aValue >= 20)
+			{
+				value = (int)(aValue * 10 + 0.5f);
+				char c = (value / 1000);
+				if (c)
+					*aBuffer++ = '0' + c;
+				*aBuffer++ = '0' + (value / 100) % 10;
+				*aBuffer++ = '0' + (char)((value / 10) % 10);
+				*aBuffer++ = '.';
+				*aBuffer++ = '0' + (char)(value % 10);
+			}
+			else
+				if (aValue >= 9)
+				{
+					value = (int)(aValue * 100 + 0.5f);
+					char c = (value / 1000);
+					if (c)
+						*aBuffer++ = '0' + c;
+					*aBuffer++ = '0' + (value / 100) % 10;
+					*aBuffer++ = '.';
+					*aBuffer++ = '0' + (char)((value / 10) % 10);
+					*aBuffer++ = '0' + (char)(value % 10);
+				}
+				else
+				{
+					value = (int)(aValue * 1000 + 0.5f);
+					char c = (value / 1000);
+					*aBuffer++ = '0' + c;
+					*aBuffer++ = '.';
+					*aBuffer++ = '0' + (value / 100) % 10;
+					*aBuffer++ = '0' + (char)((value / 10) % 10);
+					*aBuffer++ = '0' + (char)(value % 10);
+				}
 	}
 
 AddSufix:;
 	*aBuffer = 0;
-	LcdGotoXYFont(2, y+1);
+	LcdGotoXYFont(2, y + 1);
 	LcdStr(FONT_2X, startBuffer);
 
-	LcdGotoXYFont(12, y+1);
+	LcdGotoXYFont(12, y + 1);
 	LcdStr(FONT_1X, aSuffix[iSuffix]);
 }
 
 void printRX2(float aValue, uint8_t y)
 {
-	formatPrintX2(y, Buffer, aValue, strResistor, sizeof(strResistor)/sizeof(strResistor[0]), -1);
+	formatPrintX2(y, Buffer, aValue, strResistor, sizeof(strResistor) / sizeof(strResistor[0]), -1);
 }
 
 void printLX2(float aValue, uint8_t y)
 {
-	formatPrintX2(y, Buffer, aValue, strInductor, sizeof(strInductor)/sizeof(strInductor[0]), -3);
+	formatPrintX2(y, Buffer, aValue, strInductor, sizeof(strInductor) / sizeof(strInductor[0]), -3);
 }
 
 void printCX2(float aValue, uint8_t y)
 {
-	formatPrintX2(y, Buffer, aValue, strCapacitor, sizeof(strCapacitor)/sizeof(strCapacitor[0]), -4);
+	formatPrintX2(y, Buffer, aValue, strCapacitor, sizeof(strCapacitor) / sizeof(strCapacitor[0]), -4);
 }

@@ -5,8 +5,8 @@
 #define _CALC_RC_H_
 
 #include <complex.h>
-typedef complex float complexf;
 
+typedef complex float complexf;
 
 #include "adc.h"
 #include "process_measure.h"

@@ -64,7 +64,7 @@ typedef struct
   uint32_t USART3CLK_Frequency;
   uint32_t UART4CLK_Frequency;
   uint32_t UART5CLK_Frequency;  
-}RCC_ClocksTypeDef;
+} RCC_ClocksTypeDef;
 
 /* Exported constants --------------------------------------------------------*/
 

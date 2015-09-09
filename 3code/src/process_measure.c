@@ -14,92 +14,58 @@
 #define goodMax 3700
 #define goodDelta (goodMax-goodMin)
 
-
-static STATES state = STATE_NOP;
-
-#define gainValuesCount 8
-uint8_t gainValues[gainValuesCount] = {1,2,4,5,8,10,16,32};
-
-const uint8_t gainIdxPtrCentral[] = {0,1,2};
-const uint8_t gainIdxCountCentral = 3;
-
-const uint8_t gainIdxPtrOpenShort[] = {0,1,2,4,6,7};
-const uint8_t gainIdxCountOpenShort = 6;
-
-const uint8_t* gainIdxPtr = NULL;
-uint8_t gainIdxCount = 0;
-
-
-uint8_t resistorIdx;
-uint8_t gainVoltageIdx;
-uint8_t gainCurrentIdx;
-
-uint8_t gainIndexIterator;
-bool gainIndexStopV;
-bool gainIndexStopI;
-
-uint16_t computeXCount;
-uint16_t computeXIterator;
-uint8_t predefinedResistorIdx;
-uint8_t predefinedGainVoltageIdx;
-uint8_t predefinedGainCurrentIdx;
-bool useCorrector;
-
-static uint8_t initWaitCount = 0;
-
-bool bContinuousMode = false;
-bool bCalibration = false;
-
-static bool debugRepaint = false;
+const uint8_t gainValues[] = { 1, 2, 4, 5, 8, 10, 16, 32 };
+const uint8_t gainIdxPtrCentral[] = { 0, 1, 2 };
+const uint8_t gainIdxPtrOpenShort[] = { 0, 1, 2, 4, 6, 7 };
 
 extern int printD;
 
-static AdcSummaryData sum_data;
+AdcSummaryData sum_data;
+Measure_Context_t Measure_Context;
 
-void OnStartGainAuto();
-void OnResistorIndex();
-void OnStartGainIndex();
-void OnGainIndex();
-void OnMeasure();
-void OnMeasureStart();
-void OnInitWait();
+void OnStartGainAuto	(void);
+void OnResistorIndex	(void);
+void OnStartGainIndex	(void);
+void OnGainIndex		(void);
+void OnMeasure			(void);
+void OnMeasureStart		(void);
+void OnInitWait			(void);
 
 void SetGainCentralIdx()
 {
-	gainIdxPtr = gainIdxPtrCentral;
-	gainIdxCount = gainIdxCountCentral;
+	Measure_Context.gainIdxPtr = gainIdxPtrCentral;
+	Measure_Context.gainIdxCount = NELEMENTS(gainIdxPtrCentral);
 }
 
 void SetGainOpenShortIdx()
 {
-	gainIdxPtr = gainIdxPtrOpenShort;
-	gainIdxCount = gainIdxCountOpenShort;
+	Measure_Context.gainIdxPtr = gainIdxPtrOpenShort;
+	Measure_Context.gainIdxCount = NELEMENTS(gainIdxPtrOpenShort);
 }
-
 
 float getGainValue(uint8_t idx)
 {
-    float mulPre = 3.74f;
-    float mulX = 1.0f;
-    if(idx<gainValuesCount)
-    	mulX = gainValues[idx];
-    return mulPre*mulX;
+	float mulX = 1.0f;
+	if (idx < NELEMENTS(gainValues))
+		mulX = gainValues[idx];
+	return (3.74f * mulX);
 }
 
 float getGainValueV()
 {
-	return getGainValue(gainVoltageIdx);
+	return getGainValue(Measure_Context.gainVoltageIdx);
 }
 
 float getGainValueI()
 {
-	return getGainValue(gainCurrentIdx);
+	return getGainValue(Measure_Context.gainCurrentIdx);
 }
 
 float getResistorOm()
 {
 	float R = 100.0;
-	switch(resistorIdx) {
+	switch (Measure_Context.resistorIdx)
+	{
 	case 0: R = 1e2f; break;
 	case 1: R = 1e3f; break;
 	case 2: R = 1e4f; break;
@@ -113,47 +79,50 @@ uint16_t ProcessCalcOptimalCount()
 {
 	uint16_t count = 1;
 	int F = (int)DacFrequency();
-	if(F<2000)
-		count = F/10;
+
+	if (F < 2000)
+		count = F / 10;
 	else
-		count = F/30;
-	if(count>200)
+		count = F / 30;
+
+	if (count > 200)
 		count = 200;
-	if(count<1)
+	else if (count < 1)
 		count = 1;
+
 	return count;
 }
 
-void ProcessStartComputeX(uint16_t count, uint8_t predefinedResistorIdx_, 
-			uint8_t predefinedGainVoltageIdx_,
-			uint8_t predefinedGainCurrentIdx_,
-			bool useCorrector_
-			)
+void ProcessStartComputeX(
+	uint16_t count,
+	uint8_t resistorIdx,
+	uint8_t gainVoltageIdx,
+	uint8_t gainCurrentIdx,
+	bool useCorrector
+	)
 {
 	SetGainCentralIdx();
-	//calculatedValues = false;
-	computeXCount = count;
-	if(count==0)
-	{
-		computeXCount = ProcessCalcOptimalCount();
-	}
+	Measure_Context.computeXCount = count;
+	if (count == 0)
+		Measure_Context.computeXCount = ProcessCalcOptimalCount();
 
-	predefinedResistorIdx = predefinedResistorIdx_;
-	predefinedGainVoltageIdx = predefinedGainVoltageIdx_;
-	predefinedGainCurrentIdx = predefinedGainCurrentIdx_;
-	useCorrector = useCorrector_;
+	Measure_Context.predefinedResistorIdx = resistorIdx;
+	Measure_Context.predefinedGainVoltageIdx = gainVoltageIdx;
+	Measure_Context.predefinedGainCurrentIdx = gainCurrentIdx;
+	Measure_Context.useCorrector = useCorrector;
+
 	OnStartGainAuto();
 	AdcUsbRequestData();
 }
 
 STATES ProcessGetState()
 {
-	return state;
+	return Measure_Context.state;
 }
 
 void ProcessData()
 {
-	switch(state)
+	switch (Measure_Context.state)
 	{
 	case STATE_NOP:
 		return;
@@ -164,131 +133,128 @@ void ProcessData()
 		OnResistorIndex();
 		break;
 	case STATE_RESISTOR_INDEX_WAIT:
-		state = STATE_RESISTOR_INDEX;
+		Measure_Context.state = STATE_RESISTOR_INDEX;
 		break;
 	case STATE_GAIN_INDEX:
 		OnGainIndex();
 		break;
 	case STATE_GAIN_INDEX_WAIT:
-		state = STATE_GAIN_INDEX;
+		Measure_Context.state = STATE_GAIN_INDEX;
 		break;
 	case STATE_MEASURE:
 		OnMeasure();
 		break;
 	case STATE_MEASURE_WAIT:
-		state = STATE_MEASURE;
+		Measure_Context.state = STATE_MEASURE;
 		break;
 	}
 }
 
 void OnStartGainAuto()
 {
-	if(!debugRepaint)
-	{
+	if (!Measure_Context.debugRepaint)
 		LcdRepaint();
-	}
 
 	CorrectorLoadData();
 
-	resistorIdx = 0;
-	gainVoltageIdx = 0;
-	gainCurrentIdx = 0;
+	Measure_Context.resistorIdx = 0;
+	Measure_Context.gainVoltageIdx = 0;
+	Measure_Context.gainCurrentIdx = 0;
 
-	if(predefinedGainVoltageIdx!=255 && predefinedGainCurrentIdx!=255)
+	if (Measure_Context.predefinedGainVoltageIdx != 255 && Measure_Context.predefinedGainCurrentIdx != 255)
 	{
-		gainVoltageIdx = predefinedGainVoltageIdx;
-		gainCurrentIdx = predefinedGainCurrentIdx;
+		Measure_Context.gainVoltageIdx = Measure_Context.predefinedGainVoltageIdx;
+		Measure_Context.gainCurrentIdx = Measure_Context.predefinedGainCurrentIdx;
 	}
 
-	MCPSetGain(true, gainVoltageIdx);
-	MCPSetGain(false, gainCurrentIdx);
+	MCPSetGain(true, Measure_Context.gainVoltageIdx);
+	MCPSetGain(false, Measure_Context.gainCurrentIdx);
 
-	SetLowPassFilter(DacPeriod()>=LOW_PASS_PERIOD);
+	SetLowPassFilter(DacPeriod() >= LOW_PASS_PERIOD);
 
-	if(predefinedResistorIdx!=255)
+	if (Measure_Context.predefinedResistorIdx != 255)
 	{
-		resistorIdx = predefinedResistorIdx;
-		SetResistor(resistorIdx);
-	} else
+		Measure_Context.resistorIdx = Measure_Context.predefinedResistorIdx;
+		SetResistor(Measure_Context.resistorIdx);
+	}
+	else
 	{
-		SetResistor(resistorIdx);
+		SetResistor(Measure_Context.resistorIdx);
 	}
 
-	initWaitCount = bCalibration?10:2;
-	state = STATE_INIT_WAIT;
+	Measure_Context.initWaitCount = Measure_Context.bCalibration ? 10 : 2;
+	Measure_Context.state = STATE_INIT_WAIT;
 }
 
 void OnInitWait()
 {
-	if(initWaitCount>0)
+	if (Measure_Context.initWaitCount > 0)
 	{
-		initWaitCount--;
+		Measure_Context.initWaitCount--;
 		return;
 	}
 
-	if(predefinedGainVoltageIdx!=255 && predefinedGainCurrentIdx!=255)
-	{
+	if (Measure_Context.predefinedGainVoltageIdx != 255 && Measure_Context.predefinedGainCurrentIdx != 255)
 		OnMeasureStart();
-	} else
-	if(predefinedResistorIdx!=255)
-	{
+	else if (Measure_Context.predefinedResistorIdx != 255)
 		OnStartGainIndex();
-	} else
-	{
-		state = STATE_RESISTOR_INDEX_WAIT;
-	}
+	else
+		Measure_Context.state = STATE_RESISTOR_INDEX_WAIT;
 }
 
 void OnResistorIndex()
 {
 	AdcSummaryChannel* asc = &g_data.ch_i;
 	int di = asc->adc_max - asc->adc_min;
-	if(di*10>goodDelta || resistorIdx>=3)
+	if (di * 10 > goodDelta || Measure_Context.resistorIdx >= 3)
 	{
 		OnStartGainIndex();
-	} else
+	}
+	else
 	{
-		state = STATE_RESISTOR_INDEX_WAIT;
-		resistorIdx++;
-		SetResistor(resistorIdx);
+		Measure_Context.state = STATE_RESISTOR_INDEX_WAIT;
+		Measure_Context.resistorIdx++;
+		SetResistor(Measure_Context.resistorIdx);
 	}
 }
 
 void OnStartGainIndex()
 {
-	state = STATE_GAIN_INDEX;
+	Measure_Context.state = STATE_GAIN_INDEX;
 
-    gainIndexStopV = false;
-    gainIndexStopI = false;
-    gainIndexIterator = 0;
-    gainVoltageIdx = 0;
-    gainCurrentIdx = 0;
+	Measure_Context.gainIndexStopV = false;
+	Measure_Context.gainIndexStopI = false;
+	Measure_Context.gainIndexIterator = 0;
+	Measure_Context.gainVoltageIdx = 0;
+	Measure_Context.gainCurrentIdx = 0;
 
-    if(resistorIdx==0)
-    {
+	if (Measure_Context.resistorIdx == 0)
+	{
 		int vmin = g_data.ch_v.adc_min;
 		int vmax = g_data.ch_v.adc_max;
 		int imin = g_data.ch_i.adc_min;
 		int imax = g_data.ch_i.adc_max;
-        if((imax-imin) < (vmax-vmin))
-        {
-            gainIndexStopV = true;
-            SetGainCentralIdx();
-        } else
-        {
-            gainIndexStopI = true;
-            SetGainOpenShortIdx();
-        }
-    } else
-    if(resistorIdx==3)
-    {
-        gainIndexStopV = true;
-        SetGainOpenShortIdx();
-    } else
-    {
-        gainIndexStopV = true;
-        SetGainCentralIdx();
-    }
+		if ((imax - imin) < (vmax - vmin))
+		{
+			Measure_Context.gainIndexStopV = true;
+			SetGainCentralIdx();
+		}
+		else
+		{
+			Measure_Context.gainIndexStopI = true;
+			SetGainOpenShortIdx();
+		}
+	}
+	else if (Measure_Context.resistorIdx == 3)
+	{
+		Measure_Context.gainIndexStopV = true;
+		SetGainOpenShortIdx();
+	}
+	else
+	{
+		Measure_Context.gainIndexStopV = true;
+		SetGainCentralIdx();
+	}
 
 	OnGainIndex();
 }
@@ -300,71 +266,76 @@ void OnGainIndex()
 	int imin = g_data.ch_i.adc_min;
 	int imax = g_data.ch_i.adc_max;
 
-	uint8_t gainIdx = gainIdxPtr[gainIndexIterator];
+	uint8_t gainIdx = Measure_Context.gainIdxPtr[Measure_Context.gainIndexIterator];
 
 	CoeffCorrector* corr = GetCorrector();
-	if(resistorIdx==3 && gainIdx>corr->open.maxGainIndex)
+	if (Measure_Context.resistorIdx == 3 && gainIdx > corr->open.maxGainIndex)
 	{
-		gainIndexStopI = true;
-		if(debugRepaint)
+		Measure_Context.gainIndexStopI = true;
+		if (Measure_Context.debugRepaint)
 			printD = 135;
-	} else
+	}
+	else
 	{
-		if(debugRepaint)
+		if (Measure_Context.debugRepaint)
 			printD = 246;
 	}
 
-	if(!gainIndexStopV && vmax<goodMax && vmin>goodMin)
+	if (!Measure_Context.gainIndexStopV && vmax<goodMax && vmin>goodMin)
 	{
-		gainVoltageIdx = gainIdx;
-	} else
+		Measure_Context.gainVoltageIdx = gainIdx;
+	}
+	else
 	{
-		MCPSetGain(true, gainVoltageIdx);
-		gainIndexStopV = true;
+		MCPSetGain(true, Measure_Context.gainVoltageIdx);
+		Measure_Context.gainIndexStopV = true;
 	}
 
-	if(!gainIndexStopI && imax<goodMax && imin>goodMin)
+	if (!Measure_Context.gainIndexStopI && imax<goodMax && imin>goodMin)
 	{
-		gainCurrentIdx = gainIdx;
-	} else
+		Measure_Context.gainCurrentIdx = gainIdx;
+	}
+	else
 	{
-		MCPSetGain(false, gainCurrentIdx);
-		gainIndexStopI = true;
+		MCPSetGain(false, Measure_Context.gainCurrentIdx);
+		Measure_Context.gainIndexStopI = true;
 	}
 
-	gainIndexIterator++;
-	if(gainIndexIterator>=gainIdxCount)
+	Measure_Context.gainIndexIterator++;
+	if (Measure_Context.gainIndexIterator >= Measure_Context.gainIdxCount)
 	{
-		MCPSetGain(true, gainVoltageIdx);
-		MCPSetGain(false, gainCurrentIdx);
+		MCPSetGain(true, Measure_Context.gainVoltageIdx);
+		MCPSetGain(false, Measure_Context.gainCurrentIdx);
 		OnMeasureStart();//state = STATE_NOP;
-	} else
+	}
+	else
 	{
-		gainIdx = gainIdxPtr[gainIndexIterator];
-		if(!gainIndexStopV)
+		gainIdx = Measure_Context.gainIdxPtr[Measure_Context.gainIndexIterator];
+		if (!Measure_Context.gainIndexStopV)
 			MCPSetGain(true, gainIdx);
-		if(!gainIndexStopI)
+		if (!Measure_Context.gainIndexStopI)
 			MCPSetGain(false, gainIdx);
-		state = STATE_GAIN_INDEX_WAIT;
+		Measure_Context.state = STATE_GAIN_INDEX_WAIT;
 	}
 
-	if(debugRepaint)
+	if (Measure_Context.debugRepaint)
 		LcdRepaint();
 }
 
 void OnMeasureStart()
 {
 	LcdRepaint();
-	state = STATE_MEASURE_WAIT;
-	computeXIterator = 0;
+	Measure_Context.state = STATE_MEASURE_WAIT;
+	Measure_Context.computeXIterator = 0;
 }
 
 void OnMeasure()
 {
-	if(computeXIterator==0)
+	if (Measure_Context.computeXIterator == 0)
 	{
 		sum_data = g_data;
-	} else
+	}
+	else
 	{
 		sum_data.ch_i.k_sin += g_data.ch_i.k_sin;
 		sum_data.ch_i.k_cos += g_data.ch_i.k_cos;
@@ -374,55 +345,55 @@ void OnMeasure()
 		sum_data.ch_v.k_cos += g_data.ch_v.k_cos;
 		sum_data.ch_v.square_error += g_data.ch_v.square_error;
 
-		if(g_data.error)
-			sum_data.error = true;			
+		if (g_data.error)
+			sum_data.error = true;
 	}
 
-	computeXIterator++;
-	if(computeXIterator<computeXCount)
+	Measure_Context.computeXIterator++;
+	if (Measure_Context.computeXIterator < Measure_Context.computeXCount)
 	{
 		return;
 	}
 
 	//calculate result
-	sum_data.ch_i.k_sin /= computeXCount;
-	sum_data.ch_i.k_cos /= computeXCount;
-	sum_data.ch_i.square_error /= computeXCount;
+	sum_data.ch_i.k_sin /= Measure_Context.computeXCount;
+	sum_data.ch_i.k_cos /= Measure_Context.computeXCount;
+	sum_data.ch_i.square_error /= Measure_Context.computeXCount;
 
-	sum_data.ch_v.k_sin /= computeXCount;
-	sum_data.ch_v.k_cos /= computeXCount;
-	sum_data.ch_v.square_error /= computeXCount;
+	sum_data.ch_v.k_sin /= Measure_Context.computeXCount;
+	sum_data.ch_v.k_cos /= Measure_Context.computeXCount;
+	sum_data.ch_v.square_error /= Measure_Context.computeXCount;
 
 	g_data = sum_data;
 
 	bool oldLastZxFilled = lastZxFilled;
 	complexf oldLastZx = lastZx;
 
-	OnCalculate(useCorrector);
+	OnCalculate(Measure_Context.useCorrector);
 
 	LcdRepaint();
 
-	if(bCalibration)
+	if (Measure_Context.bCalibration)
 	{
-		state = STATE_NOP;
+		Measure_Context.state = STATE_NOP;
 		OnCalibrationComplete();
-	} else
-	if(bContinuousMode)
+	}
+	else if (Measure_Context.bContinuousMode)
 	{
 		bool startFast = false;
-		if(oldLastZxFilled)
+		if (oldLastZxFilled)
 		{
-			float d = cabs(oldLastZx-lastZx)/cabs(lastZx);
-			if(d>1)
+			float d = cabs(oldLastZx - lastZx) / cabs(lastZx);
+			if (d > 1)
 				d = 1;
-			if(d<5e-2f)
+			if (d < 5e-2f)
 			{
 				int vmin = g_data.ch_v.adc_min;
 				int vmax = g_data.ch_v.adc_max;
 				int imin = g_data.ch_i.adc_min;
 				int imax = g_data.ch_i.adc_max;
 
-				if(vmax<goodMax && vmin>goodMin && imax<goodMax && imin>goodMin)
+				if (vmax<goodMax && vmin>goodMin && imax<goodMax && imin>goodMin)
 				{
 					//Все хорошо, мтожно не пересчитывать коэффициэнты и не переставлять резистор
 					startFast = true;
@@ -430,23 +401,24 @@ void OnMeasure()
 			}
 		}
 
-		if(startFast)
+		if (startFast)
 			OnMeasureStart();
 		else
-			ProcessStartComputeX(computeXCount, predefinedResistorIdx, 
-				predefinedGainVoltageIdx, predefinedGainCurrentIdx,
-				useCorrector);
+			ProcessStartComputeX(
+				Measure_Context.computeXCount,
+				Measure_Context.predefinedResistorIdx,
+				Measure_Context.predefinedGainVoltageIdx,
+				Measure_Context.predefinedGainCurrentIdx,
+				Measure_Context.useCorrector
+				);
 	}
 	else
-	{
-		state = STATE_NOP;
-	}
-
+		Measure_Context.state = STATE_NOP;
 }
 
 void SendRVI()
 {
-	USBAdd8(resistorIdx);
-	USBAdd8(gainVoltageIdx);
-	USBAdd8(gainCurrentIdx);
+	USBAdd8(Measure_Context.resistorIdx);
+	USBAdd8(Measure_Context.gainVoltageIdx);
+	USBAdd8(Measure_Context.gainCurrentIdx);
 }

@@ -3,12 +3,14 @@
 
 #include <stdbool.h>
 
-void QuadEncInit();
+#include <stdint.h>
+
+void QuadEncInit(void);
 
 /*
 Раз в 20 ms проверяется не нажата ли кнопка и не повернулось ли колесико.
 Если событие произошло, то вызывается соответсвующий обработчик.
 */
-void OnButtonPressed();
+void OnButtonPressed(void);
 void OnWeel(int16_t delta);
-void OnTimer();
+void OnTimer(void);

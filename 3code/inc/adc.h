@@ -4,8 +4,10 @@
 #ifndef _ADC_H_
 #define _ADC_H_
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #define RESULT_BUFFER_SIZE 2000
-//#define RESULT_BUFFER_SIZE 3000
 
 typedef struct {
 	uint16_t adc_min;
@@ -16,7 +18,6 @@ typedef struct {
 	float square_error;
 } AdcSummaryChannel;
 
-
 typedef struct {
 	uint16_t count;
 	AdcSummaryChannel ch_v;
@@ -25,25 +26,33 @@ typedef struct {
 	uint32_t nop_number;
 } AdcSummaryData;
 
-void AdcInit();
-void AdcDacStartSynchro(uint32_t period, uint16_t amplitude);
-void AdcQuant();
-void AdcSendLastCompute();
+typedef struct ADC_Context_s {
+			uint32_t g_ResultBufferSize;
+			uint32_t g_adc_elapsed_time;
+			uint16_t g_adcStatus;
+			uint16_t g_adc_cur_read_pos;
+	volatile uint8_t g_adc_cycles;
+	volatile uint8_t g_cur_cycle;
+	volatile bool g_usb_request_data;
+	volatile bool g_usb_sampled_data;
+			bool g_adc_read_buffer;
+} ADC_Context_t;
 
-extern uint16_t g_adcStatus;
-extern bool g_adc_read_buffer;
-extern uint32_t g_adc_elapsed_time;
+extern ADC_Context_t ADC_Context;
 
 extern uint32_t g_resultBufferCopy[RESULT_BUFFER_SIZE];
-extern uint32_t g_ResultBufferSize;
-
 extern AdcSummaryData g_data;
 
-//usb functions
-void AdcUsbRequestData();
-bool AdcUsbBufferComplete();
-void AdcUsbStartReadBuffer();
-void AdcUsbReadBuffer();
+void AdcInit(void);
+void AdcDacStartSynchro(uint32_t period, uint16_t amplitude);
+void AdcQuant(void);
+void AdcSendLastCompute(void);
+
+// usb functions
+void AdcUsbRequestData(void);
+bool AdcUsbBufferComplete(void);
+void AdcUsbStartReadBuffer(void);
+void AdcUsbReadBuffer(void);
 
 //Calc functions
 void AdcClearData(AdcSummaryData* data);

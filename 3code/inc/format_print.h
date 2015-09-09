@@ -4,6 +4,8 @@
 #ifndef _FORMAT_PRINT_H_
 #define _FORMAT_PRINT_H_
 
+#include <stdint.h>
+
 void printInt(int32_t value, uint8_t font);
 void printIntFixed(int32_t value, uint8_t font, uint8_t aMinDigits, uint8_t aFixedPoint);
 

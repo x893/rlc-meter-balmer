@@ -4,6 +4,9 @@
 #ifndef __SYSTICK_H
 #define __SYSTICK_H 
 
+#include "stm32f30x.h"
+#include <stdint.h>
+
 #define IS_SYSTICK_CLK_SOURCE(SOURCE) (((SOURCE) == SysTick_CLKSource_HCLK) || \
                                        ((SOURCE) == SysTick_CLKSource_HCLK_Div8))
 
@@ -30,11 +33,11 @@
 
 /* ---------------------- SysTick registers bit mask -------------------- */
 /* CTRL TICKINT Mask */
-#define CTRL_TICKINT_Set      ((u32)0x00000002)
-#define CTRL_TICKINT_Reset    ((u32)0xFFFFFFFD)
+#define CTRL_TICKINT_Set      ((uint32_t)0x00000002)
+#define CTRL_TICKINT_Reset    ((uint32_t)0xFFFFFFFD)
 
-void SysTick_SetReload(u32 Reload);
-void SysTick_CounterCmd(u32 SysTick_Counter);
+void SysTick_SetReload(uint32_t Reload);
+void SysTick_CounterCmd(uint32_t SysTick_Counter);
 void SysTick_ITConfig(FunctionalState NewState);
 u32 SysTick_GetCounter(void);
 FlagStatus SysTick_GetFlagStatus(u8 SysTick_FLAG);
@@ -45,32 +48,3 @@ void delay_ms(uint16_t nms);
 void delay_us(uint32_t nus);
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

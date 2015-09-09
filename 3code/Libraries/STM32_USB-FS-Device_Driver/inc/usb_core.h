@@ -30,6 +30,8 @@
 #ifndef __USB_CORE_H
 #define __USB_CORE_H
 
+#include <stdint.h>
+
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 typedef enum _CONTROL_STATE
@@ -130,9 +132,8 @@ typedef struct _DEVICE_INFO
   uint8_t Current_Interface;       /* Selected interface of current configuration */
   uint8_t Current_AlternateSetting;/* Selected Alternate Setting of current
                                      interface*/
-
   ENDPOINT_INFO Ctrl_Info;
-}DEVICE_INFO;
+} DEVICE_INFO;
 
 typedef struct _DEVICE_PROP
 {
@@ -192,21 +193,21 @@ typedef struct _DEVICE_PROP
    
   uint8_t MaxPacketSize;
 
-}DEVICE_PROP;
+} DEVICE_PROP;
 
 typedef struct _USER_STANDARD_REQUESTS
 {
-  void (*User_GetConfiguration)(void);       /* Get Configuration */
-  void (*User_SetConfiguration)(void);       /* Set Configuration */
-  void (*User_GetInterface)(void);           /* Get Interface */
-  void (*User_SetInterface)(void);           /* Set Interface */
-  void (*User_GetStatus)(void);              /* Get Status */
-  void (*User_ClearFeature)(void);           /* Clear Feature */
-  void (*User_SetEndPointFeature)(void);     /* Set Endpoint Feature */
-  void (*User_SetDeviceFeature)(void);       /* Set Device Feature */
-  void (*User_SetDeviceAddress)(void);       /* Set Device Address */
-}
-USER_STANDARD_REQUESTS;
+	void (*User_GetConfiguration)(void);       /* Get Configuration */
+	void (*User_SetConfiguration)(void);       /* Set Configuration */
+	void (*User_GetInterface)(void);           /* Get Interface */
+	void (*User_SetInterface)(void);           /* Set Interface */
+	void (*User_GetStatus)(void);              /* Get Status */
+	void (*User_ClearFeature)(void);           /* Clear Feature */
+	void (*User_SetEndPointFeature)(void);     /* Set Endpoint Feature */
+	void (*User_SetDeviceFeature)(void);       /* Set Device Feature */
+	void (*User_SetDeviceAddress)(void);       /* Set Device Address */
+
+} USER_STANDARD_REQUESTS;
 
 /* Exported constants --------------------------------------------------------*/
 #define Type_Recipient (pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT))

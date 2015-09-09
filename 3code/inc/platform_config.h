@@ -39,27 +39,25 @@
 /* Uncomment the line corresponding to the STMicroelectronics evaluation board
    used to run the example */
 #if !defined (USE_STM32303C_EVAL)
- #define USE_STM32303C_EVAL
+	#define USE_STM32303C_EVAL
 #endif
 
 #if defined (USE_STM32303C_EVAL)
 
-#define USB_INT_DEFAULT// For Default Interrupt Mode                                             | RCC_AHBPeriph_GPIOH)
-//#define USB_INT_REMAP // For Remapping Interrupt Mode
+	#define USB_INT_DEFAULT// For Default Interrupt Mode		| RCC_AHBPeriph_GPIOH)
+	//#define USB_INT_REMAP // For Remapping Interrupt Mode
 
-  #define USB_DISCONNECT                      GPIOE  
-  #define USB_DISCONNECT_PIN                  GPIO_Pin_14
-  #define RCC_AHBPeriph_GPIO_DISCONNECT       RCC_AHBPeriph_GPIOE
+	#define USB_DISCONNECT					GPIOE  
+	#define USB_DISCONNECT_PIN				GPIO_Pin_14
+	#define RCC_AHBPeriph_GPIO_DISCONNECT	RCC_AHBPeriph_GPIOE
                                      
-#define RCC_AHBPeriph_ALLGPIO                 (RCC_AHBPeriph_GPIOA \
-                                              | RCC_AHBPeriph_GPIOB \
-                                              | RCC_AHBPeriph_GPIOC \
-                                              | RCC_AHBPeriph_GPIOD \
-                                              | RCC_AHBPeriph_GPIOE \
-                                              | RCC_AHBPeriph_GPIOF )
-
-
-
+	#define RCC_AHBPeriph_ALLGPIO			(RCC_AHBPeriph_GPIOA	\
+											| RCC_AHBPeriph_GPIOB	\
+											| RCC_AHBPeriph_GPIOC	\
+											| RCC_AHBPeriph_GPIOD	\
+											| RCC_AHBPeriph_GPIOE	\
+											| RCC_AHBPeriph_GPIOF	\
+											)
 #endif /* USE_STM32303C_EVAL */
 
 /* Exported macro ------------------------------------------------------------*/

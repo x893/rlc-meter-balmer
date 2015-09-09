@@ -5,7 +5,7 @@
 
 #include "number_edit.h"
 
-void NumberEditRepaint();
+void NumberEditRepaint(void);
 
 static bool started = false;
 static bool completed = false;
@@ -50,13 +50,13 @@ void NumberEditSetText(const char* atext)
 void NumberEditSetValue(float avalue, int apowMinDelta, int apowMaxDelta)
 {
 	value = avalue;
-	powMinDelta = apowMinDelta;	
+	powMinDelta = apowMinDelta;
 	powMaxDelta = apowMaxDelta;
 }
 
 void NumberEditOnButtonPressed()
 {
-	if(powCurDelta>powMinDelta)
+	if (powCurDelta > powMinDelta)
 	{
 		powCurDelta--;
 		return;
@@ -68,13 +68,14 @@ void NumberEditOnButtonPressed()
 float GetCurDelta()
 {
 	float f = 1.0f;
-	if(powCurDelta>0)
+	if (powCurDelta > 0)
 	{
-		for(int i=0; i<powCurDelta; i++)
+		for (int i = 0; i < powCurDelta; i++)
 			f *= 10.0f;
-	} else
+	}
+	else
 	{
-		for(int i=0; i<-powCurDelta; i++)
+		for (int i = 0; i < -powCurDelta; i++)
 			f *= 0.1f;
 	}
 	return f;
@@ -87,15 +88,15 @@ void NumberEditOnWeel(int16_t delta)
 
 void NumberEditRepaint()
 {
-	if(text)
+	if (text)
 	{
-		LcdGotoXYFont(1,1);
+		LcdGotoXYFont(1, 1);
 		LcdStr(FONT_1X, text);
 	}
 
 	printRX2(value, 2);
 
-    LcdGotoXYFont(1,6);
-    LcdStr(FONT_1X, "+-");
-    printR(GetCurDelta(), FONT_1X);
+	LcdGotoXYFont(1, 6);
+	LcdStr(FONT_1X, "+-");
+	printR(GetCurDelta(), FONT_1X);
 }

@@ -19,8 +19,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -42,7 +42,7 @@
 
 /** @addtogroup USB_Example
   * @{
-  */ 
+  */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -55,70 +55,70 @@ uint32_t ProtocolValue;
 /* -------------------------------------------------------------------------- */
 
 DEVICE Device_Table =
-  {
-    EP_NUM,
-    1
-  };
+{
+	EP_NUM,
+	1
+};
 
 DEVICE_PROP Device_Property =
-  {
-    Joystick_init,
-    Joystick_Reset,
-    Joystick_Status_In,
-    Joystick_Status_Out,
-    Joystick_Data_Setup,
-    Joystick_NoData_Setup,
-    Joystick_Get_Interface_Setting,
-    Joystick_GetDeviceDescriptor,
-    Joystick_GetConfigDescriptor,
-    Joystick_GetStringDescriptor,
-    0,
-    0x40 /*MAX PACKET SIZE*/
-  };
+{
+	RLC_Init,
+	RLC_Reset,
+	RLC_Status_In,
+	RLC_Status_Out,
+	RLC_Data_Setup,
+	RLC_NoData_Setup,
+	RLC_Get_Interface_Setting,
+	RLC_GetDeviceDescriptor,
+	RLC_GetConfigDescriptor,
+	RLC_GetStringDescriptor,
+	0,
+	0x40 /*MAX PACKET SIZE*/
+};
 USER_STANDARD_REQUESTS User_Standard_Requests =
-  {
-    Joystick_GetConfiguration,
-    Joystick_SetConfiguration,
-    Joystick_GetInterface,
-    Joystick_SetInterface,
-    Joystick_GetStatus,
-    Joystick_ClearFeature,
-    Joystick_SetEndPointFeature,
-    Joystick_SetDeviceFeature,
-    Joystick_SetDeviceAddress
-  };
+{
+	RLC_GetConfiguration,
+	RLC_SetConfiguration,
+	RLC_GetInterface,
+	RLC_SetInterface,
+	RLC_GetStatus,
+	RLC_ClearFeature,
+	RLC_SetEndPointFeature,
+	RLC_SetDeviceFeature,
+	RLC_SetDeviceAddress
+};
 
 ONE_DESCRIPTOR Device_Descriptor =
-  {
-    (uint8_t*)Joystick_DeviceDescriptor,
-    JOYSTICK_SIZ_DEVICE_DESC
-  };
+{
+	(uint8_t*)RLC_DeviceDescriptor,
+	RLC_SIZ_DEVICE_DESC
+};
 
 ONE_DESCRIPTOR Config_Descriptor =
-  {
-    (uint8_t*)Joystick_ConfigDescriptor,
-    JOYSTICK_SIZ_CONFIG_DESC
-  };
+{
+	(uint8_t*)RLC_ConfigDescriptor,
+	RLC_SIZ_CONFIG_DESC
+};
 
-ONE_DESCRIPTOR Joystick_Report_Descriptor =
-  {
-    (uint8_t *)Joystick_ReportDescriptor,
-    JOYSTICK_SIZ_REPORT_DESC
-  };
+ONE_DESCRIPTOR RLC_Report_Descriptor =
+{
+	(uint8_t *)RLC_ReportDescriptor,
+	RLC_SIZ_REPORT_DESC
+};
 
 ONE_DESCRIPTOR Mouse_Hid_Descriptor =
-  {
-    (uint8_t*)Joystick_ConfigDescriptor + JOYSTICK_OFF_HID_DESC,
-    JOYSTICK_SIZ_HID_DESC
-  };
+{
+	(uint8_t*)RLC_ConfigDescriptor + RLC_OFF_HID_DESC,
+	RLC_SIZ_HID_DESC
+};
 
 ONE_DESCRIPTOR String_Descriptor[4] =
-  {
-    {(uint8_t*)Joystick_StringLangID, JOYSTICK_SIZ_STRING_LANGID},
-    {(uint8_t*)Joystick_StringVendor, JOYSTICK_SIZ_STRING_VENDOR},
-    {(uint8_t*)Joystick_StringProduct, JOYSTICK_SIZ_STRING_PRODUCT},
-    {(uint8_t*)Joystick_StringSerial, JOYSTICK_SIZ_STRING_SERIAL}
-  };
+{
+	{ (uint8_t*)RLC_StringLangID, RLC_SIZ_STRING_LANGID },
+	{ (uint8_t*)RLC_StringVendor, RLC_SIZ_STRING_VENDOR },
+	{ (uint8_t*)RLC_StringProduct, RLC_SIZ_STRING_PRODUCT },
+	{ (uint8_t*)RLC_StringSerial, RLC_SIZ_STRING_SERIAL }
+};
 
 /* Extern variables ----------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -126,25 +126,23 @@ ONE_DESCRIPTOR String_Descriptor[4] =
 /* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief  Joystick Mouse init routine.
+  * @brief  RLC_Init
   * @param  None
   * @retval None
   */
-void Joystick_init(void)
+void RLC_Init(void)
 {
+	/* Update the serial number string descriptor with the data from the unique	ID*/
+	Get_SerialNum();
 
-  /* Update the serial number string descriptor with the data from the unique
-  ID*/
-  Get_SerialNum();
+	pInformation->Current_Configuration = 0;
+	/* Connect the device */
+	PowerOn();
 
-  pInformation->Current_Configuration = 0;
-  /* Connect the device */
-  PowerOn();
+	/* Perform basic device initialization operations */
+	USB_SIL_Init();
 
-  /* Perform basic device initialization operations */
-  USB_SIL_Init();
-
-  bDeviceState = UNCONNECTED;
+	bDeviceState = UNCONNECTED;
 }
 
 /**
@@ -152,38 +150,38 @@ void Joystick_init(void)
   * @param  None
   * @retval None
   */
-void Joystick_Reset(void)
+void RLC_Reset(void)
 {
-  /* Set Joystick_DEVICE as not configured */
-  pInformation->Current_Configuration = 0;
-  pInformation->Current_Interface = 0;/*the default Interface*/
+	/* Set RLC_DEVICE as not configured */
+	pInformation->Current_Configuration = 0;
+	pInformation->Current_Interface = 0;/*the default Interface*/
 
-  /* Current Feature initialization */
-  pInformation->Current_Feature = Joystick_ConfigDescriptor[7];
+	/* Current Feature initialization */
+	pInformation->Current_Feature = RLC_ConfigDescriptor[7];
 
-  SetBTABLE(BTABLE_ADDRESS);
+	SetBTABLE(BTABLE_ADDRESS);
 
-  /* Initialize Endpoint 0 */
-  SetEPType(ENDP0, EP_CONTROL);
-  SetEPTxStatus(ENDP0, EP_TX_STALL);
-  SetEPRxAddr(ENDP0, ENDP0_RXADDR);
-  SetEPTxAddr(ENDP0, ENDP0_TXADDR);
-  Clear_Status_Out(ENDP0);
-  SetEPRxCount(ENDP0, Device_Property.MaxPacketSize);
-  SetEPRxValid(ENDP0);
+	/* Initialize Endpoint 0 */
+	SetEPType(ENDP0, EP_CONTROL);
+	SetEPTxStatus(ENDP0, EP_TX_STALL);
+	SetEPRxAddr(ENDP0, ENDP0_RXADDR);
+	SetEPTxAddr(ENDP0, ENDP0_TXADDR);
+	Clear_Status_Out(ENDP0);
+	SetEPRxCount(ENDP0, Device_Property.MaxPacketSize);
+	SetEPRxValid(ENDP0);
 
-  /* Initialize Endpoint 1 */
-  SetEPType(ENDP1, EP_BULK);
-  SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-  SetEPRxAddr(ENDP1, ENDP1_RXADDR);
-  SetEPRxCount(ENDP1, VIRTUAL_COM_PORT_DATA_SIZE);
-  SetEPTxStatus(ENDP1, EP_TX_NAK);
-  SetEPRxStatus(ENDP1, EP_RX_VALID);
+	/* Initialize Endpoint 1 */
+	SetEPType(ENDP1, EP_BULK);
+	SetEPTxAddr(ENDP1, ENDP1_TXADDR);
+	SetEPRxAddr(ENDP1, ENDP1_RXADDR);
+	SetEPRxCount(ENDP1, VIRTUAL_COM_PORT_DATA_SIZE);
+	SetEPTxStatus(ENDP1, EP_TX_NAK);
+	SetEPRxStatus(ENDP1, EP_RX_VALID);
 
-  /* Set this device to response on default address */
-  SetDeviceAddress(0);
+	/* Set this device to response on default address */
+	SetDeviceAddress(0);
 
-  bDeviceState = ATTACHED;
+	bDeviceState = ATTACHED;
 }
 
 /**
@@ -191,15 +189,15 @@ void Joystick_Reset(void)
   * @param  None
   * @retval None
   */
-void Joystick_SetConfiguration(void)
+void RLC_SetConfiguration(void)
 {
-  DEVICE_INFO *pInfo = &Device_Info;
+	DEVICE_INFO *pInfo = &Device_Info;
 
-  if (pInfo->Current_Configuration != 0)
-  {
-    /* Device configured */
-    bDeviceState = CONFIGURED;
-  }
+	if (pInfo->Current_Configuration != 0)
+	{
+		/* Device configured */
+		bDeviceState = CONFIGURED;
+	}
 }
 
 /**
@@ -207,9 +205,9 @@ void Joystick_SetConfiguration(void)
   * @param  None
   * @retval None
   */
-void Joystick_SetDeviceAddress (void)
+void RLC_SetDeviceAddress(void)
 {
-  bDeviceState = ADDRESSED;
+	bDeviceState = ADDRESSED;
 }
 
 /**
@@ -217,7 +215,7 @@ void Joystick_SetDeviceAddress (void)
   * @param  None
   * @retval None
   */
-void Joystick_Status_In(void)
+void RLC_Status_In(void)
 {}
 
 /**
@@ -225,7 +223,7 @@ void Joystick_Status_In(void)
   * @param  None
   * @retval None
   */
-void Joystick_Status_Out (void)
+void RLC_Status_Out(void)
 {}
 
 /**
@@ -233,43 +231,43 @@ void Joystick_Status_Out (void)
   * @param  RequestNo: Request Nb.
   * @retval USB_UNSUPPORT or USB_SUCCESS.
   */
-RESULT Joystick_Data_Setup(uint8_t RequestNo)
+RESULT RLC_Data_Setup(uint8_t RequestNo)
 {
-  uint8_t *(*CopyRoutine)(uint16_t);
+	uint8_t *(*CopyRoutine)(uint16_t);
 
-  CopyRoutine = NULL;
-/*
-  if ((RequestNo == GET_DESCRIPTOR)
-      && (Type_Recipient == (STANDARD_REQUEST | INTERFACE_RECIPIENT))
-      && (pInformation->USBwIndex0 == 0))
-  {
+	CopyRoutine = NULL;
+	/*
+	  if ((RequestNo == GET_DESCRIPTOR)
+	  && (Type_Recipient == (STANDARD_REQUEST | INTERFACE_RECIPIENT))
+	  && (pInformation->USBwIndex0 == 0))
+	  {
 
-    if (pInformation->USBwValue1 == REPORT_DESCRIPTOR)
-    {
-      CopyRoutine = Joystick_GetReportDescriptor;
-    }
-    else if (pInformation->USBwValue1 == HID_DESCRIPTOR_TYPE)
-    {
-      CopyRoutine = Joystick_GetHIDDescriptor;
-    }
+	  if (pInformation->USBwValue1 == REPORT_DESCRIPTOR)
+	  {
+	  CopyRoutine = RLC_GetReportDescriptor;
+	  }
+	  else if (pInformation->USBwValue1 == HID_DESCRIPTOR_TYPE)
+	  {
+	  CopyRoutine = RLC_GetHIDDescriptor;
+	  }
 
-  }
-  else if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-           && RequestNo == GET_PROTOCOL)
-  {
-    CopyRoutine = Joystick_GetProtocolValue;
-  }
-*/
+	  }
+	  else if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+	  && RequestNo == GET_PROTOCOL)
+	  {
+	  CopyRoutine = RLC_GetProtocolValue;
+	  }
+	  */
 
-  if (CopyRoutine == NULL)
-  {
-    return USB_UNSUPPORT;
-  }
+	if (CopyRoutine == NULL)
+	{
+		return USB_UNSUPPORT;
+	}
 
-  pInformation->Ctrl_Info.CopyData = CopyRoutine;
-  pInformation->Ctrl_Info.Usb_wOffset = 0;
-  (*CopyRoutine)(0);
-  return USB_SUCCESS;
+	pInformation->Ctrl_Info.CopyData = CopyRoutine;
+	pInformation->Ctrl_Info.Usb_wOffset = 0;
+	(*CopyRoutine)(0);
+	return USB_SUCCESS;
 }
 
 /**
@@ -277,18 +275,18 @@ RESULT Joystick_Data_Setup(uint8_t RequestNo)
   * @param  RequestNo: Request Nb.
   * @retval USB_UNSUPPORT or USB_SUCCESS.
   */
-RESULT Joystick_NoData_Setup(uint8_t RequestNo)
+RESULT RLC_NoData_Setup(uint8_t RequestNo)
 {
-  if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-      && (RequestNo == SET_PROTOCOL))
-  {
-    return Joystick_SetProtocol();
-  }
+	if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+		&& (RequestNo == SET_PROTOCOL))
+	{
+		return RLC_SetProtocol();
+	}
 
-  else
-  {
-    return USB_UNSUPPORT;
-  }
+	else
+	{
+		return USB_UNSUPPORT;
+	}
 }
 
 /**
@@ -296,9 +294,9 @@ RESULT Joystick_NoData_Setup(uint8_t RequestNo)
   * @param  Length: Length.
   * @retval The address of the device descriptor.
   */
-uint8_t *Joystick_GetDeviceDescriptor(uint16_t Length)
+uint8_t *RLC_GetDeviceDescriptor(uint16_t Length)
 {
-  return Standard_GetDescriptorData(Length, &Device_Descriptor);
+	return Standard_GetDescriptorData(Length, &Device_Descriptor);
 }
 
 /**
@@ -306,9 +304,9 @@ uint8_t *Joystick_GetDeviceDescriptor(uint16_t Length)
   * @param  Length: Length.
   * @retval The address of the configuration descriptor.
   */
-uint8_t *Joystick_GetConfigDescriptor(uint16_t Length)
+uint8_t *RLC_GetConfigDescriptor(uint16_t Length)
 {
-  return Standard_GetDescriptorData(Length, &Config_Descriptor);
+	return Standard_GetDescriptorData(Length, &Config_Descriptor);
 }
 
 /**
@@ -316,17 +314,17 @@ uint8_t *Joystick_GetConfigDescriptor(uint16_t Length)
   * @param  Length: Length.
   * @retval The address of the string descriptors.
   */
-uint8_t *Joystick_GetStringDescriptor(uint16_t Length)
+uint8_t *RLC_GetStringDescriptor(uint16_t Length)
 {
-  uint8_t wValue0 = pInformation->USBwValue0;
-  if (wValue0 > 4)
-  {
-    return NULL;
-  }
-  else
-  {
-    return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
-  }
+	uint8_t wValue0 = pInformation->USBwValue0;
+	if (wValue0 > 4)
+	{
+		return NULL;
+	}
+	else
+	{
+		return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
+	}
 }
 
 /**
@@ -334,9 +332,9 @@ uint8_t *Joystick_GetStringDescriptor(uint16_t Length)
   * @param  Length: Length.
   * @retval The address of the configuration descriptor.
   */
-uint8_t *Joystick_GetReportDescriptor(uint16_t Length)
+uint8_t *RLC_GetReportDescriptor(uint16_t Length)
 {
-  return Standard_GetDescriptorData(Length, &Joystick_Report_Descriptor);
+	return Standard_GetDescriptorData(Length, &RLC_Report_Descriptor);
 }
 
 /**
@@ -344,9 +342,9 @@ uint8_t *Joystick_GetReportDescriptor(uint16_t Length)
   * @param  Length: Length.
   * @retval The address of the configuration descriptor.
   */
-uint8_t *Joystick_GetHIDDescriptor(uint16_t Length)
+uint8_t *RLC_GetHIDDescriptor(uint16_t Length)
 {
-  return Standard_GetDescriptorData(Length, &Mouse_Hid_Descriptor);
+	return Standard_GetDescriptorData(Length, &Mouse_Hid_Descriptor);
 }
 
 /**
@@ -355,55 +353,55 @@ uint8_t *Joystick_GetHIDDescriptor(uint16_t Length)
   * @param  AlternateSetting : Alternate Setting number.
   * @retval USB_SUCCESS or USB_UNSUPPORT.
   */
-RESULT Joystick_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
+RESULT RLC_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
 {
-  if (AlternateSetting > 0)
-  {
-    return USB_UNSUPPORT;
-  }
-  else if (Interface > 0)
-  {
-    return USB_UNSUPPORT;
-  }
-  return USB_SUCCESS;
+	if (AlternateSetting > 0)
+	{
+		return USB_UNSUPPORT;
+	}
+	else if (Interface > 0)
+	{
+		return USB_UNSUPPORT;
+	}
+	return USB_SUCCESS;
 }
 
 /**
   * @brief  Joystick Set Protocol request routine.
   * @param  None.
-  * @retval USB_SUCCESS 
+  * @retval USB_SUCCESS
   */
-RESULT Joystick_SetProtocol(void)
+RESULT RLC_SetProtocol(void)
 {
-  uint8_t wValue0 = pInformation->USBwValue0;
-  ProtocolValue = wValue0;
-  return USB_SUCCESS;
+	uint8_t wValue0 = pInformation->USBwValue0;
+	ProtocolValue = wValue0;
+	return USB_SUCCESS;
 }
 
 /**
   * @brief  Get the protocol value
   * @param  Length: length
-  * @retval address of the protocol value. 
+  * @retval address of the protocol value.
   */
-uint8_t *Joystick_GetProtocolValue(uint16_t Length)
+uint8_t *RLC_GetProtocolValue(uint16_t Length)
 {
-  if (Length == 0)
-  {
-    pInformation->Ctrl_Info.Usb_wLength = 1;
-    return NULL;
-  }
-  else
-  {
-    return (uint8_t *)(&ProtocolValue);
-  }
+	if (Length == 0)
+	{
+		pInformation->Ctrl_Info.Usb_wLength = 1;
+		return NULL;
+	}
+	else
+	{
+		return (uint8_t *)(&ProtocolValue);
+	}
 }
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}
-  */ 
+  */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/ 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

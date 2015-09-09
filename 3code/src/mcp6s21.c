@@ -7,25 +7,28 @@ void SPI1_send(uint16_t data);
 
 /*
 	Init SPI for operate MCP6S21 Opertional amplifier
-*/
+ */
 void MCPInit(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct;		
+	GPIO_InitTypeDef GPIO_InitStruct;
+
 	// enable clock for used IO pins
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOD, ENABLE);
+	RCC_AHBPeriphClockCmd(SPI_CS_RCC, ENABLE);
+
+	GPIO_SetBits(SPI_CS_PORT, SPI_CS_I_PIN);
+	GPIO_SetBits(SPI_CS_PORT, SPI_CS_V_PIN);
+
 	/*
 	PD6 - CS_I
 	PD7 - CS_A
 	*/
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStruct.GPIO_Pin = SPI_CS_I_PIN | SPI_CS_V_PIN;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-	GPIO_Init(GPIOD, &GPIO_InitStruct);
-	
-	GPIO_SetBits(GPIOD, GPIO_Pin_6);
-	GPIO_SetBits(GPIOD, GPIO_Pin_7);
+	GPIO_Init(SPI_CS_PORT, &GPIO_InitStruct);
+
 }
 
 /*
@@ -38,13 +41,12 @@ void MCPInit(void)
 6 - Gain of +16
 7 - Gain of +32
 */
+
 void MCPSetGain(bool voltage, uint8_t gain)
 {
-	GPIO_ResetBits(GPIOD, voltage?GPIO_Pin_7:GPIO_Pin_6);
-	uint16_t command = (0b01000000<<8);
-	command |= gain;
+	uint16_t command = (0x40 << 8) | gain;
 
+	GPIO_ResetBits(SPI_CS_PORT, voltage ? SPI_CS_V_PIN : SPI_CS_I_PIN);
 	SPI1_send(command);
-
-	GPIO_SetBits(GPIOD, voltage?GPIO_Pin_7:GPIO_Pin_6);
+	GPIO_SetBits(SPI_CS_PORT, voltage ? SPI_CS_V_PIN : SPI_CS_I_PIN);
 }

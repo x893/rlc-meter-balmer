@@ -1,9 +1,16 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
+#ifndef __LCD_INTERFACE_H__
+#define __LCD_INTERFACE_H__
+
 #include "pcd8544.h"
 
-void LcdRepaint();
+#include <stdint.h>
+#include <stdbool.h>
+
+void LcdRepaint(void);
+void LcdHello(void);
 
 void printInt(int32_t value, uint8_t font);
 
@@ -19,3 +26,5 @@ extern bool valueIsC;
 extern bool calculatedValues;
 extern float valueL;
 extern float valueC;
+
+#endif

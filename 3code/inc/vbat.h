@@ -1,5 +1,5 @@
 // balmer@inbox.ru RLC Meter 303
 // 2013-2014
 
-void VBatInit();
-void VBatQuant();
+void VBatInit(void);
+void VBatQuant(void);
